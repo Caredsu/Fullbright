@@ -39,8 +39,8 @@ try {
     
     echo "Summary:\n";
     echo "  • Device fingerprinting enabled\n";
-    echo "  • Rate limiting: 3 evaluations per hour per device\n";
-    echo "  • IP rate limiting: 10 evaluations per hour per IP\n";
+    echo "  • Rate limiting: 10 evaluations per hour per device\n";
+    echo "  • IP rate limiting: 30 evaluations per hour per IP\n";
     echo "  • One evaluation per teacher per device (permanent)\n";
     echo "  • Auto-cleanup: pending submissions after 24 hours\n";
     

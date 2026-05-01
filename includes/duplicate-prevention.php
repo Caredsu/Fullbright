@@ -61,7 +61,7 @@ function checkDuplicateSubmission($teacherId, $deviceId = null, $ipAddress = nul
             ];
         }
         
-        // 2. Check: Rate limiting - Max 3 evaluations per hour from same device
+        // 2. Check: Rate limiting - Max 10 evaluations per hour from same device
         $oneHourAgo = new \MongoDB\BSON\UTCDateTime(time() * 1000 - 3600 * 1000);
         $recentSubmissions = $submissionLogs->countDocuments([
             'ip_address' => $ipAddress,
@@ -69,7 +69,7 @@ function checkDuplicateSubmission($teacherId, $deviceId = null, $ipAddress = nul
             'submitted_at' => ['$gte' => $oneHourAgo]
         ]);
         
-        if ($recentSubmissions >= 3) {
+        if ($recentSubmissions >= 10) {
             return [
                 'is_duplicate' => true,
                 'reason' => 'rate_limit_exceeded',
@@ -78,14 +78,14 @@ function checkDuplicateSubmission($teacherId, $deviceId = null, $ipAddress = nul
             ];
         }
         
-        // 3. Check: IP address spam - Max 10 evaluations per hour from same IP
+        // 3. Check: IP address spam - Max 30 evaluations per hour from same IP
         $ipRecentSubmissions = $submissionLogs->countDocuments([
             'ip_address' => $ipAddress,
             'status' => 'completed',
             'submitted_at' => ['$gte' => $oneHourAgo]
         ]);
         
-        if ($ipRecentSubmissions >= 10) {
+        if ($ipRecentSubmissions >= 30) {
             return [
                 'is_duplicate' => true,
                 'reason' => 'ip_rate_limit',
