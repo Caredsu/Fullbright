@@ -10,6 +10,12 @@
 .svn/
 migrate_working_dir/
 
+# PHP dependencies and environment
+vendor/
+.env
+.env.local
+composer.lock
+
 # IntelliJ related
 *.iml
 *.ipr
