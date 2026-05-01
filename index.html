@@ -1,7 +1,11 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-  <base href="/teacher-eval/">
+  <script>
+    // Auto-detect base path: Render uses /, localhost uses /teacher-eval/
+    const basePath = window.location.hostname.includes('onrender.com') ? '/' : '/teacher-eval/';
+    document.write(`<base href="${basePath}">`);
+  </script>
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Teacher Evaluation System - Fullbright College Inc.">
