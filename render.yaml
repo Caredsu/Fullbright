@@ -15,3 +15,9 @@ services:
         value: teacher_eval
       - key: APP_ENV
         value: production
+      - key: APP_URL
+        value: https://fullbright-college-1.onrender.com
+      - key: APP_DEBUG
+        value: "false"
+      - key: JWT_SECRET
+        value: teacher_eval_secret_key_2024_april_secure
