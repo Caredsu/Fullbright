@@ -9,3 +9,9 @@ services:
     envVars:
       - key: PORT
         value: 8080
+      - key: DB_HOST
+        value: mongodb+srv://Fullbright:alhamer1@cluster0.d5w3hon.mongodb.net/teacher_eval?retryWrites=true&w=majority
+      - key: DB_NAME
+        value: teacher_eval
+      - key: APP_ENV
+        value: production
