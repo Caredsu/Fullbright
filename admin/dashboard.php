@@ -405,13 +405,16 @@ try {
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/dashboard.css">
     
+    <!-- Real-Time Notifications -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css">
+    
     <!-- Async load non-critical styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" media="print" onload="this.media='all'">
     
     <!-- Defer non-critical scripts -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 </head>
-<body>
+<body class="admin-page">
     <!-- Navbar -->
     <?php include '../includes/navbar.php'; ?>
     
@@ -733,6 +736,10 @@ try {
     <script src="<?= ASSETS_URL ?>/js/confirmation.js"></script>
     <script src="<?= ASSETS_URL ?>/js/export-pdf.js"></script>
     <script src="<?= ASSETS_URL ?>/js/pages/dashboard.js"></script>
+    
+    <!-- Real-Time Notifications System -->
+    <script src="<?= ASSETS_URL ?>/js/notification-toast.js"></script>
+    <script src="<?= ASSETS_URL ?>/js/real-time-notifications.js"></script>
     
     <!-- Show Login Success Toast at Top Right -->
     <script>
