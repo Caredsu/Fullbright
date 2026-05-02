@@ -5,22 +5,54 @@
 
 // Skeleton Loader Management
 function initializeSkeletonLoader() {
-    const skeletonLoader = document.querySelector('.skeleton-loader');
-    const showSkeleton = skeletonLoader && skeletonLoader.getAttribute('data-show-skeleton') === 'true';
-    
-    if (showSkeleton && skeletonLoader.classList.contains('loading')) {
-        // Hide skeleton after 500ms for visual effect
+    try {
+        const skeletonLoader = document.querySelector('.skeleton-loader');
+        
+        if (!skeletonLoader) {
+            console.log('ℹ️ No skeleton loader found');
+            return;
+        }
+        
+        const showSkeleton = skeletonLoader.getAttribute('data-show-skeleton') === 'true';
+        console.log('Skeleton loader status:', { show: showSkeleton, hasClass: skeletonLoader.classList.contains('loading') });
+        
+        // Always hide skeleton after a delay, whether it was shown or not
         setTimeout(function() {
-            skeletonLoader.classList.remove('loading');
+            if (skeletonLoader.classList.contains('loading')) {
+                skeletonLoader.classList.remove('loading');
+                console.log('✅ Skeleton loader removed');
+            }
         }, 500);
-    }
-    
-    // Show login success toast notification
-    if (showSkeleton) {
-        setTimeout(function() {
-            const username = document.body.dataset.username || 'Admin';
-            showSuccess('Welcome back!', `You have successfully logged in as ${username}`);
-        }, 300);
+        
+        // Show login success toast notification
+        if (showSkeleton) {
+            setTimeout(function() {
+                const username = document.body.dataset.username || 'Admin';
+                if (typeof showSuccess === 'function') {
+                    showSuccess('Welcome back!', `You have successfully logged in as ${username}`);
+                } else if (window.Swal) {
+                    window.Swal.fire({
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Login Successful',
+                        text: `Welcome back!`,
+                        toast: true,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    console.log('✅ Login successful');
+                }
+            }, 300);
+        }
+    } catch (error) {
+        console.error('❌ Skeleton loader error:', error);
+        // Still try to remove the skeleton
+        const skeletonLoader = document.querySelector('.skeleton-loader');
+        if (skeletonLoader) {
+            skeletonLoader.classList.remove('loading');
+        }
     }
 }
 
@@ -284,20 +316,61 @@ let activityFeed = null;
 
 // Initialize Dashboard on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize components
-    initializeSkeletonLoader();
-    
-    // Initialize charts
-    dashboardCharts = new DashboardCharts();
-    dashboardCharts.initializeStatusChart();
-    dashboardCharts.initializeTeacherRatingsChart();
-    
-    // Initialize activity feed
-    activityFeed = new ActivityFeed();
-    
-    // Start polling for new evaluations
-    dashboardPoller = new DashboardPoller();
-    dashboardPoller.start();
+    try {
+        console.log('🚀 Dashboard initialization starting...');
+        
+        // Initialize components
+        initializeSkeletonLoader();
+        console.log('✅ Skeleton loader initialized');
+        
+        // Initialize charts (safe with error handling)
+        try {
+            if (typeof DashboardCharts !== 'undefined') {
+                dashboardCharts = new DashboardCharts();
+                dashboardCharts.initializeStatusChart();
+                dashboardCharts.initializeTeacherRatingsChart();
+                console.log('✅ Charts initialized');
+            } else {
+                console.warn('⚠️ DashboardCharts not available');
+            }
+        } catch (chartError) {
+            console.error('❌ Chart initialization error:', chartError);
+        }
+        
+        // Initialize activity feed (safe with error handling)
+        try {
+            if (typeof ActivityFeed !== 'undefined') {
+                activityFeed = new ActivityFeed();
+                console.log('✅ Activity feed initialized');
+            } else {
+                console.warn('⚠️ ActivityFeed not available');
+            }
+        } catch (feedError) {
+            console.error('❌ Activity feed error:', feedError);
+        }
+        
+        // Start polling for new evaluations (safe with error handling)
+        try {
+            if (typeof DashboardPoller !== 'undefined') {
+                dashboardPoller = new DashboardPoller();
+                dashboardPoller.start();
+                console.log('✅ Polling started');
+            } else {
+                console.warn('⚠️ DashboardPoller not available');
+            }
+        } catch (pollerError) {
+            console.error('❌ Polling error:', pollerError);
+        }
+        
+        console.log('🎉 Dashboard fully initialized!');
+    } catch (error) {
+        console.error('🔴 CRITICAL Dashboard initialization error:', error);
+        // Don't break the entire page, at least remove skeleton
+        const skeletonLoader = document.querySelector('.skeleton-loader');
+        if (skeletonLoader && skeletonLoader.classList.contains('loading')) {
+            skeletonLoader.classList.remove('loading');
+        }
+    }
 });
 
 // Cleanup on page unload
