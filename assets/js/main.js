@@ -365,27 +365,33 @@ class Validator {
 }
 
 // Storage Helper (localStorage with automatic JSON handling)
-class Storage {
-    static set(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-    
-    static get(key, defaultValue = null) {
-        const item = localStorage.getItem(key);
-        try {
-            return item ? JSON.parse(item) : defaultValue;
-        } catch (e) {
-            return defaultValue;
+// Check if already declared to prevent duplicate class error
+if (typeof Storage === 'undefined' || !Storage.set) {
+    class Storage {
+        static set(key, value) {
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+        
+        static get(key, defaultValue = null) {
+            const item = localStorage.getItem(key);
+            try {
+                return item ? JSON.parse(item) : defaultValue;
+            } catch (e) {
+                return defaultValue;
+            }
+        }
+        
+        static remove(key) {
+            localStorage.removeItem(key);
+        }
+        
+        static clear() {
+            localStorage.clear();
         }
     }
     
-    static remove(key) {
-        localStorage.removeItem(key);
-    }
-    
-    static clear() {
-        localStorage.clear();
-    }
+    // Make Storage available globally
+    window.Storage = Storage;
 }
 
 // DOM Helper
