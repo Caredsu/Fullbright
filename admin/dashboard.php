@@ -408,9 +408,6 @@ try {
     <!-- Real-Time Notifications -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css">
     
-    <!-- Dashboard Enhancements (Analytics, Filters, Form Validation) -->
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/dashboard-enhancements.css">
-    
     <!-- Async load non-critical styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" media="print" onload="this.media='all'">
     
@@ -743,11 +740,6 @@ try {
     <!-- Real-Time Notifications System -->
     <script src="<?= ASSETS_URL ?>/js/notification-toast.js"></script>
     <script src="<?= ASSETS_URL ?>/js/real-time-notifications.js"></script>
-    
-    <!-- Dashboard Enhancements -->
-    <script src="<?= ASSETS_URL ?>/js/dashboard-analytics.js"></script>
-    <script src="<?= ASSETS_URL ?>/js/dashboard-search-filter.js"></script>
-    <script src="<?= ASSETS_URL ?>/js/form-validator.js"></script>
     
     <!-- Show Login Success Toast at Top Right -->
     <script>

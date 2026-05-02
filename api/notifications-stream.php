@@ -63,8 +63,7 @@ while ((time() - $startTime) < $maxDuration) {
         $evaluationsCollection = $database->teacher_eval->evaluations;
         
         $recentEvaluations = $evaluationsCollection->find([
-            'created_at' => ['$gte' => new MongoDB\BSON\UTCDateTime($lastCheckTime * 1000)],
-            'status' => 'submitted'
+            'created_at' => ['$gte' => new MongoDB\BSON\UTCDateTime($lastCheckTime * 1000)]
         ], [
             'sort' => ['created_at' => -1],
             'limit' => 10
