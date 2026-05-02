@@ -14,7 +14,13 @@
     # Redirect favicon to pwa folder
     RewriteRule ^favicon\.png$ pwa/icons/favicon.png [NC,L]
     
-    # **IMPORTANT: Redirect asset requests to pwa folder BEFORE extension check**
+    # **PRIORITY 1: Never rewrite api folder - serve PHP files directly (for API endpoints)**
+    RewriteRule ^api/ - [L]
+    
+    # **PRIORITY 2: Never rewrite pwa folder - serve static files directly**
+    RewriteRule ^pwa/ - [L]
+    
+    # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**
     # This catches requests for /assets/, /canvaskit/, /icons/, /shaders/ and serves from pwa/
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -34,12 +40,6 @@
     # Don't rewrite if it's a real directory
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^(.*)$ - [L]
-    
-    # Never rewrite pwa folder - serve static files directly
-    RewriteRule ^pwa/ - [L]
-    
-    # Never rewrite api folder - serve PHP files directly (for API endpoints)
-    RewriteRule ^api/ - [L]
 
     # Route everything else to index.php
     RewriteRule ^(.*)$ index.php?request=$1 [QSA,L]
