@@ -37,6 +37,9 @@
     
     # Never rewrite pwa folder - serve static files directly
     RewriteRule ^pwa/ - [L]
+    
+    # Never rewrite api folder - serve PHP files directly (for API endpoints)
+    RewriteRule ^api/ - [L]
 
     # Route everything else to index.php
     RewriteRule ^(.*)$ index.php?request=$1 [QSA,L]
