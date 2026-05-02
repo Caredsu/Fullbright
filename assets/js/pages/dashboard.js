@@ -79,6 +79,14 @@ class DashboardPoller {
     
     check() {
         if (!this.enabled) return;
+        
+        // Don't poll if we've navigated away from dashboard
+        if (!window.location.pathname.includes('/admin/dashboard')) {
+            console.log('ℹ️ Not on dashboard page anymore, stopping polling');
+            this.stop();
+            return;
+        }
+        
         // Use relative URL - will resolve based on current page location
         const url = `dashboard.php?check_new=1&lastId=${this.lastEvalId || ''}`;
         
@@ -103,8 +111,11 @@ class DashboardPoller {
                         
                         // Reload after 6 seconds to give SSE time to show notification
                         setTimeout(() => {
-                            console.log('🔄 Reloading page...');
-                            location.reload();
+                            // Double-check we're still on dashboard before reloading
+                            if (window.location.pathname.includes('/admin/dashboard')) {
+                                console.log('🔄 Reloading page...');
+                                location.reload();
+                            }
                         }, 6000);
                     } else if (this.isFirstLoad) {
                         console.log('📌 First load - baseline set');
