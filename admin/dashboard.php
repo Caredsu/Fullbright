@@ -205,8 +205,24 @@ if (isset($_GET['get_notif_count'])) {
 
 // Handle AJAX polling request
 if (isset($_GET['check_new'])) {
-    header('Content-Type: application/json');
+    // Set response header FIRST before any other output
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    
     try {
+        // Ensure session is active for this AJAX request
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        
+        // Verify admin is still logged in
+        if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
+            http_response_code(401);
+            die(json_encode(['error' => 'Unauthorized', 'has_new' => false, 'latest_id' => null]));
+        }
+        
+        // Get latest evaluation
         $latestEval = $evaluations_collection->findOne([], ['sort' => ['_id' => -1]]);
         $latestId = $latestEval ? (string)$latestEval['_id'] : null;
         
@@ -219,13 +235,29 @@ if (isset($_GET['check_new'])) {
         
         echo json_encode([
             'has_new' => $hasNew,
-            'latest_id' => $latestId
+            'latest_id' => $latestId,
+            'success' => true
         ]);
     } catch (\Exception $e) {
         error_log("Poll check error: " . $e->getMessage());
-        echo json_encode(['has_new' => false, 'latest_id' => null]);
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'Database error: ' . $e->getMessage(),
+            'has_new' => false,
+            'latest_id' => null,
+            'success' => false
+        ]);
+    } catch (Throwable $t) {
+        error_log("Poll check throwable: " . $t->getMessage());
+        http_response_code(500);
+        echo json_encode([
+            'error' => 'System error: ' . $t->getMessage(),
+            'has_new' => false,
+            'latest_id' => null,
+            'success' => false
+        ]);
     }
-    exit;
+    exit(0);  // Clean exit
 }
 
 // Check if just logged in and unset the flag

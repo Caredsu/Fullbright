@@ -47,11 +47,21 @@ class DashboardPoller {
     
     check() {
         if (!this.enabled) return;
+        // Use relative URL - will resolve based on current page location
+        const url = `dashboard.php?check_new=1&lastId=${this.lastEvalId || ''}`;
         
-        const url = `/teacher-eval/admin/dashboard.php?check_new=1&lastId=${this.lastEvalId || ''}`;
-        
-        fetch(url)
-            .then(response => response.json())
+        fetch(url, { credentials: 'include' })
+            .then(response => {
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    throw new Error(`Expected JSON, got ${contentType || 'no content-type'}`);
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.latest_id) {
                     if (!this.isFirstLoad && data.has_new) {
@@ -74,7 +84,10 @@ class DashboardPoller {
                     this.lastEvalId = data.latest_id;
                 }
             })
-            .catch(error => console.error('Poll error:', error));
+            .catch(error => {
+                console.error('Poll error:', error);
+                console.error('Response details:', error);
+            });
     }
     
     showNotification() {
