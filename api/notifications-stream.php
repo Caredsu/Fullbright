@@ -21,20 +21,27 @@ header('Access-Control-Allow-Methods: GET');
 set_time_limit(0);
 ignore_user_abort(true);
 
+// Declare globals BEFORE including files
+global $db, $database, $evaluations_collection, $teachers_collection, $collections;
+
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../app/Bootstrap.php';
 
 session_start();
 
+// Debug: Log access attempt
+error_log("SSE Connection attempt - Admin ID: " . ($_SESSION['admin_id'] ?? 'none') . ", Role: " . ($_SESSION['admin_role'] ?? 'none'));
+
 // Only admins can access this endpoint
-if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'admin') {
+if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
     // Still send SSE format but with error
     echo "event: error\n";
-    echo "data: {\"message\": \"Unauthorized\"}\n\n";
+    echo "data: {\"message\": \"Unauthorized - not logged in as admin\"}\n\n";
+    error_log("SSE Unauthorized access attempt");
     exit;
 }
 
-$adminId = $_SESSION['user_id'];
+$adminId = $_SESSION['admin_id'];
 $lastCheckTime = isset($_GET['since']) ? (int)$_GET['since'] : (time() - 5);
 
 /**
@@ -59,10 +66,10 @@ $maxDuration = 300; // 5 minutes
 
 while ((time() - $startTime) < $maxDuration) {
     try {
-        // Check for new evaluations since last check
-        $evaluationsCollection = $database->teacher_eval->evaluations;
+        // Check for new evaluations since last check (use global collections already initialized)
+        global $evaluations_collection, $teachers_collection;
         
-        $recentEvaluations = $evaluationsCollection->find([
+        $recentEvaluations = $evaluations_collection->find([
             'created_at' => ['$gte' => new MongoDB\BSON\UTCDateTime($lastCheckTime * 1000)]
         ], [
             'sort' => ['created_at' => -1],
@@ -74,11 +81,11 @@ while ((time() - $startTime) < $maxDuration) {
         if ($newCount > 0) {
             foreach ($recentEvaluations as $eval) {
                 // Get teacher name
-                $teacher = $database->teacher_eval->teachers->findOne([
+                $teacher = $teachers_collection->findOne([
                     '_id' => $eval->teacher_id ?? null
                 ]);
                 
-                $teacherName = $teacher->name ?? 'Unknown Teacher';
+                $teacherName = $teacher['name'] ?? 'Unknown Teacher';
                 
                 sendEvent('new_evaluation', [
                     'id' => (string)$eval->_id,
@@ -100,8 +107,16 @@ while ((time() - $startTime) < $maxDuration) {
         ]);
         
     } catch (Exception $e) {
+        $errorMsg = $e->getMessage();
+        error_log("SSE Error: " . $errorMsg);
         sendEvent('error', [
-            'message' => 'Error checking evaluations: ' . $e->getMessage()
+            'message' => 'Database error: ' . $errorMsg
+        ]);
+    } catch (Throwable $t) {
+        $errorMsg = $t->getMessage();
+        error_log("SSE Throwable: " . $errorMsg);
+        sendEvent('error', [
+            'message' => 'System error: ' . $errorMsg
         ]);
     }
     
