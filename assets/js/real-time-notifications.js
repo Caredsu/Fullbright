@@ -11,6 +11,9 @@ class RealTimeNotifications {
         this.maxReconnectAttempts = 5;
         this.reconnectDelay = 3000;
         
+        // Track seen evaluations to prevent duplicate notifications
+        this.seenEvaluationIds = new Set();
+        
         this.options = {
             // Use relative path: from /teacher-eval/admin/dashboard.php, ../api/ goes to /teacher-eval/api/
             streamUrl: '../api/notifications-stream.php',
@@ -113,26 +116,72 @@ class RealTimeNotifications {
     }
 
     handleNewEvaluation(evaluation) {
+        // Check if we already processed this evaluation
+        if (this.seenEvaluationIds.has(evaluation.id)) {
+            console.log('⏭️ Skipping duplicate evaluation:', evaluation.id);
+            return;
+        }
+        
+        // Mark as seen to prevent duplicate notifications
+        this.seenEvaluationIds.add(evaluation.id);
+        
+        console.log('📊 Processing NEW evaluation:', evaluation);
+        
+        // Validate teacher name
+        const teacherName = evaluation.teacher_name && evaluation.teacher_name !== 'Unknown Teacher' 
+            ? evaluation.teacher_name 
+            : `Teacher #${evaluation.teacher_id?.substring(0, 8) || 'Unknown'}`;
+        
+        // Validate rating
+        const rating = evaluation.rating && evaluation.rating > 0 ? evaluation.rating : '?';
+        const ratingDisplay = typeof rating === 'number' ? rating.toFixed(1) : rating;
+        
+        console.log('✅ Notification: ', { teacherName, ratingDisplay, ...evaluation });
+
         // Update badge count
         this.updateBadge();
 
-        // Show toast notification
-        if (window.toast) {
-            window.toast.show({
-                type: 'success',
-                icon: '📊',
-                title: 'New Evaluation Received',
-                message: `${evaluation.teacher_name} - Rating: ${evaluation.rating}/5`,
-                duration: 5000,
-                action: {
-                    label: 'View',
-                    onClick: () => {
-                        // Redirect to evaluations page or trigger refresh
-                        if (window.location.pathname.includes('/admin/')) {
+        // Show toast notification ONLY if using dedicated toast system
+        if (window.toast && typeof window.toast.show === 'function') {
+            try {
+                window.toast.show({
+                    type: 'success',
+                    icon: '📊',
+                    title: 'New Evaluation',
+                    message: `${teacherName} - ⭐ ${ratingDisplay}/5`,
+                    duration: 5000,
+                    action: {
+                        label: 'View',
+                        onClick: () => {
                             this.refreshDashboard();
                         }
                     }
+                });
+            } catch (e) {
+                console.error('Toast show error:', e);
+                // Fallback to SweetAlert
+                if (window.Swal) {
+                    window.Swal.fire({
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'New Evaluation',
+                        text: `${teacherName} - ⭐ ${ratingDisplay}/5`,
+                        timer: 5000,
+                        timerProgressBar: true,
+                        showConfirmButton: false
+                    });
                 }
+            }
+        } else if (window.Swal) {
+            // Fallback to SweetAlert
+            window.Swal.fire({
+                position: 'top-end',
+                icon: 'success',
+                title: 'New Evaluation',
+                text: `${teacherName} - ⭐ ${ratingDisplay}/5`,
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false
             });
         }
 
@@ -141,8 +190,12 @@ class RealTimeNotifications {
             this.options.onNewEvaluation(evaluation);
         }
 
-        // Trigger dashboard refresh
-        this.refreshDashboard();
+        // Trigger dashboard refresh ONLY once per evaluation
+        // Delay slightly to avoid multiple refreshes
+        clearTimeout(this.refreshTimeout);
+        this.refreshTimeout = setTimeout(() => {
+            this.refreshDashboard();
+        }, 1000);
     }
 
     refreshDashboard() {

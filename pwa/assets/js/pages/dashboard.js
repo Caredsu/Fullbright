@@ -65,17 +65,15 @@ class DashboardPoller {
             .then(data => {
                 if (data.latest_id) {
                     if (!this.isFirstLoad && data.has_new) {
-                        console.log('🎉 NEW EVALUATION DETECTED!');
-                        this.showNotification();
+                        // SSE is handling the notification, polling just refreshes
+                        // Only log and reload silently (SSE shows the toast)
+                        console.log('🎉 NEW EVALUATION DETECTED (polling)');
                         
-                        // Update notification badge
-                        this.updateBadge();
-                        
-                        // Reload after 5.5 seconds
+                        // Reload after 6 seconds to give SSE time to show notification
                         setTimeout(() => {
                             console.log('🔄 Reloading page...');
                             location.reload();
-                        }, 5500);
+                        }, 6000);
                     } else if (this.isFirstLoad) {
                         console.log('📌 First load - baseline set');
                         this.isFirstLoad = false;
@@ -91,8 +89,9 @@ class DashboardPoller {
     }
     
     showNotification() {
-        if (typeof window.showToast === 'function') {
-            window.showToast('📊 New evaluation submitted!', 'success', 5000);
+        // This is now handled by SSE's real-time-notifications.js
+        console.log('ℹ️ Notification handled by real-time system, skipping polling notification');
+    }
         } else if (window.Swal) {
             window.Swal.fire({
                 position: 'top-end',

@@ -89,48 +89,56 @@ while ((time() - $startTime) < $maxDuration) {
                 // MongoDB objects can be accessed as arrays or objects
                 $teacherId = isset($eval['teacher_id']) ? $eval['teacher_id'] : (isset($eval->teacher_id) ? $eval->teacher_id : null);
                 
+                error_log("SSE Processing eval - Teacher ID: " . json_encode($teacherId));
+                
                 if ($teacherId) {
                     try {
+                        // Find teacher by ID
                         $teacher = $teachers_collection->findOne(['_id' => $teacherId]);
-                        if ($teacher && isset($teacher['name'])) {
-                            $teacherName = $teacher['name'];
+                        if ($teacher) {
+                            $teacherName = isset($teacher['name']) ? $teacher['name'] : $teacherName;
+                            error_log("SSE Found teacher: $teacherName");
+                        } else {
+                            error_log("SSE Teacher not found for ID: " . $teacherId);
                         }
                     } catch (Exception $e) {
-                        error_log("Teacher lookup error: " . $e->getMessage());
+                        error_log("SSE Teacher lookup error: " . $e->getMessage());
                     }
                 }
                 
-                // Extract rating - safely from MongoDB object
-                if (isset($eval['rating'])) {
+                // Extract rating from various sources
+                // Priority 1: Direct rating field
+                if (isset($eval['rating']) && $eval['rating'] > 0) {
                     $teacherRating = $eval['rating'];
-                } elseif (isset($eval->rating)) {
-                    $teacherRating = $eval->rating;
-                }
-                
-                // Extract student rating answers if individual ratings exist
-                if (!$teacherRating && isset($eval['answers'])) {
-                    $answers = $eval['answers'];
-                    if (is_array($answers) && count($answers) > 0) {
-                        $ratings = [];
-                        foreach ($answers as $answer) {
-                            if (isset($answer['rating'])) {
-                                $ratings[] = $answer['rating'];
-                            }
+                    error_log("SSE Rating from direct field: $teacherRating");
+                } 
+                // Priority 2: Average of answers array
+                else if (isset($eval['answers']) && is_array($eval['answers'])) {
+                    $ratings = [];
+                    foreach ($eval['answers'] as $answer) {
+                        if (isset($answer['rating']) && $answer['rating'] > 0) {
+                            $ratings[] = $answer['rating'];
                         }
-                        if (count($ratings) > 0) {
-                            $teacherRating = round(array_sum($ratings) / count($ratings), 1);
-                        }
+                    }
+                    if (count($ratings) > 0) {
+                        $teacherRating = round(array_sum($ratings) / count($ratings), 1);
+                        error_log("SSE Rating from answers: $teacherRating (from " . count($ratings) . " answers)");
                     }
                 }
                 
-                sendEvent('new_evaluation', [
+                // Log the complete event data
+                $eventData = [
                     'id' => (string)$eval['_id'],
                     'teacher_id' => (string)$teacherId,
                     'teacher_name' => $teacherName,
                     'submitted_by' => isset($eval['student_id']) ? $eval['student_id'] : 'Unknown',
                     'timestamp' => isset($eval['created_at']) ? $eval['created_at']->toDateTime()->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
                     'rating' => $teacherRating
-                ]);
+                ];
+                
+                error_log("SSE Sending event: " . json_encode($eventData));
+                
+                sendEvent('new_evaluation', $eventData);
                 
                 // Update last check time
                 $lastCheckTime = (int)($eval->created_at->toDateTime()->getTimestamp());
