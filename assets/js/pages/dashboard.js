@@ -22,7 +22,7 @@ function initializeSkeletonLoader() {
                 skeletonLoader.classList.remove('loading');
                 console.log('✅ Skeleton loader removed');
             }
-        }, 500);
+        }, 200);
         
         // Show login success toast notification
         if (showSkeleton) {
@@ -124,20 +124,7 @@ class DashboardPoller {
         // This is now handled by SSE's real-time-notifications.js
         console.log('ℹ️ Notification handled by real-time system, skipping polling notification');
     }
-        } else if (window.Swal) {
-            window.Swal.fire({
-                position: 'top-end',
-                icon: 'success',
-                title: 'New Evaluation',
-                text: '📊 New evaluation submitted!',
-                timer: 5000,
-                timerProgressBar: true,
-                showConfirmButton: false
-            });
-        } else {
-            console.log('📊 New evaluation submitted!');
-        }
-    }
+    
     
     updateBadge() {
         const notifBadge = document.getElementById('notif-badge');
