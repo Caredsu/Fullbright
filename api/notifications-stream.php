@@ -82,20 +82,54 @@ while ((time() - $startTime) < $maxDuration) {
         
         if ($newCount > 0) {
             foreach ($evaluationsArray as $eval) {
-                // Get teacher name
-                $teacher = $teachers_collection->findOne([
-                    '_id' => $eval->teacher_id ?? null
-                ]);
+                // Get teacher name - safely extract teacher_id from MongoDB object
+                $teacherName = 'Unknown Teacher';
+                $teacherRating = 0;
                 
-                $teacherName = $teacher['name'] ?? 'Unknown Teacher';
+                // MongoDB objects can be accessed as arrays or objects
+                $teacherId = isset($eval['teacher_id']) ? $eval['teacher_id'] : (isset($eval->teacher_id) ? $eval->teacher_id : null);
+                
+                if ($teacherId) {
+                    try {
+                        $teacher = $teachers_collection->findOne(['_id' => $teacherId]);
+                        if ($teacher && isset($teacher['name'])) {
+                            $teacherName = $teacher['name'];
+                        }
+                    } catch (Exception $e) {
+                        error_log("Teacher lookup error: " . $e->getMessage());
+                    }
+                }
+                
+                // Extract rating - safely from MongoDB object
+                if (isset($eval['rating'])) {
+                    $teacherRating = $eval['rating'];
+                } elseif (isset($eval->rating)) {
+                    $teacherRating = $eval->rating;
+                }
+                
+                // Extract student rating answers if individual ratings exist
+                if (!$teacherRating && isset($eval['answers'])) {
+                    $answers = $eval['answers'];
+                    if (is_array($answers) && count($answers) > 0) {
+                        $ratings = [];
+                        foreach ($answers as $answer) {
+                            if (isset($answer['rating'])) {
+                                $ratings[] = $answer['rating'];
+                            }
+                        }
+                        if (count($ratings) > 0) {
+                            $teacherRating = round(array_sum($ratings) / count($ratings), 1);
+                        }
+                    }
+                }
                 
                 sendEvent('new_evaluation', [
-                    'id' => (string)$eval->_id,
-                    'teacher_id' => (string)($eval->teacher_id ?? ''),
+                    'id' => (string)$eval['_id'],
+                    'teacher_id' => (string)$teacherId,
                     'teacher_name' => $teacherName,
-                    'submitted_by' => $eval->student_id ?? 'Unknown',
-                    'timestamp' => $eval->created_at->toDateTime()->format('Y-m-d H:i:s'),
-                    'rating' => $eval->rating ?? 0
+                    'submitted_by' => isset($eval['student_id']) ? $eval['student_id'] : 'Unknown',
+                    'timestamp' => isset($eval['created_at']) ? $eval['created_at']->toDateTime()->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
+                    'rating' => $teacherRating
                 ]);
                 
                 // Update last check time

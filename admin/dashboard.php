@@ -18,6 +18,60 @@ if (!ob_get_contents() && extension_loaded('zlib')) {
 }
 
 initializeSession();
+
+// AJAX HANDLERS - Must come BEFORE requireLogin() to avoid redirects
+// ===================================================================
+
+// Handle AJAX polling request
+if (isset($_GET['check_new'])) {
+    // Set response header FIRST before any other output
+    header('Content-Type: application/json; charset=utf-8');
+    header('Cache-Control: no-cache, must-revalidate');
+    header('Pragma: no-cache');
+    
+    try {
+        // Verify admin is still logged in
+        if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
+            http_response_code(401);
+            die(json_encode(['error' => 'Unauthorized', 'has_new' => false, 'latest_id' => null]));
+        }
+        
+        // Get latest evaluation
+        $latestEval = $evaluations_collection->findOne([], ['sort' => ['_id' => -1]]);
+        $latestId = $latestEval ? (string)$latestEval['_id'] : null;
+        
+        // Compare with client's last known ID
+        $clientLastId = isset($_GET['lastId']) && $_GET['lastId'] !== '' ? $_GET['lastId'] : null;
+        $hasNew = ($latestId && $latestId !== $clientLastId);
+        
+        error_log("Poll check - Latest: $latestId, Client: $clientLastId, HasNew: " . ($hasNew ? 'true' : 'false'));
+        
+        die(json_encode([
+            'has_new' => $hasNew,
+            'latest_id' => $latestId,
+            'success' => true
+        ]));
+    } catch (\Exception $e) {
+        error_log("Poll check error: " . $e->getMessage());
+        http_response_code(500);
+        die(json_encode([
+            'error' => 'Database error: ' . $e->getMessage(),
+            'has_new' => false,
+            'latest_id' => null,
+            'success' => false
+        ]));
+    } catch (Throwable $t) {
+        error_log("Poll check throwable: " . $t->getMessage());
+        http_response_code(500);
+        die(json_encode([
+            'error' => 'System error: ' . $t->getMessage(),
+            'has_new' => false,
+            'latest_id' => null,
+            'success' => false
+        ]));
+    }
+}
+
 requireLogin();
 
 // Handle AJAX notification count request
@@ -201,63 +255,6 @@ if (isset($_GET['get_notif_count'])) {
         echo json_encode(['count' => 0]);
     }
     exit;
-}
-
-// Handle AJAX polling request
-if (isset($_GET['check_new'])) {
-    // Set response header FIRST before any other output
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-cache, must-revalidate');
-    header('Pragma: no-cache');
-    
-    try {
-        // Ensure session is active for this AJAX request
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
-        
-        // Verify admin is still logged in
-        if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
-            http_response_code(401);
-            die(json_encode(['error' => 'Unauthorized', 'has_new' => false, 'latest_id' => null]));
-        }
-        
-        // Get latest evaluation
-        $latestEval = $evaluations_collection->findOne([], ['sort' => ['_id' => -1]]);
-        $latestId = $latestEval ? (string)$latestEval['_id'] : null;
-        
-        // Compare with client's last known ID - treat empty string as null for first check
-        $clientLastId = isset($_GET['lastId']) && $_GET['lastId'] !== '' ? $_GET['lastId'] : null;
-        $hasNew = ($latestId && $latestId !== $clientLastId);
-        
-        // Debug logging
-        error_log("Poll check - Latest: $latestId, Client: $clientLastId, HasNew: " . ($hasNew ? 'true' : 'false'));
-        
-        echo json_encode([
-            'has_new' => $hasNew,
-            'latest_id' => $latestId,
-            'success' => true
-        ]);
-    } catch (\Exception $e) {
-        error_log("Poll check error: " . $e->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            'error' => 'Database error: ' . $e->getMessage(),
-            'has_new' => false,
-            'latest_id' => null,
-            'success' => false
-        ]);
-    } catch (Throwable $t) {
-        error_log("Poll check throwable: " . $t->getMessage());
-        http_response_code(500);
-        echo json_encode([
-            'error' => 'System error: ' . $t->getMessage(),
-            'has_new' => false,
-            'latest_id' => null,
-            'success' => false
-        ]);
-    }
-    exit(0);  // Clean exit
 }
 
 // Check if just logged in and unset the flag
