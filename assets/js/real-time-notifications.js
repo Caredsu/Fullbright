@@ -47,7 +47,6 @@ class RealTimeNotifications {
                     console.error('❌ Failed to parse connected event:', error, event.data);
                 }
             });
-            });
 
             // New evaluation received
             this.eventSource.addEventListener('new_evaluation', (event) => {
