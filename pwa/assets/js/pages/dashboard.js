@@ -78,7 +78,21 @@ class DashboardPoller {
     }
     
     showNotification() {
-        showToast('📊 New evaluation submitted!', 'success', 5000);
+        if (typeof window.showToast === 'function') {
+            window.showToast('📊 New evaluation submitted!', 'success', 5000);
+        } else if (window.Swal) {
+            window.Swal.fire({
+                position: 'top-end',
+                icon: 'success',
+                title: 'New Evaluation',
+                text: '📊 New evaluation submitted!',
+                timer: 5000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+        } else {
+            console.log('📊 New evaluation submitted!');
+        }
     }
     
     updateBadge() {
