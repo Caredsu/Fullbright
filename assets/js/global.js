@@ -218,27 +218,8 @@ function hideAllModals() {
     });
 }
 
-// Local Storage Helpers (renamed to AppStorage to avoid conflict with Storage class in main.js)
-const AppStorage = {
-    set: (key, value) => {
-        localStorage.setItem(key, JSON.stringify(value));
-    },
-    get: (key) => {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : null;
-    },
-    remove: (key) => {
-        localStorage.removeItem(key);
-    },
-    clear: () => {
-        localStorage.clear();
-    }
-};
-
-// Backward compatibility - keep Storage as alias
-if (typeof Storage === 'undefined') {
-    window.Storage = AppStorage;
-}
+// Local Storage Helpers - Use StorageHelper from main.js instead
+// (Removed redundant Storage/AppStorage declaration)
 
 // Session Storage Helpers
 const SessionStorage = {

@@ -364,35 +364,33 @@ class Validator {
     }
 }
 
-// Storage Helper (localStorage with automatic JSON handling)
-// Check if already declared to prevent duplicate class error
-if (typeof Storage === 'undefined' || !Storage.set) {
-    class Storage {
-        static set(key, value) {
-            localStorage.setItem(key, JSON.stringify(value));
-        }
-        
-        static get(key, defaultValue = null) {
-            const item = localStorage.getItem(key);
-            try {
-                return item ? JSON.parse(item) : defaultValue;
-            } catch (e) {
-                return defaultValue;
-            }
-        }
-        
-        static remove(key) {
-            localStorage.removeItem(key);
-        }
-        
-        static clear() {
-            localStorage.clear();
+// StorageHelper - localStorage with automatic JSON handling
+// Use StorageHelper instead of Storage to avoid conflict with built-in browser Storage interface
+class StorageHelper {
+    static set(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+    }
+    
+    static get(key, defaultValue = null) {
+        const item = localStorage.getItem(key);
+        try {
+            return item ? JSON.parse(item) : defaultValue;
+        } catch (e) {
+            return defaultValue;
         }
     }
     
-    // Make Storage available globally
-    window.Storage = Storage;
+    static remove(key) {
+        localStorage.removeItem(key);
+    }
+    
+    static clear() {
+        localStorage.clear();
+    }
 }
+
+// Alias for backward compatibility
+window.StorageHelper = StorageHelper;
 
 // DOM Helper
 class DOM {

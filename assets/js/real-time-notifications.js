@@ -12,7 +12,8 @@ class RealTimeNotifications {
         this.reconnectDelay = 3000;
         
         this.options = {
-            streamUrl: '/api/notifications-stream.php',
+            // Use relative path: from /teacher-eval/admin/dashboard.php, ../api/ goes to /teacher-eval/api/
+            streamUrl: '../api/notifications-stream.php',
             autoConnect: true,
             onNewEvaluation: null,
             onError: null,
