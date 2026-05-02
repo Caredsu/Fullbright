@@ -738,6 +738,8 @@ try {
     <script src="<?= ASSETS_URL ?>/js/pages/dashboard.js"></script>
     
     <!-- Real-Time Notifications System -->
+    <!-- Cache Buster - must load FIRST to clear old versions -->
+    <script src="<?= ASSETS_URL ?>/js/cache-buster.js?v=<?= time() ?>"></script>
     <script src="<?= ASSETS_URL ?>/js/notification-toast.js"></script>
     <script src="<?= ASSETS_URL ?>/js/real-time-notifications.js"></script>
     
