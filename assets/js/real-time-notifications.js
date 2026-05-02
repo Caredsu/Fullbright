@@ -34,21 +34,34 @@ class RealTimeNotifications {
 
             // Connection established
             this.eventSource.addEventListener('connected', (event) => {
-                const data = JSON.parse(event.data);
-                console.log('✅ Connected to notification stream', data);
-                this.isConnected = true;
-                this.reconnectAttempts = 0;
-                
-                if (window.toast) {
-                    window.toast.info('Notifications', 'Connected to real-time updates');
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('✅ Connected to notification stream', data);
+                    this.isConnected = true;
+                    this.reconnectAttempts = 0;
+                    
+                    if (window.toast) {
+                        window.toast.info('Notifications', 'Connected to real-time updates');
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to parse connected event:', error, event.data);
                 }
+            });
             });
 
             // New evaluation received
             this.eventSource.addEventListener('new_evaluation', (event) => {
-                const evaluation = JSON.parse(event.data);
-                console.log('📊 New evaluation:', evaluation);
-                this.handleNewEvaluation(evaluation);
+                try {
+                    if (!event.data || event.data === 'undefined') {
+                        console.warn('⚠️ Received undefined data:', event);
+                        return;
+                    }
+                    const evaluation = JSON.parse(event.data);
+                    console.log('📊 New evaluation:', evaluation);
+                    this.handleNewEvaluation(evaluation);
+                } catch (error) {
+                    console.error('❌ Failed to parse evaluation data:', error, event.data);
+                }
             });
 
             // Heartbeat to keep connection alive
@@ -58,15 +71,23 @@ class RealTimeNotifications {
 
             // Error handling
             this.eventSource.addEventListener('error', (event) => {
-                const data = JSON.parse(event.data);
-                console.error('❌ Notification error:', data);
-                
-                if (window.toast) {
-                    window.toast.error('Connection Error', data.message);
-                }
-                
-                if (this.options.onError) {
-                    this.options.onError(data);
+                try {
+                    if (!event.data || event.data === 'undefined') {
+                        console.warn('⚠️ Received undefined error data');
+                        return;
+                    }
+                    const data = JSON.parse(event.data);
+                    console.error('❌ Notification error:', data);
+                    
+                    if (window.toast) {
+                        window.toast.error('Connection Error', data.message || 'Unknown error');
+                    }
+                    
+                    if (this.options.onError) {
+                        this.options.onError(data);
+                    }
+                } catch (error) {
+                    console.error('❌ Failed to parse error data:', error, event.data);
                 }
             });
 
