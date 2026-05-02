@@ -14,6 +14,9 @@ class RealTimeNotifications {
         // Track seen evaluations to prevent duplicate notifications
         this.seenEvaluationIds = new Set();
         
+        // Initialize refresh timeout
+        this.refreshTimeout = null;
+        
         this.options = {
             // Use relative path: from /teacher-eval/admin/dashboard.php, ../api/ goes to /teacher-eval/api/
             streamUrl: '../api/notifications-stream.php',

@@ -19,8 +19,10 @@ if (!ob_get_contents() && extension_loaded('zlib')) {
 
 initializeSession();
 
-// AJAX HANDLERS - Must come BEFORE requireLogin() to avoid redirects
-// ===================================================================
+requireLogin();
+
+// AJAX HANDLERS - Must come AFTER requireLogin() to ensure proper session
+// ========================================================================
 
 // Handle AJAX polling request
 if (isset($_GET['check_new'])) {
@@ -30,13 +32,7 @@ if (isset($_GET['check_new'])) {
     header('Pragma: no-cache');
     
     try {
-        // Verify admin is still logged in
-        if (!isset($_SESSION['admin_id']) || $_SESSION['admin_role'] !== 'admin') {
-            http_response_code(401);
-            die(json_encode(['error' => 'Unauthorized', 'has_new' => false, 'latest_id' => null]));
-        }
-        
-        // Get latest evaluation
+        // Session is guaranteed to be set up by requireLogin()
         $latestEval = $evaluations_collection->findOne([], ['sort' => ['_id' => -1]]);
         $latestId = $latestEval ? (string)$latestEval['_id'] : null;
         
@@ -71,8 +67,6 @@ if (isset($_GET['check_new'])) {
         ]));
     }
 }
-
-requireLogin();
 
 // Handle AJAX notification count request
 if (isset($_GET['get_notif_count'])) {
