@@ -31,7 +31,10 @@ class RealTimeNotifications {
         console.log('🔗 Connecting to real-time notifications...');
 
         try {
-            this.eventSource = new EventSource(this.options.streamUrl);
+            // Use fetch with credentials to send session cookies
+            this.eventSource = new EventSource(this.options.streamUrl, { 
+                withCredentials: true 
+            });
 
             // Connection established
             this.eventSource.addEventListener('connected', (event) => {

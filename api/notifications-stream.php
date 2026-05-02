@@ -76,10 +76,12 @@ while ((time() - $startTime) < $maxDuration) {
             'limit' => 10
         ]);
         
-        $newCount = count($recentEvaluations->toArray());
+        // Convert cursor to array ONCE
+        $evaluationsArray = $recentEvaluations->toArray();
+        $newCount = count($evaluationsArray);
         
         if ($newCount > 0) {
-            foreach ($recentEvaluations as $eval) {
+            foreach ($evaluationsArray as $eval) {
                 // Get teacher name
                 $teacher = $teachers_collection->findOne([
                     '_id' => $eval->teacher_id ?? null
