@@ -1,6 +1,32 @@
-// Fix asset paths for Flutter web app running from /teacher-eval/pwa/
+// Fix asset paths for Flutter web app - dynamically detect base path
 (function() {
-    const BASE_PATH = '/teacher-eval/pwa/';
+    // Use the path detected in index.html, or detect it here as fallback
+    function getBasePath() {
+        if (window.PWA_BASE_PATH) {
+            return window.PWA_BASE_PATH;
+        }
+        
+        // Get the current pathname
+        const pathname = window.location.pathname;
+        
+        // If we're in /pwa/, the base path is the part before /pwa/
+        const pwaIndex = pathname.indexOf('/pwa/');
+        if (pwaIndex !== -1) {
+            return pathname.substring(0, pwaIndex + 5); // Include '/pwa/'
+        }
+        
+        // Fallback to hardcoded paths for known deployment scenarios
+        if (pathname.includes('/teacher-eval/')) {
+            return '/teacher-eval/pwa/';
+        }
+        
+        // Default fallback
+        return '/pwa/';
+    }
+    
+    const BASE_PATH = getBasePath();
+    console.log('[AssetFix] Using BASE_PATH:', BASE_PATH);
+    window.ASSET_BASE_PATH = BASE_PATH; // Export for other scripts
     
     // Override fetch to fix asset paths
     const originalFetch = window.fetch;

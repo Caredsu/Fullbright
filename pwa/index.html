@@ -9,6 +9,47 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="teacher_eval_app">
+  
+  <!-- Detect base path dynamically -->
+  <script>
+    // Detect the base path where pwa folder is located
+    (function() {
+        const pathname = window.location.pathname;
+        const pwaIndex = pathname.indexOf('/pwa/');
+        
+        if (pwaIndex !== -1) {
+            window.PWA_BASE_PATH = pathname.substring(0, pwaIndex + 5); // e.g., "/teacher-eval/pwa/" or "/pwa/"
+        } else if (pathname.includes('/teacher-eval/')) {
+            window.PWA_BASE_PATH = '/teacher-eval/pwa/';
+        } else {
+            window.PWA_BASE_PATH = '/pwa/';
+        }
+        
+        console.log('[PWA] Detected base path:', window.PWA_BASE_PATH);
+        
+        // Now fix all hardcoded asset paths
+        setTimeout(() => {
+            // Fix icon href
+            const iconLink = document.querySelector('link[rel="icon"]');
+            if (iconLink && iconLink.href.includes('/teacher-eval/pwa/')) {
+                iconLink.href = window.PWA_BASE_PATH + 'assets/assets/images/fbc_logo2.png';
+            }
+            
+            // Fix apple-touch-icon
+            const appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+            if (appleTouchIcon && appleTouchIcon.href.includes('/teacher-eval/pwa/')) {
+                appleTouchIcon.href = window.PWA_BASE_PATH + 'assets/assets/images/fbc_logo2.png';
+            }
+            
+            // Fix manifest
+            const manifestLink = document.querySelector('link[rel="manifest"]');
+            if (manifestLink && manifestLink.href.includes('/teacher-eval/pwa/')) {
+                manifestLink.href = window.PWA_BASE_PATH + 'manifest.json';
+            }
+        }, 0);
+    })();
+  </script>
+  
   <link rel="apple-touch-icon" href="/teacher-eval/pwa/assets/assets/images/fbc_logo2.png">
   <link rel="icon" type="image/png" href="/teacher-eval/pwa/assets/assets/images/fbc_logo2.png"/>
   <title>teacher_eval_app</title>
@@ -16,7 +57,7 @@
 </head>
 <body>
   <!-- Fix asset paths FIRST, before anything else loads -->
-  <script src="/teacher-eval/pwa/fix_assets.js"></script>
+  <script src="./fix_assets.js"></script>
   
   <!-- Set up Flutter paths before loading -->
   <script>
@@ -31,11 +72,11 @@
     };
   </script>
   
-  <script src="/teacher-eval/pwa/flutter.js"></script>
+  <script src="./flutter.js"></script>
   <script>
     window._flutter.loader.load({
         config: {
-            entrypointBaseUrl: '/teacher-eval/pwa/'
+            entrypointBaseUrl: window.PWA_BASE_PATH || '/teacher-eval/pwa/'
         }
     });
   </script>
@@ -44,7 +85,8 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/teacher-eval/pwa/service-worker.js')
+        const swPath = (window.PWA_BASE_PATH || '/teacher-eval/pwa/') + 'service-worker.js';
+        navigator.serviceWorker.register(swPath)
           .then((reg) => {
             console.log('Service Worker registered:', reg);
           })

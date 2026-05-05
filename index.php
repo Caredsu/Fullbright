@@ -38,11 +38,11 @@ if (isset($_GET['request'])) {
     $request = trim($request, '/');
 }
 
-// **CRITICAL: If request is to pwa folder, serve static files - don't route through PHP**
+// **CRITICAL: PWA folder requests should be handled by .htaccess, not reach here**
+// If they do reach here, add fallback PWA serving
 if (strpos($request, 'pwa') === 0 || strpos($request, 'pwa/') === 0) {
-    // Let Apache serve static files - don't process with PHP
-    http_response_code(404);
-    exit('PWA files should be served by Apache, not PHP router');
+    servePwaFile($request);
+    exit;
 }
 
 // Store the original request path globally for API files to access
@@ -191,4 +191,90 @@ function showDocumentation() {
             ]
         ]
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+}
+
+/**
+ * Serve PWA files as a fallback if .htaccess doesn't work
+ * This handles requests to the pwa/ folder
+ */
+function servePwaFile($request) {
+    // Remove 'pwa/' or 'pwa' prefix from request
+    $filePath = $request;
+    if (strpos($filePath, 'pwa/') === 0) {
+        $filePath = substr($filePath, 4);
+    } elseif (strpos($filePath, 'pwa') === 0) {
+        $filePath = substr($filePath, 3);
+        if (strpos($filePath, '/') === 0) {
+            $filePath = substr($filePath, 1);
+        }
+    }
+    
+    // If no specific file requested or directory requested, serve index.html
+    if (empty($filePath) || $filePath === '/' || substr($filePath, -1) === '/') {
+        $filePath = 'index.html';
+    }
+    
+    // Build the full file path
+    $fullPath = __DIR__ . '/pwa/' . $filePath;
+    $fullPath = realpath($fullPath);
+    
+    // Security check: ensure the file is within the pwa directory
+    $pwaDir = realpath(__DIR__ . '/pwa');
+    if ($fullPath === false || strpos($fullPath, $pwaDir) !== 0) {
+        http_response_code(404);
+        echo 'File not found';
+        return;
+    }
+    
+    // Check if file exists
+    if (!file_exists($fullPath)) {
+        http_response_code(404);
+        echo 'File not found: ' . htmlspecialchars($filePath);
+        return;
+    }
+    
+    // Determine MIME type
+    $mimeTypes = [
+        'html' => 'text/html',
+        'css' => 'text/css',
+        'js' => 'application/javascript',
+        'json' => 'application/json',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+        'gif' => 'image/gif',
+        'svg' => 'image/svg+xml',
+        'woff' => 'font/woff',
+        'woff2' => 'font/woff2',
+        'ttf' => 'font/ttf',
+        'eot' => 'application/vnd.ms-fontobject',
+        'wav' => 'audio/wav',
+        'mp4' => 'video/mp4',
+        'webp' => 'image/webp',
+        'wasm' => 'application/wasm',
+        'bin' => 'application/octet-stream',
+        'dart' => 'text/plain'
+    ];
+    
+    $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+    $mimeType = $mimeTypes[$ext] ?? 'application/octet-stream';
+    
+    // Set appropriate headers for caching static assets
+    header('Content-Type: ' . $mimeType);
+    
+    // Add cache control headers for asset files
+    if ($ext !== 'html') {
+        header('Cache-Control: public, max-age=86400'); // Cache for 1 day
+        header('Expires: ' . gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
+    } else {
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+    }
+    
+    // Add CORS headers
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: GET, HEAD, OPTIONS');
+    
+    // Serve the file
+    readfile($fullPath);
 }
