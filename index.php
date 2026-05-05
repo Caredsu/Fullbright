@@ -78,6 +78,9 @@ if (strpos($request, 'api/') === 0) {
         case 'check-evaluated-teachers':
             require_once __DIR__ . '/api/check-evaluated-teachers.php';
             break;
+        case 'pwa-debug':
+            require_once __DIR__ . '/api/pwa-debug.php';
+            break;
         default:
             sendError('Endpoint not found', 404);
     }
