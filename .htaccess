@@ -1,6 +1,9 @@
 <IfModule mod_rewrite.c">
     RewriteEngine On
     
+    # Set DirectoryIndex for all directories
+    DirectoryIndex index.html index.php
+    
     # Dynamic RewriteBase - works for both local (/teacher-eval/) and production (/)
     RewriteCond %{HTTP_HOST} ^localhost [NC,OR]
     RewriteCond %{HTTP_HOST} ^127\.0\.0\.1 [NC]
@@ -14,11 +17,18 @@
     # Redirect favicon to pwa folder
     RewriteRule ^favicon\.png$ pwa/icons/favicon.png [NC,L]
     
-    # **PRIORITY 1: Never rewrite api folder - serve PHP files directly (for API endpoints)**
+    # **PRIORITY 1: API folder routes through PHP router - STOP rewriting**
     RewriteRule ^api/ - [L]
     
-    # **PRIORITY 2: Never rewrite pwa folder - serve static files directly**
+    # **CRITICAL: PWA folder must be served as static files - STOP processing immediately**
+    RewriteCond %{REQUEST_FILENAME} -d [OR]
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^pwa/ - [L]
+    
+    # If request is to /pwa (directory), serve /pwa/index.html
+    RewriteCond %{REQUEST_URI} ^/teacher-eval/pwa/?$ [OR]
+    RewriteCond %{REQUEST_URI} ^/pwa/?$
+    RewriteRule ^pwa/?$ pwa/index.html [L]
     
     # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**
     # This catches requests for /assets/, /canvaskit/, /icons/, /shaders/ and serves from pwa/

@@ -24,13 +24,11 @@ if (isset($_GET['request'])) {
     // Fallback to parsing the URI path
     $request = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
     
-    // Remove base path dynamically (handles both /teacher-eval and /)
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $isProduction = strpos($host, 'localhost') === false && strpos($host, '127.0.0.1') === false;
-    $basePath = $isProduction ? '' : '/teacher-eval';
-    
-    if ($basePath && strpos($request, $basePath) === 0) {
-        $request = substr($request, strlen($basePath));
+    // Remove /teacher-eval base path if present (works for both localhost and Render)
+    if (strpos($request, '/teacher-eval/') === 0) {
+        $request = substr($request, strlen('/teacher-eval'));
+    } elseif (strpos($request, '/teacher-eval') === 0) {
+        $request = substr($request, strlen('/teacher-eval'));
     }
     
     $request = trim($request, '/');
@@ -38,6 +36,13 @@ if (isset($_GET['request'])) {
     // Remove index.php if it's in the path
     $request = str_replace('index.php', '', $request);
     $request = trim($request, '/');
+}
+
+// **CRITICAL: If request is to pwa folder, serve static files - don't route through PHP**
+if (strpos($request, 'pwa') === 0 || strpos($request, 'pwa/') === 0) {
+    // Let Apache serve static files - don't process with PHP
+    http_response_code(404);
+    exit('PWA files should be served by Apache, not PHP router');
 }
 
 // Store the original request path globally for API files to access
