@@ -6,6 +6,10 @@
 
 header('Content-Type: application/json');
 
+// Get the actual root directory (parent of api folder)
+$rootDir = dirname(__DIR__);
+$pwaDir = $rootDir . '/pwa';
+
 $debug = [
     'timestamp' => date('Y-m-d H:i:s'),
     'server' => [
@@ -18,17 +22,18 @@ $debug = [
     'directories' => [
         'current' => getcwd(),
         'script_dir' => __DIR__,
+        'root_dir' => $rootDir,
+        'pwa_dir' => $pwaDir,
     ],
     'pwa_status' => [
-        'pwa_dir_exists' => is_dir(__DIR__ . '/pwa'),
-        'pwa_readable' => is_readable(__DIR__ . '/pwa'),
-        'pwa_writable' => is_writable(__DIR__ . '/pwa'),
+        'pwa_dir_exists' => is_dir($pwaDir),
+        'pwa_readable' => is_readable($pwaDir),
+        'pwa_writable' => is_writable($pwaDir),
     ],
     'pwa_files' => [],
 ];
 
 // Check pwa files
-$pwaDir = __DIR__ . '/pwa';
 if (is_dir($pwaDir)) {
     $files = scandir($pwaDir);
     foreach ($files as $file) {
@@ -56,6 +61,22 @@ $debug['request_test'] = [
     'starts_with_pwa' => strpos($request, 'pwa') === 0,
     'starts_with_pwa_slash' => strpos($request, 'pwa/') === 0,
 ];
+
+// List root directory contents
+$debug['root_dir_contents'] = [];
+if (is_dir($rootDir)) {
+    $files = scandir($rootDir);
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $fullPath = $rootDir . '/' . $file;
+            $debug['root_dir_contents'][$file] = [
+                'is_dir' => is_dir($fullPath),
+                'is_file' => is_file($fullPath),
+                'size' => is_file($fullPath) ? filesize($fullPath) : null,
+            ];
+        }
+    }
+}
 
 echo json_encode($debug, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ?>
