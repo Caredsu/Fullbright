@@ -21,13 +21,13 @@
     RewriteRule ^api/ - [L]
     
     # **CRITICAL: PWA folder - serve pwa/index.html for directory requests, but allow static files**
-    # Rewrite /pwa or /pwa/ to /pwa/index.html
+    # Handle both /pwa and /teacher-eval/pwa patterns
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^pwa/?$ pwa/index.html [L]
+    RewriteRule ^(teacher-eval/)?pwa/?$ pwa/index.html [L]
     
     # Stop rewriting all other pwa paths - let Apache serve them as-is
-    RewriteRule ^pwa/ - [L]
+    RewriteRule ^(teacher-eval/)?pwa/ - [L]
     
     # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**
     # This catches requests for /assets/, /canvaskit/, /icons/, /shaders/ and serves from pwa/
