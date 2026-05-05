@@ -115,10 +115,39 @@ if (session_status() === PHP_SESSION_NONE) {
     <div class="container-fluid">
         <!-- Brand -->
         <?php 
-            // Get base path dynamically
-            $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-            $isProduction = strpos($host, 'localhost') === false && strpos($host, '127.0.0.1') === false;
-            $adminBase = $isProduction ? '/admin' : '/teacher-eval/admin';
+            // Get base path dynamically from the current request
+            // This handles ANY deployment location correctly
+            
+            // Strategy 1: Try to get from REQUEST_URI
+            $currentPath = $_SERVER['REQUEST_URI'] ?? '';
+            $adminBase = null;
+            
+            if (strpos($currentPath, '/admin/') !== false) {
+                $adminIndex = strpos($currentPath, '/admin/');
+                $adminBase = substr($currentPath, 0, $adminIndex) . '/admin';
+                error_log("adminBase (from REQUEST_URI): " . $adminBase);
+            } 
+            
+            // Strategy 2: Try to get from SCRIPT_FILENAME
+            if (!$adminBase) {
+                $scriptPath = $_SERVER['SCRIPT_FILENAME'] ?? '';
+                if (strpos($scriptPath, '/admin/') !== false) {
+                    $adminIndex = strrpos($scriptPath, '/admin');
+                    $adminPathRelative = substr($scriptPath, 0, $adminIndex) . '/admin';
+                    $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+                    $adminBase = str_replace($documentRoot, '', $adminPathRelative);
+                    error_log("adminBase (from SCRIPT_FILENAME): " . $adminBase);
+                }
+            }
+            
+            // Strategy 3: Last resort
+            if (!$adminBase) {
+                $adminBase = '/teacher-eval/admin';
+                error_log("adminBase (fallback): " . $adminBase);
+            }
+            
+            // Make sure adminBase doesn't end with /
+            $adminBase = rtrim($adminBase, '/');
         ?>
         <a class="navbar-brand fw-bold" href="<?= $adminBase ?>/dashboard.php">
             <img src="<?= ASSETS_URL ?>/img/2.png" alt="Logo" style="height: 40px; margin-right: 8px; vertical-align: middle;"> Teacher Evaluation System
@@ -133,10 +162,8 @@ if (session_status() === PHP_SESSION_NONE) {
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <?php 
-                    // Get base path dynamically
-                    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-                    $isProduction = strpos($host, 'localhost') === false && strpos($host, '127.0.0.1') === false;
-                    $adminBase = $isProduction ? '/admin' : '/teacher-eval/admin';
+                    // Reuse the same adminBase calculation from above
+                    // (no need to recalculate)
                 ?>
                 <li class="nav-item">
                     <a class="nav-link" href="<?= $adminBase ?>/dashboard.php">
@@ -164,7 +191,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $adminBase ?>/system-feedback.php">
+                    <a class="nav-link" href="<?= $adminBase ?>/system-feedback.php" onclick="console.log('System Feedback link: href=<?= $adminBase ?>/system-feedback.php')">
                         <i class="bi bi-chat-dots"></i> System Feedback
                     </a>
                 </li>
@@ -188,17 +215,10 @@ if (session_status() === PHP_SESSION_NONE) {
                             display: none;
                         "></span>
                     </a>
-                    <!-- Early script to prevent badge flash on reload -->
-                    <script>
-                        (function() {
-                            const badge = document.getElementById('notif-badge');
-                            if (badge) {
-                                const lastReadCount = localStorage.getItem('notif_last_read_count');
-                                // Always hide by default - show only if there are new notifications
-                                badge.style.display = 'none';
-                            }
-                        })();
-                    </script>
+                <script>
+    // Set global base URL for fetch requests
+    const ADMIN_BASE_URL = '<?= defined("BASE_URL") ? BASE_URL : "/teacher-eval" ?>/admin';
+</script>
                     <!-- Notification Dropdown Panel -->
                     <div id="notif-dropdown" class="notif-dropdown" style="
                         position: absolute;
@@ -241,7 +261,7 @@ if (session_status() === PHP_SESSION_NONE) {
                         <li><a class="dropdown-item" href="<?= $adminBase ?>/settings.php"><i class="bi bi-gear"></i> Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <form method="POST" action="<?= $adminBase ?>/logout.php" class="d-inline">
+                            <form method="POST" action="<?= $adminBase ?>/logout.php" class="d-inline" onsubmit="clearRealtimeNotificationState()">
                                 <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right"></i> Logout</button>
                             </form>
                         </li>
@@ -279,7 +299,7 @@ if (session_status() === PHP_SESSION_NONE) {
         badge.style.display = 'none';
         
         // Save to localStorage immediately
-        fetch('/teacher-eval/admin/dashboard.php?get_notifications=1')
+        fetch(ADMIN_BASE_URL + '/dashboard.php?get_notifications=1', { credentials: 'include' })
             .then(response => response.json())
             .then(data => {
                 localStorage.setItem('notif_last_read_count', data.count);
@@ -296,7 +316,7 @@ if (session_status() === PHP_SESSION_NONE) {
         e.stopPropagation();
         isClearing = true;
         
-        fetch('/teacher-eval/admin/dashboard.php?clear_notifications=1')
+        fetch(ADMIN_BASE_URL + '/dashboard.php?clear_notifications=1', { credentials: 'include' })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -343,7 +363,7 @@ if (session_status() === PHP_SESSION_NONE) {
     function loadNotifications() {
         if (isClearing) return; // Don't update while clearing
         
-        fetch('/teacher-eval/admin/dashboard.php?get_notifications=1')
+        fetch(ADMIN_BASE_URL + '/dashboard.php?get_notifications=1', { credentials: 'include' })
             .then(response => response.json())
             .then(data => {
                 console.log('Notification data received:', data);
@@ -431,4 +451,15 @@ if (session_status() === PHP_SESSION_NONE) {
     // Update on load and every 5 seconds
     document.addEventListener('DOMContentLoaded', loadNotifications);
     setInterval(loadNotifications, 5000);
+    
+    // Clear realtime notification state on logout
+    function clearRealtimeNotificationState() {
+        console.log('🔌 Clearing realtime notification state before logout...');
+        sessionStorage.removeItem('realtime_connected_notified');
+        localStorage.removeItem('notif_last_read_count');
+        // Disconnect from realtime stream
+        if (window.realTimeNotifications) {
+            window.realTimeNotifications.disconnect();
+        }
+    }
 </script>

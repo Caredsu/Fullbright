@@ -61,7 +61,8 @@ function applyFeedbackFilters() {
 // Load Feedback Data
 function loadFeedbackData(filters = {}) {
     const queryString = new URLSearchParams(filters).toString();
-    const url = `/teacher-eval/admin/system-feedback.php?load_data=1&${queryString}`;
+    // Use relative path that works from any admin page
+    const url = `../api/system-feedback.php?load_data=1&${queryString}`;
     
     fetch(url)
         .then(response => response.json())
@@ -96,7 +97,7 @@ function loadFeedbackData(filters = {}) {
 
 // View Feedback Details
 function viewFeedback(feedbackId) {
-    fetch(`/teacher-eval/api/system-feedback.php?id=${feedbackId}`)
+    fetch(`../api/system-feedback.php?id=${feedbackId}`)
         .then(response => response.json())
         .then(data => {
             if (data.success) {
@@ -163,7 +164,7 @@ function showFeedbackModal(feedback) {
 
 // Mark Feedback as Resolved
 function markAsResolved(feedbackId) {
-    fetch(`/teacher-eval/api/system-feedback.php?id=${feedbackId}&action=resolve`, {
+    fetch(`../api/system-feedback.php?id=${feedbackId}&action=resolve`, {
         method: 'PUT'
     })
     .then(response => response.json())
@@ -182,7 +183,7 @@ function markAsResolved(feedbackId) {
 // Delete Feedback
 function deleteFeedback(feedbackId) {
     showConfirm('Delete Feedback', 'Are you sure you want to delete this feedback?', () => {
-        fetch(`/teacher-eval/api/system-feedback.php?id=${feedbackId}`, {
+        fetch(`../api/system-feedback.php?id=${feedbackId}`, {
             method: 'DELETE'
         })
         .then(response => response.json())
@@ -202,7 +203,8 @@ function deleteFeedback(feedbackId) {
 // Export Feedback
 function exportFeedback() {
     const format = document.getElementById('exportFormat')?.value || 'csv';
-    window.location.href = `/teacher-eval/admin/system-feedback.php?export=${format}`;
+    // Use relative path for export
+    window.location.href = `system-feedback.php?export=${format}`;
 }
 
 // Initialize on DOM Ready

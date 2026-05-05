@@ -1,7 +1,24 @@
 ﻿<?php
-session_start();
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../includes/helpers.php';
+/**
+ * System Feedback Management - Admin Console
+ * View and manage system experience feedback from users
+ */
+
+require_once '../includes/helpers.php';
+require_once '../config/database.php';
+
+initializeSession();
+
+// If admin_id is not in session, try to restore from session file
+// This handles cases where session data isn't immediately available
+if (!isset($_SESSION['admin_id']) && isset($_COOKIE['PHPSESSID'])) {
+    $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
+    $sessionFile = $sessionSavePath . '/sess_' . $_COOKIE['PHPSESSID'];
+    if (file_exists($sessionFile)) {
+        $sessionData = file_get_contents($sessionFile);
+        session_decode($sessionData);
+    }
+}
 
 // Check if admin is logged in
 if (!isset($_SESSION['admin_id'])) {
@@ -241,7 +258,7 @@ try {
                 cancelButtonText: 'Cancel'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    fetch('/teacher-eval/api/system-feedback.php', {
+                    fetch('../api/system-feedback.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'

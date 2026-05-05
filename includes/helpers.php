@@ -7,11 +7,16 @@
 // Global error handler to prevent HTML error output in JSON APIs
 if (!function_exists('isJsonApiRequest')) {
     function isJsonApiRequest() {
-        return strpos($_SERVER['REQUEST_URI'] ?? '', '/api/') !== false;
+        $uri = $_SERVER['REQUEST_URI'] ?? '';
+        // Exclude SSE endpoints (notifications-stream.php) from JSON error handler
+        if (strpos($uri, 'notifications-stream.php') !== false) {
+            return false;
+        }
+        return strpos($uri, '/api/') !== false;
     }
 }
 
-// Set error handler for JSON APIs
+// Set error handler for JSON APIs (but NOT for SSE endpoints)
 if (isJsonApiRequest()) {
     set_error_handler(function($errno, $errstr, $errfile, $errline) {
         header('Content-Type: application/json; charset=utf-8');
@@ -49,21 +54,62 @@ date_default_timezone_set('Asia/Manila');
 
 /**
  * Initialize secure session
- * Optimized: Only regenerate ID on fresh login, not every page load
+ * Uses file-based sessions with enhanced reliability for Windows
  */
 function initializeSession() {
     if (session_status() === PHP_SESSION_NONE) {
-        // Use faster session config for admin pages
-        ini_set('session.use_strict_mode', 1);
+        // Set session config BEFORE starting
+        ini_set('session.use_strict_mode', 0);  // Relaxed mode for Windows compatibility
         ini_set('session.use_only_cookies', 1);
+        ini_set('session.gc_maxlifetime', 86400);  // 24 hours
+        
+        // Use project storage directory for sessions (avoids Windows permission issues)
+        // This is under project root so Apache has write access
+        $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
+        
+        // Ensure directory exists and is writable
+        if (!is_dir($sessionSavePath)) {
+            @mkdir($sessionSavePath, 0777, true);
+        }
+        // Set world-writable permissions for XAMPP compatibility
+        @chmod($sessionSavePath, 0777);
+        
+        // Set session.save_path - MUST be done before session_start()
+        ini_set('session.save_path', $sessionSavePath);
+        
+        // Configure session to handle permissions better
+        // These settings help with file access on Windows/XAMPP
+        ini_set('session.hash_bits_per_character', 6);
+        ini_set('session.gc_probability', 1);
+        ini_set('session.gc_divisor', 100);
+        
+        // Determine protocol and path
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $isLocalhost = strpos($host, 'localhost') !== false || strpos($host, '127.0.0.1') !== false;
+        $basePath = $isLocalhost ? '/teacher-eval' : '/';
+        
+        // Set cookie params - these must be set before session_start()
+        session_set_cookie_params([
+            'path' => $basePath,
+            'domain' => null,
+            'secure' => $protocol === 'https',
+            'httponly' => true,
+            'samesite' => 'Lax',
+            'lifetime' => 86400  // 24 hours
+        ]);
+        
+        // Start session
         session_start();
         
-        // Regenerate session ID ONLY on first login, then cache it
-        // This prevents unnecessary CPU overhead on every page load
-        if (!isset($_SESSION['session_regenerated'])) {
-            session_regenerate_id(true);
-            $_SESSION['session_regenerated'] = true;
+        // After session starts, ensure the session file has proper permissions
+        $sessionId = session_id();
+        $sessionFile = $sessionSavePath . '/sess_' . $sessionId;
+        if (file_exists($sessionFile)) {
+            @chmod($sessionFile, 0666);  // Ensure file is readable/writable
         }
+        
+        error_log("[SESSION_INIT] Session started - ID: " . $sessionId . ", Path: $sessionSavePath, File exists: " . (file_exists($sessionFile) ? 'YES' : 'NO'));
     }
 }
 
@@ -257,11 +303,32 @@ function isStaff() {
 }
 
 /**
+ * Get admin login redirect URL (handles both production and development)
+ */
+function getAdminLoginUrl() {
+    if (defined('BASE_URL')) {
+        return BASE_URL . '/admin/login.php';
+    }
+    // Fallback if BASE_URL is not yet defined
+    return '/teacher-eval/admin/login.php';
+}
+
+/**
  * Redirect to login if not authenticated
  */
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: /teacher-eval/admin/login.php');
+        // Log why login is required
+        error_log("[REQUIRE_LOGIN_FAIL] Session state:");
+        error_log("  - Session status: " . session_status());
+        error_log("  - Session ID: " . session_id());
+        error_log("  - \$_SESSION keys: " . implode(', ', array_keys($_SESSION ?? [])));
+        error_log("  - admin_id: " . ($_SESSION['admin_id'] ?? 'NOT SET'));
+        error_log("  - admin_role: " . ($_SESSION['admin_role'] ?? 'NOT SET'));
+        error_log("  - Request: " . $_SERVER['REQUEST_METHOD'] . " " . $_SERVER['REQUEST_URI']);
+        error_log("  - Cookie header: " . ($_SERVER['HTTP_COOKIE'] ?? 'NO COOKIES'));
+        
+        header('Location: ' . getAdminLoginUrl());
         exit;
     }
 }
@@ -271,7 +338,7 @@ function requireLogin() {
  */
 function logout() {
     session_destroy();
-    header('Location: /teacher-eval/admin/login.php');
+    header('Location: ' . getAdminLoginUrl());
     exit;
 }
 

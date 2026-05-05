@@ -19,12 +19,42 @@ try {
     require_once __DIR__ . '/../config/database.php';
     require_once __DIR__ . '/../includes/helpers.php';
 
-    // Start session if not started
-    if (session_status() !== PHP_SESSION_ACTIVE) {
-        session_start();
-    }
+    // Initialize session properly
+    initializeSession();
     
     // Check if logged in
+    if (empty($_SESSION['admin_id'])) {
+        // Try to restore from PHPSESSID cookie if session is empty
+        $phpSessionId = $_COOKIE['PHPSESSID'] ?? null;
+        
+        if ($phpSessionId) {
+            // Restore session from session file
+            $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
+            $sessionFile = $sessionSavePath . '/sess_' . $phpSessionId;
+            
+            if (file_exists($sessionFile)) {
+                $sessionData = @file_get_contents($sessionFile);
+                if ($sessionData !== false && !empty($sessionData)) {
+                    // Parse session data
+                    $sessionArray = [];
+                    $offset = 0;
+                    while ($offset < strlen($sessionData)) {
+                        if (!stristr(substr($sessionData, $offset), "|")) {
+                            break;
+                        }
+                        $pos = strpos($sessionData, "|", $offset);
+                        $num = $pos - $offset;
+                        $varname = substr($sessionData, $offset, $num);
+                        $offset += $num + 1;
+                        $data = unserialize(substr($sessionData, $offset));
+                        $_SESSION[$varname] = $data;
+                        $offset += strlen(serialize($data));
+                    }
+                }
+            }
+        }
+    }
+    
     if (empty($_SESSION['admin_id'])) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);

@@ -372,21 +372,26 @@ function log_activity($action, $description, $collection = null)
 
 /**
  * Redirect to URL
+ * NOTE: May be defined in includes/helpers.php, check before defining
  */
-function redirect($url)
-{
-    header('Location: ' . $url);
-    exit;
+if (!function_exists('redirect')) {
+    function redirect($url)
+    {
+        header('Location: ' . $url);
+        exit;
+    }
 }
 
 /**
  * Redirect with query parameter
  */
-function redirect_with($path, $params = [])
-{
-    $query = http_build_query($params);
-    $url = $path . ($query ? '?' . $query : '');
-    redirect($url);
+if (!function_exists('redirect_with')) {
+    function redirect_with($path, $params = [])
+    {
+        $query = http_build_query($params);
+        $url = $path . ($query ? '?' . $query : '');
+        redirect($url);
+    }
 }
 
 // ============================================

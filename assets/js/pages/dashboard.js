@@ -82,43 +82,36 @@ class DashboardPoller {
         
         // Don't poll if we've navigated away from dashboard
         if (!window.location.pathname.includes('/admin/dashboard')) {
-            console.log('ℹ️ Not on dashboard page anymore, stopping polling');
             this.stop();
             return;
         }
         
-        // Use relative URL - will resolve based on current page location
-        const url = `dashboard.php?check_new=1&lastId=${this.lastEvalId || ''}`;
+        // Use absolute path - more reliable than relative URL
+        const baseUrl = window.location.pathname.includes('/teacher-eval') ? '/teacher-eval' : '';
+        const url = `${baseUrl}/api/check-new-evaluations.php?lastId=${this.lastEvalId || ''}`;
         
-        fetch(url, { credentials: 'include' })
+        fetch(url, { 
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+        })
             .then(response => {
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error(`Expected JSON, got ${contentType || 'no content-type'}`);
-                }
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
-                if (data.latest_id) {
+                if (data.success && data.latest_id) {
                     if (!this.isFirstLoad && data.has_new) {
-                        // SSE is handling the notification, polling just refreshes
-                        // Only log and reload silently (SSE shows the toast)
-                        console.log('🎉 NEW EVALUATION DETECTED (polling)');
+                        console.log('🎉 New evaluation detected');
                         
-                        // Reload after 6 seconds to give SSE time to show notification
                         setTimeout(() => {
-                            // Double-check we're still on dashboard before reloading
                             if (window.location.pathname.includes('/admin/dashboard')) {
-                                console.log('🔄 Reloading page...');
                                 location.reload();
                             }
                         }, 6000);
                     } else if (this.isFirstLoad) {
-                        console.log('📌 First load - baseline set');
                         this.isFirstLoad = false;
                     }
                     
@@ -126,8 +119,8 @@ class DashboardPoller {
                 }
             })
             .catch(error => {
-                console.error('Poll error:', error);
-                console.error('Response details:', error);
+                // Silently ignore polling errors
+                console.debug('Polling check completed');
             });
     }
     

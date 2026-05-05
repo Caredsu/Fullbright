@@ -14,6 +14,31 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 try {
+    // Try to restore session from PHPSESSID if not already set
+    if (empty($_SESSION['admin_id'])) {
+        $phpSessionId = $_COOKIE['PHPSESSID'] ?? null;
+        if ($phpSessionId) {
+            $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
+            $sessionFile = $sessionSavePath . '/sess_' . $phpSessionId;
+            if (file_exists($sessionFile)) {
+                $sessionData = @file_get_contents($sessionFile);
+                if ($sessionData !== false && !empty($sessionData)) {
+                    $offset = 0;
+                    while ($offset < strlen($sessionData)) {
+                        if (!stristr(substr($sessionData, $offset), "|")) break;
+                        $pos = strpos($sessionData, "|", $offset);
+                        $num = $pos - $offset;
+                        $varname = substr($sessionData, $offset, $num);
+                        $offset += $num + 1;
+                        $data_item = unserialize(substr($sessionData, $offset));
+                        $_SESSION[$varname] = $data_item;
+                        $offset += strlen(serialize($data_item));
+                    }
+                }
+            }
+        }
+    }
+    
     // Check authentication
     if (empty($_SESSION['admin_id'])) {
         http_response_code(401);

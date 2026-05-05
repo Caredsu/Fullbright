@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project.">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="teacher_eval_app">
+  <link rel="apple-touch-icon" href="/teacher-eval/pwa/assets/assets/images/fbc_logo2.png">
+  <link rel="icon" type="image/png" href="/teacher-eval/pwa/assets/assets/images/fbc_logo2.png"/>
+  <title>teacher_eval_app</title>
+  <link rel="manifest" href="/teacher-eval/pwa/manifest.json">
+</head>
+<body>
+  <!-- Fix asset paths FIRST, before anything else loads -->
+  <script src="/teacher-eval/pwa/fix_assets.js"></script>
+  
+  <!-- Set up Flutter paths before loading -->
+  <script>
+    window._flutter = window._flutter || {};
+    window._flutter.buildConfig = {
+        "engineRevision": "425cfb54d01a9472b3e81d9e76fd63a4a44cfbcb",
+        "builds": [{
+            "compileTarget": "dart2js",
+            "renderer": "canvaskit",
+            "mainJsPath": "main.dart.js"
+        }]
+    };
+  </script>
+  
+  <script src="/teacher-eval/pwa/flutter.js"></script>
+  <script>
+    window._flutter.loader.load({
+        config: {
+            entrypointBaseUrl: '/teacher-eval/pwa/'
+        }
+    });
+  </script>
+
+  <!-- Service Worker Registration for PWA -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/teacher-eval/pwa/service-worker.js')
+          .then((reg) => {
+            console.log('Service Worker registered:', reg);
+          })
+          .catch((err) => {
+            console.log('Service Worker registration failed:', err);
+          });
+      });
+    }
+  </script>
+</body>
+</html>

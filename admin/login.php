@@ -13,7 +13,11 @@ require_once '../includes/helpers.php';
 
 initializeSession();
 if (isLoggedIn()) {
-    echo '<script>window.location.href="' . (isset($_SERVER['HTTP_HOST']) ? 'https://' . $_SERVER['HTTP_HOST'] : 'http://localhost') . '/teacher-eval/admin/dashboard.php";</script>';
+    // Determine the correct protocol to match session cookie
+    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $redirect_url = $protocol . '://' . $host . '/teacher-eval/admin/dashboard.php';
+    echo '<script>window.location.href="' . escapeOutput($redirect_url) . '";</script>';
     exit;
 }
 
@@ -56,6 +60,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             $_SESSION['admin_username'] = $admin['username'];
                             $_SESSION['admin_role'] = $user_role;
                             $_SESSION['just_logged_in'] = true;
+                            
+                            error_log("[LOGIN_SUCCESS] Setting session data - admin_id=" . $_SESSION['admin_id']);
+                            error_log("[LOGIN_SUCCESS] Session ID before regenerate: " . session_id());
+                            
+                            // Regenerate session ID for security - WITHOUT deleting old session
+                            // (deleting old session on Windows/XAMPP causes issues with new session not being created)
+                            session_regenerate_id(false);  // false = keep old session file
+                            
+                            error_log("[LOGIN_SUCCESS] Session ID after regenerate: " . session_id());
+                            error_log("[LOGIN_SUCCESS] Session status: " . session_status());
+                            error_log("[LOGIN_SUCCESS] Session data saved: admin_id=" . $_SESSION['admin_id'] . ", admin_role=" . $_SESSION['admin_role']);
+                            
+                            // Make absolutely sure session is written before redirect
+                            session_write_close();
                             
                             global $admins_collection;
                             try {

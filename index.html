@@ -1,90 +1,340 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <script>
-    // Auto-detect base path: Render uses /, localhost uses /teacher-eval/
-    const basePath = window.location.hostname.includes('onrender.com') ? '/' : '/teacher-eval/';
-    document.write(`<base href="${basePath}">`);
-  </script>
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="Teacher Evaluation System - Fullbright College Inc.">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <title>Teacher Evaluation System</title>
-  <link rel="manifest" href="pwa/manifest.json">
-  
-  <!-- Loading Screen Styles -->
-  <link rel="stylesheet" href="assets/css/loading-screen.css">
-  
-  <!-- Material Icons - Local + CDN Fallback -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <style>
-    /* Force Material Icons to load */
-    @font-face {
-      font-family: 'Material Icons';
-      font-style: normal;
-      font-weight: 400;
-      src: url('https://fonts.gstatic.com/s/materialicons/v140/flUhRq6tzZsQSNCMjMnFZQ.woff2') format('woff2');
-    }
-    .material-icons {
-      font-family: 'Material Icons' !important;
-      font-weight: normal;
-      font-style: normal;
-      font-size: 24px;
-      display: inline-block;
-      line-height: 1;
-      text-transform: none;
-      letter-spacing: normal;
-      word-wrap: normal;
-      white-space: nowrap;
-      direction: ltr;
-      -webkit-font-smoothing: antialiased;
-    }
-  </style>
+    <script>
+        // Auto-detect base path: Render uses /, localhost uses /teacher-eval/
+        const basePath = window.location.hostname.includes('onrender.com') ? '/' : '/teacher-eval/';
+        document.write(`<base href="${basePath}">`);
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Evaluation</title>
+    <link rel="manifest" href="pwa/manifest.json">
+    <!-- Load API redirect BEFORE Flutter app to intercept requests -->
+    <script src="assets/js/api-redirect.js"></script>
+    <!-- Already Evaluated Modal Handler -->
+    <script src="assets/js/already-evaluated-modal.js"></script>
+    
+    <!-- Loading Screen Styles -->
+    <link rel="stylesheet" href="assets/css/loading-screen.css">
+    
+    <!-- Choice Screen Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        #choice-screen {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #0f172a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            pointer-events: auto;
+        }
+
+        #choice-screen.hidden {
+            display: none;
+        }
+
+        .choice-container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .choice-content {
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .choice-logo-container {
+            margin-bottom: 30px;
+        }
+
+        .choice-logo-container img {
+            width: 120px;
+            height: auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice-logo-container ~ h1 {
+            font-size: 32px;
+            color: white;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .choice-subtitle {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 40px;
+        }
+
+        .choice-intro-text {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+
+        .choice-options {
+            display: grid;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .choice-option-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .choice-option-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.25);
+        }
+
+        .choice-option-card.primary {
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice-option-card.secondary {
+            background: #2d3748;
+            color: white;
+            border: 1.5px solid #4a5568;
+        }
+
+        .choice-option-card.secondary:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .choice-option-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            margin-right: 16px;
+            font-size: 28px;
+            flex-shrink: 0;
+        }
+
+        .choice-option-card.primary .choice-option-icon {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .choice-option-card.secondary .choice-option-icon {
+            background: rgba(102, 126, 234, 0.15);
+            color: #667eea;
+        }
+
+        .choice-option-content h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .choice-option-content p {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        .choice-option-arrow {
+            margin-left: auto;
+            font-size: 24px;
+            opacity: 0.6;
+        }
+
+        .choice-info-box {
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .choice-info-box p {
+            font-size: 13px;
+            color: #9ca3af;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .choice-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #4a5568;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 480px) {
+            .choice-content h1 {
+                font-size: 24px;
+            }
+
+            .choice-option-card {
+                padding: 16px;
+            }
+
+            .choice-option-icon {
+                width: 45px;
+                height: 45px;
+                font-size: 24px;
+            }
+
+            .choice-option-content h2 {
+                font-size: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Loading Screen -->
-  <div id="loading-screen">
-    <div class="loading-content">
-      <!-- Logo -->
-      <div class="loading-logo-container">
-        <img src="assets/assets/images/fbc_logo2.png" alt="Fullbright College" class="loading-logo">
-      </div>
+    <!-- Choice Screen -->
+    <div id="choice-screen">
+        <div class="choice-container">
+            <div class="choice-content">
+                <!-- Logo -->
+                <div class="choice-logo-container">
+                    <img src="assets/img/2.png" alt="Fullbright College">
+                </div>
 
-      <!-- Title -->
-      <h1 class="loading-title">Teacher Evaluation</h1>
-      
-      <!-- Subtitle -->
-      <p class="loading-subtitle">Fullbright College Inc.</p>
-      
-      <!-- Progress Bar -->
-      <div class="progress-container">
-        <div class="progress-bar"></div>
-      </div>
-      
-      <!-- Loading Dots -->
-      <div class="loading-dots">
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-      </div>
+                <!-- Title -->
+                <h1>Teacher Evaluation</h1>
+                <p class="choice-subtitle">Fullbright College Inc.</p>
+
+                <!-- Intro Text -->
+                <p class="choice-intro-text">Choose your preferred access method</p>
+
+                <!-- Info Box -->
+                <div class="choice-info-box">
+                    <p>The mobile app provides faster performance and offline capabilities. The web version works on any device with a browser.</p>
+                </div>
+
+                <!-- Options -->
+                <div class="choice-options">
+                    <!-- Download APK -->
+                    <a href="javascript:downloadAPK()" class="choice-option-card primary">
+                        <div class="choice-option-icon">📥</div>
+                        <div class="choice-option-content">
+                            <h2>Download APK</h2>
+                            <p>Get native app from MediaFire</p>
+                        </div>
+                        <div class="choice-option-arrow">→</div>
+                    </a>
+
+                    <!-- Web Version -->
+                    <a href="javascript:loadWebVersion()" class="choice-option-card secondary">
+                        <div class="choice-option-icon">🌐</div>
+                        <div class="choice-option-content">
+                            <h2>Web Version</h2>
+                            <p>Access from browser (PWA)</p>
+                        </div>
+                        <div class="choice-option-arrow">→</div>
+                    </a>
+                </div>
+
+                <div class="choice-footer">
+                    <p>Teacher Evaluation System v1.0</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Load API redirect first to intercept requests -->
-  <script src="assets/js/api-redirect.js"></script>
-  <!-- Already Evaluated Modal Handler - Load after API redirect -->
-  <script src="assets/js/already-evaluated-modal.js"></script>
-  <!-- Loading Screen Manager -->
-  <script src="assets/js/loading-screen.js"></script>
-  <script>
-    console.log('[LOADING] Teacher Evaluation System...');
-    const s = document.createElement('script');
-    s.src = 'pwa/flutter_bootstrap.js';
-    s.async = true;
-    document.head.appendChild(s);
-  </script>
+    <!-- Loading Screen -->
+    <div id="loading-screen">
+        <div class="loading-content">
+            <!-- Logo -->
+            <div class="loading-logo-container">
+                <img src="assets/assets/images/fbc_logo2.png" alt="Fullbright College" class="loading-logo">
+            </div>
+
+            <!-- Title -->
+            <h1 class="loading-title">Teacher Evaluation</h1>
+            
+            <!-- Subtitle -->
+            <p class="loading-subtitle">Fullbright College Inc.</p>
+            
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar"></div>
+            </div>
+            
+            <!-- Loading Dots -->
+            <div class="loading-dots">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Force unregister old service workers and clear cache
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                    console.log('Unregistered service worker');
+                }
+            });
+            
+            // Clear cache
+            if ('caches' in window) {
+                caches.keys().then(function(names) {
+                    names.forEach(name => {
+                        caches.delete(name);
+                        console.log('Cleared cache:', name);
+                    });
+                });
+            }
+        }
+    </script>
+    
+    <script>
+        function downloadAPK() {
+            const mediaFireURL = 'https://www.mediafire.com/file/r3a16v3unrwxjt4/app-release.apk/file';
+            window.open(mediaFireURL, '_blank');
+        }
+
+        function loadWebVersion() {
+            // Simply navigate to the Flutter web app
+            window.location.href = '/teacher-eval/pwa/';
+        }
+    </script>
 </body>
 </html>
