@@ -20,13 +20,7 @@
     # **PRIORITY 1: API folder routes through PHP router - STOP rewriting**
     RewriteRule ^api/ - [L]
     
-    # **CRITICAL: PWA folder - serve pwa/index.html for directory requests, but allow static files**
-    # Handle both /pwa and /teacher-eval/pwa patterns
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(teacher-eval/)?pwa/?$ pwa/index.html [L]
-    
-    # Stop rewriting all other pwa paths - let Apache serve them as-is
+    # **CRITICAL: PWA folder - stop all rewriting, let Apache serve static files with DirectoryIndex**
     RewriteRule ^(teacher-eval/)?pwa/ - [L]
     
     # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**

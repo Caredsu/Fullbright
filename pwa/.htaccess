@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine Off
+</IfModule>
+
+# Ensure index.html is served for directory requests
+DirectoryIndex index.html
+
+# Allow all requests
+<IfModule mod_dir.c>
+    DirectoryIndex index.html
+</IfModule>
