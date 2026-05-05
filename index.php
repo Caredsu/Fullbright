@@ -214,22 +214,33 @@ function servePwaFile($request) {
         $filePath = 'index.html';
     }
     
-    // Build the full file path
-    $fullPath = __DIR__ . '/pwa/' . $filePath;
-    $fullPath = realpath($fullPath);
+    // Build the full file path WITHOUT using realpath (which fails if file doesn't exist)
+    $pwaDir = __DIR__ . '/pwa';
+    $fullPath = $pwaDir . '/' . $filePath;
     
-    // Security check: ensure the file is within the pwa directory
-    $pwaDir = realpath(__DIR__ . '/pwa');
-    if ($fullPath === false || strpos($fullPath, $pwaDir) !== 0) {
-        http_response_code(404);
-        echo 'File not found';
+    // Security check: normalize the path and ensure it's within pwa directory
+    // Prevent directory traversal attacks
+    $normalizedPath = str_replace('\\', '/', $fullPath);
+    $normalizedPwaDir = str_replace('\\', '/', $pwaDir);
+    
+    // Check for directory traversal attempts
+    if (strpos($normalizedPath, $normalizedPwaDir) !== 0) {
+        http_response_code(403);
+        echo 'Access denied';
         return;
     }
     
     // Check if file exists
     if (!file_exists($fullPath)) {
         http_response_code(404);
-        echo 'File not found: ' . htmlspecialchars($filePath);
+        echo 'PWA file not found: ' . htmlspecialchars($filePath);
+        return;
+    }
+    
+    // Don't serve directories
+    if (is_dir($fullPath)) {
+        http_response_code(404);
+        echo 'Directory listing not allowed';
         return;
     }
     
@@ -261,6 +272,7 @@ function servePwaFile($request) {
     
     // Set appropriate headers for caching static assets
     header('Content-Type: ' . $mimeType);
+    header('Content-Length: ' . filesize($fullPath));
     
     // Add cache control headers for asset files
     if ($ext !== 'html') {

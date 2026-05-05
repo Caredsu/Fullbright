@@ -20,8 +20,16 @@
     # **PRIORITY 1: API folder routes through PHP router - STOP rewriting**
     RewriteRule ^api/ - [L]
     
-    # **CRITICAL: PWA folder - stop all rewriting, let Apache serve static files with DirectoryIndex**
+    # **CRITICAL: PWA folder - route through PHP fallback if file doesn't exist**
+    # First check if it's a real PWA file that exists
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^(teacher-eval/)?pwa/ - [L]
+    
+    # If PWA file doesn't exist, route to PHP handler
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(teacher-eval/)?pwa/(.*)$ index.php?request=pwa/$2 [QSA,L]
     
     # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**
     # This catches requests for /assets/, /canvaskit/, /icons/, /shaders/ and serves from pwa/
