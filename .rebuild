@@ -1,0 +1,4 @@
+Rebuild trigger - 2026-05-05 10:56:47 UTC
+
+This file forces Docker to invalidate the cache and rebuild from scratch.
+Render should detect the pwa/ folder on next deployment.
