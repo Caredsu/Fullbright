@@ -1,5 +1,9 @@
 FROM php:8.4-apache
 
+# Cache-busting ARG - change this to force rebuild
+ARG BUILD_DATE=2026-05-05
+ENV BUILD_DATE=${BUILD_DATE}
+
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     libssl-dev \
@@ -21,6 +25,9 @@ COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
+
+# Verify PWA folder exists
+RUN if [ ! -d "/var/www/html/pwa" ]; then echo "ERROR: PWA folder not found!"; ls -la /var/www/html/ | head -20; exit 1; fi
 
 # Enable Apache mod_rewrite and mod_headers
 RUN a2enmod rewrite headers
