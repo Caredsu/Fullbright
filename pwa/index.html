@@ -1,7 +1,29 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="/">
+  <!-- Set base href dynamically based on current location -->
+  <script>
+    (function() {
+      const pathname = window.location.pathname;
+      const pwaIndex = pathname.indexOf('/pwa/');
+      let baseHref = '/';
+      
+      if (pwaIndex !== -1) {
+        baseHref = pathname.substring(0, pwaIndex + 5); // e.g., "/pwa/" or "/teacher-eval/pwa/"
+      } else if (pathname.includes('/teacher-eval/')) {
+        baseHref = '/teacher-eval/pwa/';
+      } else {
+        baseHref = '/pwa/';
+      }
+      
+      // Create base tag before any other resources load
+      const base = document.createElement('base');
+      base.href = baseHref;
+      document.head.appendChild(base);
+      
+      console.log('[PWA] Set base href to:', baseHref);
+    })();
+  </script>
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
