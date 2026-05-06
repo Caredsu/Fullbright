@@ -1,14 +1,14 @@
 FROM php:8.4-apache
 
-# Cache-busting ARG - change this to force rebuild
-ARG BUILD_DATE=2026-05-05
-ENV BUILD_DATE=${BUILD_DATE}
+# Force cache invalidation - timestamp changes every commit
+ENV BUILD_TIMESTAMP="2026-05-05_11-17-00_UTC"
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     libssl-dev \
     unzip \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install MongoDB extension
@@ -20,14 +20,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
+# Copy project files FIRST
 COPY . .
+
+# Verify git cloned files exist - especially pwa folder
+RUN echo "=== Checking directory structure ===" && \
+    ls -la /var/www/html/ | head -30 && \
+    echo "=== Checking for pwa folder ===" && \
+    if [ -d "/var/www/html/pwa" ]; then \
+      echo "✓ PWA folder found!"; \
+      ls -la /var/www/html/pwa/ | head -10; \
+    else \
+      echo "✗ ERROR: PWA folder NOT found in /var/www/html/"; \
+      echo "Available folders:"; \
+      find /var/www/html -maxdepth 1 -type d | sort; \
+      exit 1; \
+    fi
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
-
-# Verify PWA folder exists
-RUN if [ ! -d "/var/www/html/pwa" ]; then echo "ERROR: PWA folder not found!"; ls -la /var/www/html/ | head -20; exit 1; fi
 
 # Enable Apache mod_rewrite and mod_headers
 RUN a2enmod rewrite headers
@@ -38,7 +49,7 @@ RUN a2dissite 000-default || true
 # Copy custom Apache configuration
 COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
 
-# Configure Apache to listen on port 8080 (only in ports.conf)
+# Configure Apache to listen on port 8080
 RUN sed -i 's/80/8080/g' /etc/apache2/ports.conf
 
 # Enable our custom site
@@ -46,7 +57,12 @@ RUN a2ensite 000-default
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+    chmod -R 755 /var/www/html && \
+    chmod -R 775 /var/www/html/storage
+
+# Final verification
+RUN echo "=== Final verification ===" && \
+    [ -d "/var/www/html/pwa" ] && echo "✓ PWA exists before start" || echo "✗ PWA missing before start"
 
 # Expose port
 EXPOSE 8080

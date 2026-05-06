@@ -57,7 +57,22 @@
 </head>
 <body>
   <!-- Fix asset paths FIRST, before anything else loads -->
-  <script src="./fix_assets.js"></script>
+  <script>
+    // Ensure PWA_BASE_PATH is set before loading scripts
+    if (!window.PWA_BASE_PATH) {
+      const pathname = window.location.pathname;
+      const pwaIndex = pathname.indexOf('/pwa/');
+      if (pwaIndex !== -1) {
+        window.PWA_BASE_PATH = pathname.substring(0, pwaIndex + 5);
+      } else if (pathname.includes('/teacher-eval/')) {
+        window.PWA_BASE_PATH = '/teacher-eval/pwa/';
+      } else {
+        window.PWA_BASE_PATH = '/pwa/';
+      }
+    }
+  </script>
+  
+  <script src="/teacher-eval/pwa/fix_assets.js"></script>
   
   <!-- Set up Flutter paths before loading -->
   <script>
@@ -72,13 +87,17 @@
     };
   </script>
   
-  <script src="./flutter.js"></script>
+  <script src="/teacher-eval/pwa/flutter.js"></script>
   <script>
-    window._flutter.loader.load({
-        config: {
-            entrypointBaseUrl: window.PWA_BASE_PATH || '/teacher-eval/pwa/'
-        }
-    });
+    if (window._flutter && window._flutter.loader) {
+      window._flutter.loader.load({
+          config: {
+              entrypointBaseUrl: window.PWA_BASE_PATH || '/teacher-eval/pwa/'
+          }
+      });
+    } else {
+      console.error('Flutter loader not available');
+    }
   </script>
 
   <!-- Service Worker Registration for PWA -->
