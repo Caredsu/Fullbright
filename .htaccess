@@ -31,14 +31,14 @@
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^pwa/ - [L]
     
-    # If PWA request is to a directory, serve index.html or index.php
+    # If PWA request is to a directory, serve index.html
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^pwa/?$ pwa/index.html [L]
     
-    # Route any other PWA paths to pwa/index.php (PHP handles routing)
+    # For all other pwa/* requests without a dot (not a static file), serve index.html for Flutter routing
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^pwa/(.*)$ pwa/index.php [QSA,L]
+    RewriteRule ^pwa/(.*)$ pwa/index.html [L]
     
     # **PRIORITY 3: Redirect asset requests to pwa folder BEFORE extension check**
     # This catches requests for /assets/, /canvaskit/, /icons/, /shaders/ and serves from pwa/
