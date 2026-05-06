@@ -20,13 +20,15 @@
     # **PRIORITY 1: API folder routes through PHP router - STOP rewriting**
     RewriteRule ^api/ - [L]
     
-    # **CRITICAL: PWA folder - route through PHP fallback if file doesn't exist**
-    # First check if it's a real PWA file that exists
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
+    # **CRITICAL: PWA folder - First check if it's a real file**
+    RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^(teacher-eval/)?pwa/ - [L]
     
-    # If PWA file doesn't exist, route to PHP handler
+    # If PWA request is to a directory, serve index.html
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(teacher-eval/)?pwa(/)?$ pwa/index.html [L]
+    
+    # If PWA file doesn't exist, route to PHP handler for dynamic serving
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^(teacher-eval/)?pwa/(.*)$ index.php?request=pwa/$2 [QSA,L]

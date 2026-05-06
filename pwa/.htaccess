@@ -1,5 +1,19 @@
 <IfModule mod_rewrite.c>
-    RewriteEngine Off
+    RewriteEngine On
+    
+    # Serve index.html for directory requests
+    DirectoryIndex index.html
+    
+    # Don't rewrite for existing files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^(.*)$ - [L]
+    
+    # Don't rewrite for existing directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.*)$ - [L]
+    
+    # Rewrite all other requests to index.html (for Flutter routing)
+    RewriteRule ^(.*)$ index.html [L]
 </IfModule>
 
 # Ensure index.html is served for directory requests
