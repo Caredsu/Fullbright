@@ -1,9 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # Serve index.html for directory requests
-    DirectoryIndex index.html
-    
     # Don't rewrite for existing files
     RewriteCond %{REQUEST_FILENAME} -f
     RewriteRule ^(.*)$ - [L]
@@ -16,10 +13,10 @@
     RewriteRule ^(.*)$ index.html [L]
 </IfModule>
 
-# Ensure index.html is served for directory requests
-DirectoryIndex index.html
+# Set DirectoryIndex - try index.html first, then index.php as fallback
+DirectoryIndex index.html index.php
 
 # Allow all requests
 <IfModule mod_dir.c>
-    DirectoryIndex index.html
+    DirectoryIndex index.html index.php
 </IfModule>
