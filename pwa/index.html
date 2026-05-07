@@ -213,6 +213,10 @@
       console.log('[PWA] Loading container made visible');
     }
     
+    // Track when loading started
+    const loadingStartTime = Date.now();
+    const MINIMUM_LOADING_TIME = 3000; // Show loading bar for at least 3 seconds
+    
     // Animate loading text with dots
     let dotCount = 0;
     const dotInterval = setInterval(() => {
@@ -223,21 +227,33 @@
       }
     }, 400);
     
-    // Hide loading animation
+    // Hide loading animation (with minimum display time)
     function hideLoadingAnimation() {
       const container = document.getElementById('app-loading-container');
       if (container && !container.classList.contains('hidden')) {
-        container.classList.add('hidden');
-        clearInterval(dotInterval);
-        console.log('[PWA] Loading animation hidden');
+        const elapsedTime = Date.now() - loadingStartTime;
+        const timeToWait = Math.max(0, MINIMUM_LOADING_TIME - elapsedTime);
+        
+        if (timeToWait > 0) {
+          console.log(`[PWA] Will hide loading in ${timeToWait}ms (minimum display time)`);
+          setTimeout(() => {
+            container.classList.add('hidden');
+            clearInterval(dotInterval);
+            console.log('[PWA] Loading animation hidden');
+          }, timeToWait);
+        } else {
+          container.classList.add('hidden');
+          clearInterval(dotInterval);
+          console.log('[PWA] Loading animation hidden immediately');
+        }
       }
     }
     
     // Monitor for when app container is created (Flutter renders to #app-container or similar)
     let observerTriggered = false;
     const observer = new MutationObserver((mutations) => {
-      if (!observerTriggered && document.body.children.length > 3) {
-        console.log('[PWA] Flutter content detected, hiding loading');
+      if (!observerTriggered && document.body.children.length > 5) {
+        console.log('[PWA] Flutter content detected, will hide loading');
         observerTriggered = true;
         hideLoadingAnimation();
         observer.disconnect();
@@ -262,11 +278,11 @@
       setTimeout(hideLoadingAnimation, 1000);
     }
     
-    // Fallback: hide after 12 seconds if Flutter doesn't render
+    // Fallback: hide after 15 seconds if Flutter doesn't render
     setTimeout(() => {
       console.log('[PWA] Fallback timeout - hiding loading');
       hideLoadingAnimation();
-    }, 12000);
+    }, 15000);
   </script>
 
   <!-- Service Worker Registration for PWA -->
