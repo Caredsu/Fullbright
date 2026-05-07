@@ -206,6 +206,9 @@
   <script>
     console.log('[PWA] Loading animation script started');
     
+    // Flag to ensure hide logic only runs once
+    let loadingHidden = false;
+    
     // Ensure loading container is visible immediately
     const loadingContainer = document.getElementById('app-loading-container');
     if (loadingContainer) {
@@ -227,8 +230,14 @@
       }
     }, 400);
     
-    // Hide loading animation (with minimum display time)
+    // Hide loading animation (with minimum display time) - only run once!
     function hideLoadingAnimation() {
+      if (loadingHidden) {
+        console.log('[PWA] Loading already hidden, skipping');
+        return;
+      }
+      
+      loadingHidden = true;
       const container = document.getElementById('app-loading-container');
       if (container && !container.classList.contains('hidden')) {
         const elapsedTime = Date.now() - loadingStartTime;
@@ -239,7 +248,7 @@
           setTimeout(() => {
             container.classList.add('hidden');
             clearInterval(dotInterval);
-            console.log('[PWA] Loading animation hidden');
+            console.log('[PWA] Loading animation hidden after minimum time');
           }, timeToWait);
         } else {
           container.classList.add('hidden');
@@ -249,12 +258,10 @@
       }
     }
     
-    // Monitor for when app container is created (Flutter renders to #app-container or similar)
-    let observerTriggered = false;
+    // Monitor for when app container is created
     const observer = new MutationObserver((mutations) => {
-      if (!observerTriggered && document.body.children.length > 5) {
-        console.log('[PWA] Flutter content detected, will hide loading');
-        observerTriggered = true;
+      if (!loadingHidden && document.querySelector('flt-renderer') !== null) {
+        console.log('[PWA] Flutter renderer detected, will hide loading');
         hideLoadingAnimation();
         observer.disconnect();
       }
@@ -275,13 +282,15 @@
       });
     } else {
       console.error('Flutter loader not available');
-      setTimeout(hideLoadingAnimation, 1000);
+      hideLoadingAnimation();
     }
     
     // Fallback: hide after 15 seconds if Flutter doesn't render
     setTimeout(() => {
-      console.log('[PWA] Fallback timeout - hiding loading');
-      hideLoadingAnimation();
+      if (!loadingHidden) {
+        console.log('[PWA] Fallback timeout - hiding loading');
+        hideLoadingAnimation();
+      }
     }, 15000);
   </script>
 
