@@ -204,11 +204,20 @@
   
   <script src="flutter.js"></script>
   <script>
+    console.log('[PWA] Loading animation script started');
+    
+    // Ensure loading container is visible immediately
+    const loadingContainer = document.getElementById('app-loading-container');
+    if (loadingContainer) {
+      loadingContainer.classList.remove('hidden');
+      console.log('[PWA] Loading container made visible');
+    }
+    
     // Animate loading text with dots
     let dotCount = 0;
     const dotInterval = setInterval(() => {
       const loadingText = document.querySelector('.app-loading-text');
-      if (loadingText && document.getElementById('app-loading-container') && !document.getElementById('app-loading-container').classList.contains('hidden')) {
+      if (loadingText && loadingContainer && !loadingContainer.classList.contains('hidden')) {
         dotCount = (dotCount + 1) % 4;
         loadingText.textContent = 'Loading' + '.'.repeat(dotCount) + (dotCount === 0 ? '...' : '');
       }
@@ -216,18 +225,20 @@
     
     // Hide loading animation
     function hideLoadingAnimation() {
-      const loadingContainer = document.getElementById('app-loading-container');
-      if (loadingContainer && !loadingContainer.classList.contains('hidden')) {
-        loadingContainer.classList.add('hidden');
+      const container = document.getElementById('app-loading-container');
+      if (container && !container.classList.contains('hidden')) {
+        container.classList.add('hidden');
         clearInterval(dotInterval);
         console.log('[PWA] Loading animation hidden');
       }
     }
     
     // Monitor for when app container is created (Flutter renders to #app-container or similar)
+    let observerTriggered = false;
     const observer = new MutationObserver((mutations) => {
-      // Check if Flutter has rendered anything (usually adds content to body)
-      if (document.body.children.length > 2) { // Loading container + at least 1 Flutter widget
+      if (!observerTriggered && document.body.children.length > 3) {
+        console.log('[PWA] Flutter content detected, hiding loading');
+        observerTriggered = true;
         hideLoadingAnimation();
         observer.disconnect();
       }
@@ -240,6 +251,7 @@
     
     // Load Flutter app
     if (window._flutter && window._flutter.loader) {
+      console.log('[PWA] Flutter loader found, loading app');
       window._flutter.loader.load({
           config: {
               entrypointBaseUrl: window.PWA_BASE_PATH || './'
@@ -247,14 +259,14 @@
       });
     } else {
       console.error('Flutter loader not available');
-      // Hide loading if loader is missing
       setTimeout(hideLoadingAnimation, 1000);
     }
     
-    // Fallback: hide after 10 seconds if Flutter doesn't render
+    // Fallback: hide after 12 seconds if Flutter doesn't render
     setTimeout(() => {
+      console.log('[PWA] Fallback timeout - hiding loading');
       hideLoadingAnimation();
-    }, 10000);
+    }, 12000);
   </script>
 
   <!-- Service Worker Registration for PWA -->
