@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAM Questionnaire - Teacher Evaluation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a202c 0%, #0f172a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .survey-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .survey-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .survey-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .survey-header p {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 5px;
+        }
+
+        .survey-instructions {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #cbd5e0;
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-header {
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            padding: 15px 20px;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 0;
+        }
+
+        .category-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .category-header p {
+            margin: 5px 0 0 0;
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .category-questions {
+            background: #2d3748;
+            border-radius: 0 0 8px 8px;
+            overflow: hidden;
+            border: 1px solid #4a5568;
+        }
+
+        .question-item {
+            padding: 20px;
+            border-bottom: 1px solid #4a5568;
+            display: flex;
+            gap: 20px;
+        }
+
+        .question-item:last-child {
+            border-bottom: none;
+        }
+
+        .question-label {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .question-code {
+            font-size: 12px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 14px;
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .rating-scale {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .rating-btn {
+            width: 45px;
+            height: 45px;
+            border: 2px solid #4a5568;
+            background: transparent;
+            color: #cbd5e0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .rating-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .rating-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .rating-labels {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .rating-label-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 10px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn-reset:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .progress-bar-container {
+            margin-bottom: 30px;
+            background: #2d3748;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .progress {
+            height: 8px;
+            background: #4a5568;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #5568d3 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .success-message {
+            display: none;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .results-box {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #4a5568;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-label {
+            font-size: 14px;
+            color: #cbd5e0;
+        }
+
+        .result-score {
+            font-size: 16px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .question-item {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .survey-header h1 {
+                font-size: 24px;
+            }
+
+            .rating-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 12px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn-submit, .btn-reset {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="survey-container">
+        <!-- Header -->
+        <div class="survey-header">
+            <h1>TAM Questionnaire</h1>
+            <p>Technology Acceptance Model Survey</p>
+            <p style="font-size: 13px; margin-top: 10px;">Teacher Evaluation System Feedback</p>
+        </div>
+
+        <!-- Instructions -->
+        <div class="survey-instructions">
+            <strong>Instructions:</strong> Please rate your agreement with each statement about using the teacher evaluation system. 
+            <br>Scale: <strong>1 = Strongly Disagree</strong> | <strong>2 = Disagree</strong> | <strong>3 = Neutral</strong> | <strong>4 = Agree</strong> | <strong>5 = Strongly Agree</strong>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar-container">
+            <div class="progress-text">
+                Progress: <span id="answeredCount">0</span> / 19 answered
+            </div>
+        </div>
+
+        <!-- Survey Form -->
+        <form id="surveyForm">
+            <!-- Department Selection -->
+            <div style="background: #2d3748; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #4a5568;">
+                <label for="departmentSelect" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 10px;">
+                    <i class="bi bi-building" style="color: #667eea; margin-right: 8px;"></i>Select Your Department
+                </label>
+                <select id="departmentSelect" name="department" required style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                    <option value="" style="background: #2d3748; color: #9ca3af;">-- Select Department --</option>
+                    <option value="ECT" style="background: #2d3748; color: #e2e8f0;">ECT - Engineering & Computer Technology</option>
+                    <option value="CRIM" style="background: #2d3748; color: #e2e8f0;">CRIM - Criminology</option>
+                    <option value="EDUC" style="background: #2d3748; color: #e2e8f0;">EDUC - Education</option>
+                    <option value="BHT" style="background: #2d3748; color: #e2e8f0;">BHT - Hospitality & Tourism</option>
+                </select>
+            </div>
+
+            <!-- A. Perceived Usefulness -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h3>A. Perceived Usefulness (PU)</h3>
+                    <p>Belief that using the system will improve job performance</p>
+                </div>
+                <div class="category-questions" id="categoryPU"></div>
+            </div>
+
+            <!-- B. Perceived Ease of Use -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h3>B. Perceived Ease of Use (PEU)</h3>
+                    <p>Belief that using the system will be effortless</p>
+                </div>
+                <div class="category-questions" id="categoryPEU"></div>
+            </div>
+
+            <!-- C. Attitude -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h3>C. Attitude (AT)</h3>
+                    <p>Overall feeling and preference toward the system</p>
+                </div>
+                <div class="category-questions" id="categoryAT"></div>
+            </div>
+
+            <!-- D. Behavioral Intention -->
+            <div class="category-section">
+                <div class="category-header">
+                    <h3>D. Behavioral Intention to Use (BI)</h3>
+                    <p>Likelihood and intention to use the system in the future</p>
+                </div>
+                <div class="category-questions" id="categoryBI"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="reset" class="btn-reset" onclick="resetForm()">Clear Answers</button>
+                <button type="submit" class="btn-submit" id="submitBtn">Submit Survey</button>
+            </div>
+        </form>
+
+        <!-- Success Message -->
+        <div class="success-message" id="successMessage">
+            <h4 style="margin-bottom: 15px;">✓ Survey Submitted Successfully!</h4>
+            <p style="margin-bottom: 15px;">Thank you for completing the TAM questionnaire.</p>
+            <div class="results-box" id="resultsBox"></div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_PATH = window.location.hostname.includes('onrender.com') ? '/' : '/teacher-eval/';
+        const API_URL = BASE_PATH + 'api/tam-survey.php';
+        
+        let tamQuestions = {};
+        let responses = {};
+        let studentUserId = 'student_' + Date.now();
+        let teacherId = new URLSearchParams(window.location.search).get('teacher_id') || 'unknown';
+
+        // Initialize survey on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadQuestions();
+            setupFormListeners();
+        });
+
+        // Load questions from API
+        async function loadQuestions() {
+            try {
+                const response = await fetch(`${API_URL}?action=get_questions`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    tamQuestions = data.questions;
+                    renderQuestions();
+                }
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                alert('Failed to load survey questions');
+            }
+        }
+
+        // Render questions in categories
+        function renderQuestions() {
+            const categories = {
+                'PU': 'categoryPU',
+                'PEU': 'categoryPEU',
+                'AT': 'categoryAT',
+                'BI': 'categoryBI'
+            };
+
+            Object.entries(tamQuestions).forEach(([code, question]) => {
+                const category = code.replace(/\d+/, '');
+                const container = document.getElementById(categories[category]);
+
+                if (container) {
+                    const questionHTML = `
+                        <div class="question-item">
+                            <div class="question-label">
+                                <span class="question-code">${code}</span>
+                                <span class="question-text">${question}</span>
+                            </div>
+                            <div class="rating-scale">
+                                ${[1, 2, 3, 4, 5].map(rating => `
+                                    <button type="button" class="rating-btn" data-question="${code}" data-rating="${rating}">
+                                        ${rating}
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += questionHTML;
+                }
+            });
+        }
+
+        // Handle rating selection
+        function selectRating(btn) {
+            const question = btn.dataset.question;
+            const rating = parseInt(btn.dataset.rating);
+
+            // Remove active from siblings
+            btn.parentElement.querySelectorAll('.rating-btn').forEach(b => {
+                b.classList.remove('active');
+            });
+
+            // Add active to clicked
+            btn.classList.add('active');
+
+            // Store response
+            responses[question] = rating;
+            updateProgress();
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const answered = Object.keys(responses).length;
+            const total = Object.keys(tamQuestions).length;
+            const percentage = (answered / total) * 100;
+
+            document.getElementById('answeredCount').textContent = answered;
+            document.getElementById('progressFill').style.width = percentage + '%';
+        }
+
+        // Setup form listeners
+        function setupFormListeners() {
+            document.getElementById('surveyForm').addEventListener('submit', submitSurvey);
+            
+            // Use event delegation for rating buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('rating-btn')) {
+                    e.preventDefault();
+                    selectRating(e.target);
+                }
+            });
+        }
+
+        // Submit survey
+        async function submitSurvey(e) {
+            e.preventDefault();
+
+            // Validate department selected
+            const department = document.getElementById('departmentSelect').value;
+            if (!department) {
+                alert('Please select your department');
+                return;
+            }
+
+            // Validate all questions answered
+            if (Object.keys(responses).length !== Object.keys(tamQuestions).length) {
+                alert('Please answer all ' + Object.keys(tamQuestions).length + ' questions before submitting');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: 'submit_survey',
+                        user_id: studentUserId,
+                        teacher_id: teacherId,
+                        department: department,
+                        responses: responses
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Hide form and show success
+                    document.getElementById('surveyForm').style.display = 'none';
+                    showSuccessMessage(data.scores, data.overall_score);
+                } else {
+                    alert('Error: ' + data.message);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Survey';
+                }
+            } catch (error) {
+                console.error('Error submitting survey:', error);
+                alert('Error submitting survey: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Survey';
+            }
+        }
+
+        // Show success message with results
+        function showSuccessMessage(scores, overallScore) {
+            const successMsg = document.getElementById('successMessage');
+            const resultsBox = document.getElementById('resultsBox');
+
+            let resultsHTML = '<h5 style="margin-bottom: 15px;">Your Results:</h5>';
+            resultsHTML += `
+                <div class="result-item">
+                    <span class="result-label"><strong>Overall Score</strong></span>
+                    <span class="result-score">${overallScore}/5.0 ⭐</span>
+                </div>
+            `;
+
+            const categoryNames = {
+                'PU': 'Perceived Usefulness',
+                'PEU': 'Perceived Ease of Use',
+                'AT': 'Attitude',
+                'BI': 'Behavioral Intention'
+            };
+
+            Object.entries(scores).forEach(([category, score]) => {
+                resultsHTML += `
+                    <div class="result-item">
+                        <span class="result-label">${categoryNames[category]}</span>
+                        <span class="result-score">${score}/5.0</span>
+                    </div>
+                `;
+            });
+
+            resultsBox.innerHTML = resultsHTML;
+            successMsg.classList.add('show');
+
+            // Auto-close after 10 seconds
+            setTimeout(() => {
+                window.location.href = BASE_PATH;
+            }, 10000);
+        }
+
+        // Reset form
+        function resetForm() {
+            if (confirm('Are you sure? This will clear all your answers.')) {
+                document.getElementById('surveyForm').reset();
+                document.querySelectorAll('.rating-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                responses = {};
+                updateProgress();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -195,6 +195,11 @@ if (session_status() === PHP_SESSION_NONE) {
                         <i class="bi bi-chat-dots"></i> System Feedback
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="<?= $adminBase ?>/tam-survey-results.php">
+                        <i class="bi bi-graph-up"></i> TAM Survey Results
+                    </a>
+                </li>
                 <?php if (isAdmin()): ?>
                 <li class="nav-item">
                     <a class="nav-link" href="<?= $adminBase ?>/users.php">

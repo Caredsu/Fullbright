@@ -312,7 +312,12 @@ const ALLOWED_DEPARTMENTS = ['ECT', 'EDUC', 'CCJE', 'BHT'];
         
         function loadTeachers() {
             // Fetch ALL teachers (including inactive) for admin to manage
-            fetch('/teacher-eval/api/teachers.php?show_all=true')
+            fetch('/teacher-eval/api/teachers.php?show_all=true', {
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
                 .then(response => response.json())
                 .then(result => {
                     console.log('Teachers response:', result);

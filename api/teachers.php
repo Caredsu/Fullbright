@@ -31,10 +31,39 @@ require_once __DIR__ . '/../includes/helpers.php';
 
 setJsonHeader();
 
+// Try to restore session from PHPSESSID if not already set
+if (empty($_SESSION['admin_id'])) {
+    $phpSessionId = $_COOKIE['PHPSESSID'] ?? null;
+    if ($phpSessionId) {
+        $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
+        $sessionFile = $sessionSavePath . '/sess_' . $phpSessionId;
+        if (file_exists($sessionFile)) {
+            $sessionData = @file_get_contents($sessionFile);
+            if ($sessionData !== false && !empty($sessionData)) {
+                // Deserialize session data and restore to $_SESSION
+                $offset = 0;
+                while ($offset < strlen($sessionData)) {
+                    if (!stristr(substr($sessionData, $offset), "|")) break;
+                    $pos = strpos($sessionData, "|", $offset);
+                    $num = $pos - $offset;
+                    $varname = substr($sessionData, $offset, $num);
+                    $offset += $num + 1;
+                    $data_item = unserialize(substr($sessionData, $offset));
+                    $_SESSION[$varname] = $data_item;
+                    $offset += strlen(serialize($data_item));
+                }
+            }
+        }
+    }
+}
+
 $method = getRequestMethod();
 
 // Debug: Log the request details
 error_log("Teachers API: Method=$method, Path=" . ($_SERVER['REQUEST_URI'] ?? 'unknown'));
+
+// Declare global collections
+global $teachers_collection, $questions_collection, $evaluations_collection, $admins_collection;
 
 try {
     if ($method === 'GET') {
@@ -52,17 +81,24 @@ try {
         
         if ($id) {
             // Get specific teacher by ID
+            error_log("DEBUG: Getting teacher with ID: " . $id);
             $objectId = stringToObjectId($id);
             if (!$objectId) {
+                error_log("DEBUG: stringToObjectId returned null for ID: " . $id);
                 sendError('Invalid teacher ID format', 400);
             }
             
+            error_log("DEBUG: ObjectId created: " . (string)$objectId);
+            
             try {
+                error_log("DEBUG: Searching for teacher in collection...");
                 $teacher = $teachers_collection->findOne(['_id' => $objectId]);
                 if (!$teacher) {
+                    error_log("DEBUG: Teacher not found with ObjectId: " . (string)$objectId);
                     sendError('Teacher not found', 404);
                 }
                 
+                error_log("DEBUG: Teacher found, returning data");
                 sendSuccess([
                     'id' => objectIdToString($teacher['_id']),
                     'first_name' => $teacher['first_name'] ?? '',
@@ -77,12 +113,14 @@ try {
                     'updated_by' => $teacher['updated_by'] ?? 'system'
                 ], 'Teacher retrieved successfully', 200);
             } catch (\Exception $e) {
+                error_log("ERROR: Exception in findOne: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
                 sendError('Error retrieving teacher: ' . $e->getMessage(), 500);
             }
         }
         
         // Get all teachers - PUBLIC ACCESS (with field projection)
         try {
+            error_log("DEBUG: Fetching all teachers...");
             // Check for evaluated teachers (comma-separated IDs)
             $evaluatedParam = $_GET['evaluated_ids'] ?? '';
             $evaluatedIds = [];
@@ -99,6 +137,7 @@ try {
             
             // Check if admin requesting all teachers (no status filter)
             $showAll = ($_GET['show_all'] ?? '') === 'true' || ($_GET['show_all'] ?? '') === '1';
+            error_log("DEBUG: showAll=$showAll");
             
             // Get teachers with appropriate filter
             if ($showAll) {
@@ -109,6 +148,7 @@ try {
                 $filter = ['status' => ['$in' => ['active', 'available']]];
             }
             
+            error_log("DEBUG: About to call find() with filter: " . json_encode($filter));
             $teachers = $teachers_collection->find($filter, [
                 'projection' => [
                     'first_name' => 1, 'last_name' => 1, 'middle_name' => 1,
@@ -116,6 +156,8 @@ try {
                     'created_at' => 1, 'updated_at' => 1, 'updated_by' => 1
                 ]
             ])->toArray();
+
+            error_log("DEBUG: Found " . count($teachers) . " teachers");
 
             $formattedTeachers = array_map(function($teacher) use ($evaluatedIds) {
                 $teacherId = objectIdToString($teacher['_id']);
@@ -135,15 +177,25 @@ try {
                 ];
             }, $teachers);
 
+            error_log("DEBUG: Formatted teachers, about to send success response");
             sendSuccess($formattedTeachers, 'Teachers retrieved successfully', 200);
         } catch (\Exception $e) {
+            error_log("CRITICAL ERROR: " . $e->getMessage() . " | Stack: " . $e->getTraceAsString());
             sendError('Error retrieving teachers: ' . $e->getMessage(), 500);
         }
 
     } elseif ($method === 'POST') {
         // Add new teacher - requires manage_teachers permission
-        requireLogin();
-        requirePermission('manage_teachers');
+        // Check authentication - return JSON error instead of redirecting
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage teachers', 403);
+        }
 
         $body = getJsonBody();
         if (!$body) {
@@ -199,8 +251,16 @@ try {
 
     } elseif ($method === 'PUT') {
         // Edit teacher - requires manage_teachers permission
-        requireLogin();
-        requirePermission('manage_teachers');
+        // Check authentication - return JSON error instead of redirecting
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage teachers', 403);
+        }
 
         // Try to get ID from query parameter first, then from REQUEST_URI as fallback
         $id = $_GET['id'] ?? '';
@@ -294,8 +354,16 @@ try {
 
     } elseif ($method === 'DELETE') {
         // Delete teacher - requires manage_teachers permission
-        requireLogin();
-        requirePermission('manage_teachers');
+        // Check authentication - return JSON error instead of redirecting
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage teachers', 403);
+        }
 
         // Try to get ID from query parameter first, then from REQUEST_URI as fallback
         $id = $_GET['id'] ?? '';

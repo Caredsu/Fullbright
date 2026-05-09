@@ -33,9 +33,9 @@ function initializeQuestionsTable() {
                 data: 'status',
                 title: 'Status',
                 render: function(data) {
-                    return data === 'active' 
-                        ? '<span class="badge bg-success">Active</span>'
-                        : '<span class="badge bg-secondary">Inactive</span>';
+                    if (!data) return '<span class="status-badge">N/A</span>';
+                    const statusClass = data === 'active' ? 'status-active' : 'status-inactive';
+                    return `<span class="status-badge ${statusClass}">${data.toUpperCase()}</span>`;
                 }
             },
             {

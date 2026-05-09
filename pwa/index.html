@@ -114,7 +114,12 @@
       height: 100%;
       background: linear-gradient(90deg, #06b6d4, #0ea5e9);
       border-radius: 10px;
-      animation: progress-animation 2s ease-in-out infinite;
+      width: 0%;
+      animation-name: progress-animation;
+      animation-duration: 1.5s;
+      animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      animation-iteration-count: 1 !important;
+      animation-fill-mode: forwards !important;
       box-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
     }
     
@@ -122,8 +127,17 @@
       0% {
         width: 0%;
       }
-      50% {
-        width: 70%;
+      20% {
+        width: 15%;
+      }
+      40% {
+        width: 35%;
+      }
+      60% {
+        width: 65%;
+      }
+      80% {
+        width: 85%;
       }
       100% {
         width: 100%;
@@ -135,10 +149,10 @@
       font-size: 14px;
       font-weight: 500;
       letter-spacing: 1px;
-      animation: dots 1.5s steps(4, end) infinite;
     }
     
-    @keyframes dots {
+    @keyframes dots-unused {
+      /* Removed: JavaScript is handling the dots animation */
       0%, 20% {
         content: 'Loading';
         color: #64748b;
@@ -160,6 +174,11 @@
     /* Hide loading container when Flutter app is ready */
     #app-loading-container.hidden {
       display: none;
+    }
+
+    /* Aggressive button hiding */
+    *:not(html):not(body) {
+      /* This will be overridden by the JavaScript */
     }
   </style>
 </head>
@@ -203,6 +222,41 @@
   </script>
   
   <script src="flutter.js"></script>
+  <script src="flutter_bootstrap.js"></script>
+  
+  <!-- Pre-load teacher data while loading screen is showing -->
+  <script>
+    (function() {
+      const baseUrl = window.PWA_BASE_PATH || '/teacher-eval/pwa/';
+      const apiUrl = baseUrl.replace('/pwa/', '/api/');
+      
+      // Determine API base - handle both local and remote
+      let apiBase = '';
+      if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
+        apiBase = window.location.origin + apiUrl;
+      } else {
+        // For production, use configured API endpoint
+        apiBase = 'https://fullbright-college-1.onrender.com/api/';
+      }
+      
+      console.log('[PWA] Pre-loading teacher list from:', apiBase);
+      
+      // Pre-fetch teacher list in background
+      fetch(apiBase + 'teachers')
+        .then(response => response.json())
+        .then(data => {
+          // Cache in session storage for Flutter app to use
+          if (window.sessionStorage) {
+            window.sessionStorage.setItem('cached_teachers', JSON.stringify(data.data || []));
+            console.log('[PWA] Teacher list cached:', (data.data || []).length, 'teachers');
+          }
+        })
+        .catch(err => {
+          console.log('[PWA] Pre-load failed (expected if offline):', err.message);
+        });
+    })();
+  </script>
+  
   <script>
     console.log('[PWA] Loading animation script started');
     
@@ -218,7 +272,7 @@
     
     // Track when loading started
     const loadingStartTime = Date.now();
-    const MINIMUM_LOADING_TIME = 3000; // Show loading bar for at least 3 seconds
+    const MINIMUM_LOADING_TIME = 500; // Minimal delay to let bar animate
     
     // Animate loading text with dots
     let dotCount = 0;
@@ -272,26 +326,17 @@
       subtree: true 
     });
     
-    // Load Flutter app
-    if (window._flutter && window._flutter.loader) {
-      console.log('[PWA] Flutter loader found, loading app');
-      window._flutter.loader.load({
-          config: {
-              entrypointBaseUrl: window.PWA_BASE_PATH || './'
-          }
-      });
-    } else {
-      console.error('Flutter loader not available');
-      hideLoadingAnimation();
-    }
+    // Flutter loader is already called by flutter_bootstrap.js automatically
+    // Do NOT call loader.load() again here to avoid duplicate initialization
+    console.log('[PWA] Bootstrap already handled by flutter_bootstrap.js');
     
-    // Fallback: hide after 15 seconds if Flutter doesn't render
+    // Fallback: hide after 5 seconds if Flutter doesn't render
     setTimeout(() => {
       if (!loadingHidden) {
         console.log('[PWA] Fallback timeout - hiding loading');
         hideLoadingAnimation();
       }
-    }, 15000);
+    }, 5000);
   </script>
 
   <!-- Service Worker Registration for PWA -->
@@ -307,6 +352,102 @@
             console.log('Service Worker registration failed:', err);
           });
       });
+    }
+  </script>
+
+  <!-- Hide Edit Evaluation Button - Aggressive Flutter-aware approach -->
+  <script>
+    // Store references to hidden elements
+    const hiddenElements = new WeakSet();
+
+    function hideEditButton() {
+      try {
+        // Method 1: Search entire DOM tree recursively
+        const walker = document.createTreeWalker(
+          document.body,
+          NodeFilter.SHOW_TEXT,
+          null,
+          false
+        );
+
+        let node;
+        while (node = walker.nextNode()) {
+          if (node.textContent.includes('Edit Evaluation')) {
+            // Found the text - traverse up to find clickable parent
+            let parent = node.parentElement;
+            let clickableParent = null;
+            
+            // Traverse up max 10 levels
+            for (let i = 0; i < 10 && parent; i++) {
+              const role = parent.getAttribute('role');
+              if (parent.onclick || role === 'button' || parent.tagName === 'BUTTON' || 
+                  parent.style.cursor === 'pointer' || parent.classList.contains('button') ||
+                  parent.classList.toString().includes('button')) {
+                clickableParent = parent;
+                break;
+              }
+              parent = parent.parentElement;
+            }
+            
+            // If found, hide it
+            if (clickableParent && !hiddenElements.has(clickableParent)) {
+              clickableParent.style.display = 'none';
+              clickableParent.style.pointerEvents = 'none';
+              clickableParent.style.visibility = 'hidden';
+              clickableParent.style.height = '0';
+              clickableParent.style.overflow = 'hidden';
+              clickableParent.setAttribute('data-hidden-by-pwa', 'true');
+              hiddenElements.add(clickableParent);
+              console.log('[PWA] ✓ Edit Evaluation button hidden');
+            }
+          }
+        }
+
+        // Method 2: Check all elements with potential button styles
+        document.querySelectorAll('[style*="cursor"], [class*="button"], button, [role="button"]').forEach(el => {
+          if ((el.innerText || el.textContent || '').includes('Edit Evaluation') && !hiddenElements.has(el)) {
+            el.style.display = 'none';
+            el.style.pointerEvents = 'none';
+            el.style.visibility = 'hidden';
+            el.setAttribute('data-hidden-by-pwa', 'true');
+            hiddenElements.add(el);
+            console.log('[PWA] ✓ Edit Evaluation button hidden (method 2)');
+          }
+        });
+      } catch (e) {
+        console.log('[PWA] Error hiding button:', e.message);
+      }
+    }
+
+    // Run immediately on script load
+    document.addEventListener('DOMContentLoaded', hideEditButton);
+    window.addEventListener('load', hideEditButton);
+
+    // Observe DOM mutations
+    const observer = new MutationObserver(() => {
+      hideEditButton();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    // Additional periodic checks (every 1 second for 10 seconds)
+    let checkCount = 0;
+    const checkInterval = setInterval(() => {
+      hideEditButton();
+      checkCount++;
+      if (checkCount > 10) {
+        clearInterval(checkInterval);
+      }
+    }, 1000);
+
+    // Immediate first check
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideEditButton);
+    } else {
+      hideEditButton();
     }
   </script>
 </body>

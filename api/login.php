@@ -1,3 +1,9 @@
+<?php
+/**
+ * Login API Endpoint
+ * POST /api/login
+ */
+
 // DEBUG: Print .env file content to verify PHP can read it
 if (isset($_GET['debug_env']) && $_GET['debug_env'] === 'file') {
     header('Content-Type: text/plain');
@@ -10,11 +16,6 @@ if (isset($_GET['debug_env']) && $_GET['debug_env'] === 'file') {
     }
     exit;
 }
-<?php
-/**
- * Login API Endpoint
- * POST /api/login
- */
 
 // Handle CORS preflight requests FIRST
 header('Access-Control-Allow-Origin: *');
