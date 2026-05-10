@@ -25,7 +25,6 @@ if (!ob_get_contents() && extension_loaded('zlib')) {
 }
 
 use MongoDB\BSON\ObjectId;
-use App\Database;
 
 $db = Database::getInstance();
 $teachersCollection = $db->getCollection('teachers');

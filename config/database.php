@@ -80,7 +80,6 @@ if ($__mongo_instance === null) {
         global $db, $collections, $teachers_collection, $questions_collection, 
                $evaluations_collection, $admins_collection, $activity_log_collection, $settings_collection;
         
-        $db = $db;
         $collections = [
             'admins' => $db->selectCollection(COLLECTION_ADMINS),
             'teachers' => $db->selectCollection(COLLECTION_TEACHERS),

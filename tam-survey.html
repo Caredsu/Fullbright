@@ -280,6 +280,14 @@
             color: #667eea;
         }
 
+        .results-box {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -341,18 +349,55 @@
 
         <!-- Survey Form -->
         <form id="surveyForm">
-            <!-- Department Selection -->
+            <!-- Demographic Information -->
             <div style="background: #2d3748; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #4a5568;">
-                <label for="departmentSelect" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 10px;">
-                    <i class="bi bi-building" style="color: #667eea; margin-right: 8px;"></i>Select Your Department
-                </label>
-                <select id="departmentSelect" name="department" required style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
-                    <option value="" style="background: #2d3748; color: #9ca3af;">-- Select Department --</option>
-                    <option value="ECT" style="background: #2d3748; color: #e2e8f0;">ECT - Engineering & Computer Technology</option>
-                    <option value="CRIM" style="background: #2d3748; color: #e2e8f0;">CRIM - Criminology</option>
-                    <option value="EDUC" style="background: #2d3748; color: #e2e8f0;">EDUC - Education</option>
-                    <option value="BHT" style="background: #2d3748; color: #e2e8f0;">BHT - Hospitality & Tourism</option>
-                </select>
+                <h5 style="color: #e2e8f0; margin-bottom: 20px; font-weight: 600;">
+                    <i class="bi bi-person" style="color: #667eea; margin-right: 8px;"></i>Demographic Information
+                </h5>
+                
+                <!-- Age -->
+                <div style="margin-bottom: 15px;">
+                    <label for="ageInput" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 8px;">Age</label>
+                    <input type="number" id="ageInput" name="age" placeholder="Enter your age" min="18" max="100" style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                </div>
+
+                <!-- Sex -->
+                <div style="margin-bottom: 15px;">
+                    <label for="sexInput" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 8px;">Sex</label>
+                    <select id="sexInput" name="sex" style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                        <option value="" style="background: #2d3748; color: #9ca3af;">-- Select Sex --</option>
+                        <option value="Male" style="background: #2d3748; color: #e2e8f0;">Male</option>
+                        <option value="Female" style="background: #2d3748; color: #e2e8f0;">Female</option>
+                        <option value="Other" style="background: #2d3748; color: #e2e8f0;">Other</option>
+                        <option value="Prefer not to say" style="background: #2d3748; color: #e2e8f0;">Prefer not to say</option>
+                    </select>
+                </div>
+
+                <!-- Year -->
+                <div style="margin-bottom: 15px;">
+                    <label for="yearInput" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 8px;">Year</label>
+                    <input type="text" id="yearInput" name="year" placeholder="e.g., 1st Year, 2nd Year" style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                </div>
+
+                <!-- Course -->
+                <div style="margin-bottom: 0;">
+                    <label for="courseInput" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 8px;">Course</label>
+                    <input type="text" id="courseInput" name="course" placeholder="Enter your course" style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                </div>
+
+                <!-- Department Selection -->
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #4a5568;">
+                    <label for="departmentSelect" style="color: #e2e8f0; font-weight: 600; display: block; margin-bottom: 8px;">
+                        <i class="bi bi-building" style="color: #667eea; margin-right: 8px;"></i>Select Your Department
+                    </label>
+                    <select id="departmentSelect" name="department" required style="width: 100%; padding: 12px; border: 2px solid #4a5568; background: #1a202c; color: #e2e8f0; border-radius: 6px; font-size: 14px; transition: all 0.3s ease;">
+                        <option value="" style="background: #2d3748; color: #9ca3af;">-- Select Department --</option>
+                        <option value="ECT" style="background: #2d3748; color: #e2e8f0;">ECT - Engineering & Computer Technology</option>
+                        <option value="CRIM" style="background: #2d3748; color: #e2e8f0;">CRIM - Criminology</option>
+                        <option value="EDUC" style="background: #2d3748; color: #e2e8f0;">EDUC - Education</option>
+                        <option value="BHT" style="background: #2d3748; color: #e2e8f0;">BHT - Hospitality & Tourism</option>
+                    </select>
+                </div>
             </div>
 
             <!-- A. Perceived Usefulness -->
@@ -516,8 +561,33 @@
         async function submitSurvey(e) {
             e.preventDefault();
 
-            // Validate department selected
+            // Validate demographic fields
+            const age = document.getElementById('ageInput').value;
+            const sex = document.getElementById('sexInput').value;
+            const year = document.getElementById('yearInput').value;
+            const course = document.getElementById('courseInput').value;
             const department = document.getElementById('departmentSelect').value;
+
+            if (!age || !age.trim()) {
+                alert('Please enter your age');
+                return;
+            }
+
+            if (!sex) {
+                alert('Please select your sex');
+                return;
+            }
+
+            if (!year || !year.trim()) {
+                alert('Please enter your year');
+                return;
+            }
+
+            if (!course || !course.trim()) {
+                alert('Please enter your course');
+                return;
+            }
+
             if (!department) {
                 alert('Please select your department');
                 return;
@@ -543,6 +613,10 @@
                         action: 'submit_survey',
                         user_id: studentUserId,
                         teacher_id: teacherId,
+                        age: age,
+                        sex: sex,
+                        year: year,
+                        course: course,
                         department: department,
                         responses: responses
                     })
@@ -567,16 +641,50 @@
             }
         }
 
+        // Helper function to get rating badge
+        function getRatingBadge(score) {
+            if (score >= 4.5) return { badge: 'Excellent', color: '#10b981', bgColor: 'rgba(16, 185, 129, 0.1)' };
+            if (score >= 4.0) return { badge: 'Very Good', color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.1)' };
+            if (score >= 3.0) return { badge: 'Good', color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.1)' };
+            return { badge: 'Needs Work', color: '#ef4444', bgColor: 'rgba(239, 68, 68, 0.1)' };
+        }
+
+        // Helper function to get rating icon
+        function getRatingIcon(score) {
+            if (score >= 4.5) return '⭐⭐⭐⭐⭐';
+            if (score >= 4.0) return '⭐⭐⭐⭐';
+            if (score >= 3.0) return '⭐⭐⭐';
+            if (score >= 2.0) return '⭐⭐';
+            return '⭐';
+        }
+
         // Show success message with results
         function showSuccessMessage(scores, overallScore) {
             const successMsg = document.getElementById('successMessage');
             const resultsBox = document.getElementById('resultsBox');
 
-            let resultsHTML = '<h5 style="margin-bottom: 15px;">Your Results:</h5>';
+            const overallBadge = getRatingBadge(overallScore);
+            const overallIcon = getRatingIcon(overallScore);
+
+            let resultsHTML = '<h5 style="margin-bottom: 20px;">Your Results:</h5>';
+            
+            // Overall Score with Badge
             resultsHTML += `
-                <div class="result-item">
-                    <span class="result-label"><strong>Overall Score</strong></span>
-                    <span class="result-score">${overallScore}/5.0 ⭐</span>
+                <div class="result-item" style="background: ${overallBadge.bgColor}; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid ${overallBadge.color};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                        <div>
+                            <span class="result-label"><strong>Overall Score</strong></span>
+                            <div style="margin-top: 8px; font-size: 12px; color: ${overallBadge.color}; font-weight: 600;">
+                                <span style="background: white; padding: 4px 12px; border-radius: 20px; border: 1px solid ${overallBadge.color};">
+                                    ${overallBadge.badge}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="result-score" style="font-size: 28px; color: ${overallBadge.color};">${overallScore}/5.0</span>
+                            <div style="font-size: 18px; margin-top: 5px;">${overallIcon}</div>
+                        </div>
+                    </div>
                 </div>
             `;
 
@@ -587,14 +695,50 @@
                 'BI': 'Behavioral Intention'
             };
 
+            const categoryIcons = {
+                'PU': '💡',
+                'PEU': '✨',
+                'AT': '😊',
+                'BI': '🎯'
+            };
+
             Object.entries(scores).forEach(([category, score]) => {
+                const badge = getRatingBadge(score);
+                const icon = getRatingIcon(score);
+                
                 resultsHTML += `
-                    <div class="result-item">
-                        <span class="result-label">${categoryNames[category]}</span>
-                        <span class="result-score">${score}/5.0</span>
+                    <div class="result-item" style="background: ${badge.bgColor}; border-radius: 8px; padding: 15px; margin-bottom: 12px; border-left: 4px solid ${badge.color}; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <span style="font-size: 20px;">${categoryIcons[category]}</span>
+                                <span class="result-label"><strong>${categoryNames[category]}</strong></span>
+                            </div>
+                            <div style="font-size: 11px; color: ${badge.color}; font-weight: 600;">
+                                <span style="background: white; padding: 3px 10px; border-radius: 15px; border: 1px solid ${badge.color}; display: inline-block;">
+                                    ${badge.badge}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="text-align: right; white-space: nowrap; margin-left: 15px;">
+                            <span class="result-score" style="color: ${badge.color};">${score}/5.0</span>
+                            <div style="font-size: 14px; margin-top: 4px;">${icon}</div>
+                        </div>
                     </div>
                 `;
             });
+
+            // Add interpretation guide
+            resultsHTML += `
+                <div style="background: rgba(102, 126, 234, 0.1); border-radius: 8px; padding: 15px; margin-top: 20px; border-left: 4px solid #667eea; font-size: 13px;">
+                    <h6 style="color: #667eea; margin-bottom: 10px; font-weight: 600;">Score Guide:</h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; color: #cbd5e0;">
+                        <div>✓ 4.5+ = Excellent</div>
+                        <div>✓ 4.0+ = Very Good</div>
+                        <div>✓ 3.0+ = Good</div>
+                        <div>✓ Below 3.0 = Needs Work</div>
+                    </div>
+                </div>
+            `;
 
             resultsBox.innerHTML = resultsHTML;
             successMsg.classList.add('show');

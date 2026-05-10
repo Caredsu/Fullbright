@@ -35,8 +35,11 @@ if (session_status() === PHP_SESSION_NONE) {
         font-weight: 600;
         margin: 0 !important;
         padding: 0 !important;
-        white-space: nowrap;
+        white-space: normal !important;
         flex-shrink: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 10px;
     }
     
     .navbar-dark-theme .container-fluid {
@@ -150,7 +153,11 @@ if (session_status() === PHP_SESSION_NONE) {
             $adminBase = rtrim($adminBase, '/');
         ?>
         <a class="navbar-brand fw-bold" href="<?= $adminBase ?>/dashboard.php">
-            <img src="<?= ASSETS_URL ?>/img/2.png" alt="Logo" style="height: 40px; margin-right: 8px; vertical-align: middle;"> Teacher Evaluation System
+            <img src="<?= ASSETS_URL ?>/img/2.png" alt="Logo" style="height: 40px; margin-right: 8px; vertical-align: middle;">
+            <div style="display: flex; flex-direction: column; line-height: 1.2;">
+                <span style="font-size: 16px;">Teacher Evaluation</span>
+                <span style="font-size: 16px;">System</span>
+            </div>
         </a>
         
         <!-- Toggler for mobile -->

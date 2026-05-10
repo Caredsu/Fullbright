@@ -8,11 +8,12 @@
  * DELETE /api/questions?id=:id - Delete question (requires manage_questions)
  */
 
-session_start();
-
 require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
+
+// Initialize session AFTER loading helpers.php with proper configuration
+initializeSession();
 
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\UTCDateTime;
@@ -81,8 +82,16 @@ try {
 
     } elseif ($method === 'POST') {
         // Add new question - requires manage_questions permission
-        requireLogin();
-        requirePermission('manage_questions');
+        // Check authentication first - return JSON error instead of HTML redirect
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage questions', 403);
+        }
 
         $body = getJsonBody();
         if (!$body) {
@@ -125,8 +134,16 @@ try {
 
     } elseif ($method === 'PUT') {
         // Edit question - requires manage_questions permission
-        requireLogin();
-        requirePermission('manage_questions');
+        // Check authentication first - return JSON error instead of HTML redirect
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage questions', 403);
+        }
 
         $id = $_GET['id'] ?? '';
         if (!$id) {
@@ -188,8 +205,16 @@ try {
 
     } elseif ($method === 'DELETE') {
         // Delete question - requires manage_questions permission
-        requireLogin();
-        requirePermission('manage_questions');
+        // Check authentication first - return JSON error instead of HTML redirect
+        if (empty($_SESSION['admin_id'])) {
+            sendError('Unauthorized: Please log in', 401);
+        }
+        
+        // Check permission - return JSON error instead of plain text
+        $role = $_SESSION['admin_role'] ?? null;
+        if (!in_array($role, ['admin', 'superadmin', 'staff', 'super_admin'])) {
+            sendError('Forbidden: You do not have permission to manage questions', 403);
+        }
 
         $id = $_GET['id'] ?? '';
         if (!$id) {

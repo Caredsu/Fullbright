@@ -68,12 +68,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user_id = $data['user_id'] ?? null;
         $teacher_id = $data['teacher_id'] ?? null;
         $department = $data['department'] ?? null;
+        $age = $data['age'] ?? null;
+        $sex = $data['sex'] ?? null;
+        $year = $data['year'] ?? null;
+        $course = $data['course'] ?? null;
         $responses = $data['responses'] ?? [];
         
         // Validate inputs
         if (!$user_id || !$teacher_id || !$department || empty($responses)) {
             http_response_code(400);
             echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+            exit;
+        }
+        
+        // Validate demographic fields
+        if (!$age || !$sex || !$year || !$course) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Missing demographic information']);
             exit;
         }
         
@@ -121,6 +132,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'user_id' => $user_id,
                 'teacher_id' => $teacher_id,
                 'department' => $department,
+                'age' => (int)$age,
+                'sex' => trim($sex),
+                'year' => trim($year),
+                'course' => trim($course),
                 'responses' => $responses,
                 'category_scores' => $categoryScores,
                 'overall_score' => $overallScore,

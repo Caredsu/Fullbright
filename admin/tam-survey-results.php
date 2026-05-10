@@ -115,7 +115,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['get_survey_details'])
             'success' => true,
             'user_id' => $survey['user_id'] ?? 'Unknown',
             'department' => $survey['department'] ?? 'N/A',
-            'teacher_id' => $survey['teacher_id'] ?? 'N/A',
+            'age' => $survey['age'] ?? 'N/A',
+            'sex' => $survey['sex'] ?? 'N/A',
+            'year' => $survey['year'] ?? 'N/A',
+            'course' => $survey['course'] ?? 'N/A',
             'submitted_at' => $submitted_at,
             'category_scores' => $survey['category_scores'] ?? $categoryAverages,
             'overall_score' => $survey['overall_score'] ?? $overallAverage,
@@ -725,6 +728,14 @@ function getRatingBadge($score) {
                             <h6><i class="bi bi-person"></i> User Information</h6>
                             <p><strong>User ID:</strong> ${data.user_id}</p>
                             <p><strong>Department:</strong> ${data.department}</p>
+                        </div>
+                        
+                        <div class="detail-card">
+                            <h6><i class="bi bi-info-circle"></i> Demographic Information</h6>
+                            <p><strong>Age:</strong> ${data.age}</p>
+                            <p><strong>Sex:</strong> ${data.sex}</p>
+                            <p><strong>Year:</strong> ${data.year}</p>
+                            <p><strong>Course:</strong> ${data.course}</p>
                         </div>
                         
                         <div class="detail-card">

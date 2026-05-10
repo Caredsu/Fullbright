@@ -7,9 +7,6 @@
  * DELETE /api/teachers/:id - Delete teacher (requires superadmin)
  */
 
-// Start session FIRST before any headers
-session_start();
-
 // Make global request path available (set by index.php router)
 global $ORIGINAL_REQUEST_PATH;
 
@@ -29,32 +26,16 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
+// Initialize session AFTER loading helpers.php with proper configuration
+initializeSession();
+
 setJsonHeader();
 
 // Try to restore session from PHPSESSID if not already set
 if (empty($_SESSION['admin_id'])) {
-    $phpSessionId = $_COOKIE['PHPSESSID'] ?? null;
-    if ($phpSessionId) {
-        $sessionSavePath = dirname(dirname(__FILE__)) . '/storage/sessions';
-        $sessionFile = $sessionSavePath . '/sess_' . $phpSessionId;
-        if (file_exists($sessionFile)) {
-            $sessionData = @file_get_contents($sessionFile);
-            if ($sessionData !== false && !empty($sessionData)) {
-                // Deserialize session data and restore to $_SESSION
-                $offset = 0;
-                while ($offset < strlen($sessionData)) {
-                    if (!stristr(substr($sessionData, $offset), "|")) break;
-                    $pos = strpos($sessionData, "|", $offset);
-                    $num = $pos - $offset;
-                    $varname = substr($sessionData, $offset, $num);
-                    $offset += $num + 1;
-                    $data_item = unserialize(substr($sessionData, $offset));
-                    $_SESSION[$varname] = $data_item;
-                    $offset += strlen(serialize($data_item));
-                }
-            }
-        }
-    }
+    // Session not found in $_SESSION - this is OK, user may not be logged in
+    // The session should have been initialized by initializeSession() call above
+    // We'll let the frontend handle permission checks if needed
 }
 
 $method = getRequestMethod();
@@ -89,7 +70,7 @@ try {
             }
             
             error_log("DEBUG: ObjectId created: " . (string)$objectId);
-            
+
             try {
                 error_log("DEBUG: Searching for teacher in collection...");
                 $teacher = $teachers_collection->findOne(['_id' => $objectId]);
