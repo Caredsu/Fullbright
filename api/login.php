@@ -33,6 +33,8 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../includes/helpers.php';
 
+use App\Database;
+
 // DEBUG OUTPUT - REMOVE AFTER TEST
 if (isset($_GET['debug_env']) && $_GET['debug_env'] === '1') {
     header('Content-Type: text/plain');

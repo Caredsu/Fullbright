@@ -10,7 +10,7 @@ class QueryBuilder {
     private $collectionName;
     
     public function __construct($collectionName) {
-        $this->db = Database::getInstance();
+        $this->db = \App\Database::getInstance();
         $this->collectionName = $collectionName;
         $this->collection = $this->db->getCollection($collectionName);
     }

@@ -11,7 +11,7 @@ class ApiHandler {
     protected $collection;
     
     public function __construct($collectionName) {
-        $this->db = Database::getInstance();
+        $this->db = \App\Database::getInstance();
         $this->collection = $this->db->getCollection($collectionName);
         $this->method = $_SERVER['REQUEST_METHOD'];
         
