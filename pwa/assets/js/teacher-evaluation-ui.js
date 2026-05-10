@@ -121,11 +121,11 @@ class TeacherEvaluationUIHandler {
         this.observerRunning = true;
 
         // For Flutter web apps using mutation observer
-        const observer = new MutationObserver(() => {
+        const uiStateObserver = new MutationObserver(() => {
             this.applyDisabledStateToAll();
         });
 
-        observer.observe(document.body, {
+        uiStateObserver.observe(document.body, {
             childList: true,
             subtree: true,
             attributes: false

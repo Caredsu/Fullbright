@@ -173,7 +173,7 @@ console.log('✅ Aggressive Form Blocker loaded');
     setupDOMObserver() {
         const self = this;
         
-        const observer = new MutationObserver((mutations) => {
+        const formBlockerObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach((node) => {
@@ -194,7 +194,7 @@ console.log('✅ Aggressive Form Blocker loaded');
             });
         });
 
-        observer.observe(document.body, {
+        formBlockerObserver.observe(document.body, {
             childList: true,
             subtree: true
         });

@@ -541,12 +541,12 @@ class AlreadyEvaluatedModalHandler {
         applyPointerEventLock();
 
         // Watch for DOM changes and reapply
-        const observer = new MutationObserver(() => {
+        const pointerEventObserver = new MutationObserver(() => {
             // Re-apply locks in case new teacher elements appeared
             applyPointerEventLock();
         });
 
-        observer.observe(document.body, {
+        pointerEventObserver.observe(document.body, {
             childList: true,
             subtree: true
         });

@@ -27,10 +27,15 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="Teacher Evaluation System - Rate and evaluate your teachers">
+  <meta name="theme-color" content="#06b6d4">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="teacher_eval_app">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Teacher Eval">
+  <meta name="msapplication-TileColor" content="#06b6d4">
+  <meta name="msapplication-config" content="browserconfig.xml">
   
   <!-- Detect base path dynamically -->
   <script>
@@ -115,12 +120,15 @@
       background: linear-gradient(90deg, #06b6d4, #0ea5e9);
       border-radius: 10px;
       width: 0%;
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
+    }
+    
+    #app-loading-container:not(.hidden) .app-loader-progress-bar {
       animation-name: progress-animation;
       animation-duration: 1.5s;
       animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-      animation-iteration-count: 1 !important;
-      animation-fill-mode: forwards !important;
-      box-shadow: 0 0 20px rgba(34, 211, 238, 0.8);
+      animation-iteration-count: 1;
+      animation-fill-mode: forwards;
     }
     
     @keyframes progress-animation {
@@ -262,12 +270,20 @@
     
     // Flag to ensure hide logic only runs once
     let loadingHidden = false;
+    let animationStarted = false;
     
     // Ensure loading container is visible immediately
     const loadingContainer = document.getElementById('app-loading-container');
     if (loadingContainer) {
       loadingContainer.classList.remove('hidden');
       console.log('[PWA] Loading container made visible');
+      
+      // Trigger animation by adding it to a class
+      if (!animationStarted) {
+        animationStarted = true;
+        // Force reflow to restart animation
+        void loadingContainer.offsetWidth;
+      }
     }
     
     // Track when loading started
@@ -292,6 +308,7 @@
       }
       
       loadingHidden = true;
+      animationStarted = false; // Reset animation state
       const container = document.getElementById('app-loading-container');
       if (container && !container.classList.contains('hidden')) {
         const elapsedTime = Date.now() - loadingStartTime;

@@ -1,9 +1,6 @@
 <IfModule mod_rewrite.c">
     RewriteEngine On
     
-    # Set DirectoryIndex for all directories
-    DirectoryIndex index.html index.php
-    
     # Dynamic RewriteBase - works for both local (/teacher-eval/) and production (/)
     RewriteCond %{HTTP_HOST} ^localhost [NC,OR]
     RewriteCond %{HTTP_HOST} ^127\.0\.0\.1 [NC]
@@ -14,18 +11,12 @@
     
     RewriteBase %{ENV:REWRITE_BASE}
 
-    # **CRITICAL FIX: If deployed at root but accessed with /teacher-eval/, redirect to root**
-    # This removes the /teacher-eval/ prefix for requests
-    RewriteCond %{REQUEST_URI} ^/teacher-eval/
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^teacher-eval/(.*)$ /$1 [R=301,L]
-
     # Redirect favicon to pwa folder
     RewriteRule ^favicon\.png$ pwa/icons/favicon.png [NC,L]
     
-    # **PRIORITY 1: API folder routes through PHP router - STOP rewriting**
-    RewriteRule ^api/ - [L]
+    # **PRIORITY 1: API folder routes through PHP router**
+    # Use PT flag to pass through the rewrite, and add request parameter
+    RewriteRule ^api/(.*)$ /teacher-eval/index.php?request=api/$1 [QSA,PT,L]
     
     # **CRITICAL: PWA folder - First check if it's a real file**
     RewriteCond %{REQUEST_FILENAME} -f
