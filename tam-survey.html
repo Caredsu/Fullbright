@@ -299,6 +299,166 @@
             }
         }
 
+        /* Developer Credits Modal Styles */
+        .developer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .developer-modal.show {
+            display: flex;
+        }
+
+        .developer-modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.4s ease-out;
+        }
+
+        .developer-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            color: white;
+            padding: 16px;
+            margin: -40px -40px 20px -40px;
+            border-radius: 16px 16px 0 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 18px;
+        }
+.developer-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 20px auto;
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    border: 3px solid #667eea;
+}
+
+.developer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+        .developer-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin: 15px 0 8px 0;
+        }
+
+        .developer-title {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .developer-quote {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-left: 3px solid #667eea;
+            border-radius: 6px;
+            line-height: 1.6;
+        }
+
+        .developer-contact {
+            font-size: 12px;
+            color: #999;
+            margin: 15px 0 20px 0;
+        }
+
+        .developer-contact a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .developer-contact a:hover {
+            text-decoration: underline;
+        }
+
+        .developer-modal-btn {
+            background: linear-gradient(135deg, #667eea 0%, #5568d3 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .developer-modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .developer-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .developer-modal-close:hover {
+            color: #333;
+            transform: rotate(90deg);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
         @media (max-width: 768px) {
             .question-item {
                 flex-direction: column;
@@ -326,6 +486,42 @@
     </style>
 </head>
 <body>
+    <!-- Developer Credits Modal -->
+    <div class="developer-modal" id="developerModal">
+        <div class="developer-modal-content">
+            <button class="developer-modal-close" onclick="closeDeveloperModal()">✕</button>
+            
+            <div class="developer-modal-header">
+                <i class="bi bi-person-fill"></i> Meet the Qpal
+            </div>
+            
+            <div class="developer-avatar">
+    <img src="assets/assets/images/me.jpg" alt="My Picture">
+</div>
+            
+            <div class="developer-name">Alhamer Mataria</div>
+            <div class="developer-title">IT 4TH YEAR</div>
+            
+            <div class="developer-quote">
+                "Pag gumana, wag mo na tanungin paano."
+            </div>
+            
+            <div class="developer-contact">
+                <div style="margin-bottom: 8px;">
+                    <i class="bi bi-envelope"></i> 
+                    <a href="mailto:alamhamer02@gmail.com">alamhamer02@gmail.com</a>
+                </div>
+                <div>
+                    <i class="bi bi-geo-alt"></i> Fullbright College, Palawan
+                </div>
+            </div>
+            
+            <button class="developer-modal-btn" onclick="closeDeveloperModal()">
+                Thanks & Let's Go! 🚀
+            </button>
+        </div>
+    </div>
+
     <div class="survey-container">
         <!-- Header -->
         <div class="survey-header">
@@ -462,9 +658,42 @@
 
         // Initialize survey on page load
         document.addEventListener('DOMContentLoaded', () => {
+            // Show developer credits modal
+            showDeveloperModal();
+            
             loadQuestions();
             setupFormListeners();
+            
+            // Close modal on background click
+            const modal = document.getElementById('developerModal');
+            if (modal) {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeDeveloperModal();
+                    }
+                });
+            }
         });
+
+        // Show developer modal
+        function showDeveloperModal() {
+            // Check if user has already seen the modal (localStorage)
+            const hasSeenModal = localStorage.getItem('tam-survey-modal-seen');
+            
+            if (!hasSeenModal) {
+                const modal = document.getElementById('developerModal');
+                modal.classList.add('show');
+                localStorage.setItem('tam-survey-modal-seen', 'true');
+                console.log('[TAM Survey] Developer credits modal shown');
+            }
+        }
+
+        // Close developer modal
+        function closeDeveloperModal() {
+            const modal = document.getElementById('developerModal');
+            modal.classList.remove('show');
+            console.log('[TAM Survey] Developer credits modal closed');
+        }
 
         // Load questions from API
         async function loadQuestions() {
