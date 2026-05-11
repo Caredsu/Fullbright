@@ -87401,7 +87401,7 @@ xm(a,b){return this.ag4(a,b)},
 ag4(a,b){var s=0,r=A.N(t.H),q=1,p=[],o=this,n,m,l,k,j,i,h,g
 var $async$xm=A.O(function(c,d){if(c===1){p.push(d)
 s=q}for(;;)switch(s){case 0:q=3
-k=A.eq("http://192.168.8.33/teacher-eval/api/system-feedback.php",0,null)
+k=A.eq(window.location.origin+"/teacher-eval/api/system-feedback.php",0,null)
 j=t.N
 i=A.ah(["Content-Type","application/json"],j,j)
 s=6
