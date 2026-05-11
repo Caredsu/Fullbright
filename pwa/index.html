@@ -216,6 +216,9 @@
   
   <script src="fix_assets.js"></script>
   
+  <!-- Load API redirect BEFORE Flutter to intercept hardcoded API calls -->
+  <script src="assets/js/api-redirect.js"></script>
+  
   <!-- Set up Flutter paths before loading -->
   <script>
     window._flutter = window._flutter || {};
@@ -240,14 +243,28 @@
       
       // Determine API base - handle both local and remote
       let apiBase = '';
-      if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
-        apiBase = window.location.origin + apiUrl;
+      const origin = window.location.origin;
+      const hostname = window.location.hostname;
+      
+      // Check if it's a local/development environment
+      const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+      const isLAN = hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.');
+      const isLocal = origin.includes('localhost') || origin.includes('127.0.0.1') || isLAN;
+      
+      if (isLocal) {
+        apiBase = origin + apiUrl;
       } else {
-        // For production, use configured API endpoint
-        apiBase = 'https://fullbright-college-1.onrender.com/api/';
+        // For production, use relative path or configured API endpoint
+        apiBase = apiUrl; // Use relative path for same-domain API calls
       }
       
-      console.log('[PWA] Pre-loading teacher list from:', apiBase);
+      console.log('[PWA] Pre-loading teacher list from:', apiBase, {
+        hostname,
+        isLocalhost,
+        isLAN,
+        isLocal,
+        origin
+      });
       
       // Pre-fetch teacher list in background
       fetch(apiBase + 'teachers')

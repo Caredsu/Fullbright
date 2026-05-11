@@ -81,37 +81,88 @@
         return newUrl;
     }
     
+    /**
+     * Check if a hostname is a development/local IP address
+     */
+    function isDevIP(hostname) {
+        const devIpPatterns = [
+            'localhost',
+            '127.0.0.1',
+            /^192\.168\./,      // Private network 192.168.x.x
+            /^10\./,             // Private network 10.x.x.x
+            /^172\.(1[6-9]|2[0-9]|3[01])\./,  // Private network 172.16-31.x.x
+            /^169\.254\./        // Link-local 169.254.x.x
+        ];
+        
+        return devIpPatterns.some(pattern => {
+            if (typeof pattern === 'string') {
+                return hostname === pattern;
+            }
+            return pattern.test(hostname);
+        });
+    }
+    
     // Override fetch globally
     window.fetch = function(resource, config) {
         let url = typeof resource === 'string' ? resource : resource.url;
         
-        // Check if URL is an absolute URL with /teacher-eval path
-        // This catches ANY IP/hostname trying to call the API
-        const absUrlMatch = url.match(/^https?:\/\/([^\/]+)(\/teacher-eval)?(.*)$/i);
+        // Check if URL is an absolute URL (ANY host, any port)
+        const absUrlMatch = url.match(/^https?:\/\/([^\/]+)(\/[^?]*)(.*)$/i);
         
         if (absUrlMatch) {
-            const requestedHost = absUrlMatch[1];
-            const basePath = absUrlMatch[2] || '';
-            const requestPath = absUrlMatch[3];
+            const requestedHost = absUrlMatch[1].split(':')[0]; // Remove port if present
+            const fullPath = absUrlMatch[2] + (absUrlMatch[3] || '');
             
-            // If it's an absolute URL, convert to relative
-            if (requestPath.includes('/api/')) {
-                let newUrl = API_BASE + requestPath;
-                // Add teacher filter if applicable
-                newUrl = addTeacherFilter(newUrl);
-                
-                console.log('🔄 API Redirect (any IP → relative):', {
-                    from: url,
-                    to: newUrl,
-                    detectedHost: requestedHost
-                });
-                
-                // Replace the URL
-                if (typeof resource === 'string') {
-                    return originalFetch.call(window, newUrl, config);
-                } else {
-                    resource.url = newUrl;
-                    return originalFetch.call(window, resource, config);
+            // Check if this is a dev IP and the path includes API calls
+            if (isDevIP(requestedHost) && fullPath.includes('/api/')) {
+                // Extract the API path (could be /api/... or /teacher-eval/api/...)
+                const apiPathMatch = fullPath.match(/(.*(\/teacher-eval)?\/api\/.*)$/);
+                if (apiPathMatch) {
+                    const apiPath = apiPathMatch[1];
+                    let newUrl = API_BASE + apiPath;
+                    
+                    // Add teacher filter if applicable
+                    newUrl = addTeacherFilter(newUrl);
+                    
+                    console.log('🔄 API Redirect (dev IP → relative):', {
+                        from: url,
+                        to: newUrl,
+                        detectedHost: requestedHost,
+                        isDevIP: true
+                    });
+                    
+                    // Replace the URL
+                    if (typeof resource === 'string') {
+                        return originalFetch.call(window, newUrl, config);
+                    } else {
+                        resource.url = newUrl;
+                        return originalFetch.call(window, resource, config);
+                    }
+                }
+            }
+            
+            // Even for non-dev IPs, if trying to reach /api/, redirect to relative path
+            // This handles the case where the app was built pointing to wrong domain
+            if (fullPath.includes('/api/') && requestedHost !== window.location.hostname) {
+                const apiPathMatch = fullPath.match(/(.*(\/teacher-eval)?\/api\/.*)$/);
+                if (apiPathMatch) {
+                    const apiPath = apiPathMatch[1];
+                    let newUrl = API_BASE + apiPath;
+                    newUrl = addTeacherFilter(newUrl);
+                    
+                    console.log('🔄 API Redirect (cross-origin → relative):', {
+                        from: url,
+                        to: newUrl,
+                        fromHost: requestedHost,
+                        currentHost: window.location.hostname
+                    });
+                    
+                    if (typeof resource === 'string') {
+                        return originalFetch.call(window, newUrl, config);
+                    } else {
+                        resource.url = newUrl;
+                        return originalFetch.call(window, resource, config);
+                    }
                 }
             }
         }
@@ -130,6 +181,49 @@
     
     // Copy over any properties from original fetch
     Object.setPrototypeOf(window.fetch, originalFetch);
+    
+    /**
+     * Also intercept XMLHttpRequest for compatibility
+     */
+    const originalXHROpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, ...args) {
+        let finalUrl = url;
+        
+        if (typeof url === 'string') {
+            const absUrlMatch = url.match(/^https?:\/\/([^\/]+)(\/[^?]*)(.*)$/i);
+            
+            if (absUrlMatch) {
+                const requestedHost = absUrlMatch[1].split(':')[0];
+                const fullPath = absUrlMatch[2] + (absUrlMatch[3] || '');
+                
+                // Check if this is a dev IP and includes API calls
+                if (isDevIP(requestedHost) && fullPath.includes('/api/')) {
+                    const apiPathMatch = fullPath.match(/(.*(\/teacher-eval)?\/api\/.*)$/);
+                    if (apiPathMatch) {
+                        finalUrl = API_BASE + apiPathMatch[1];
+                        console.log('🔄 XMLHttpRequest Redirect (dev IP):', {
+                            from: url,
+                            to: finalUrl,
+                            method: method
+                        });
+                    }
+                } else if (fullPath.includes('/api/') && requestedHost !== window.location.hostname) {
+                    // Cross-origin API call
+                    const apiPathMatch = fullPath.match(/(.*(\/teacher-eval)?\/api\/.*)$/);
+                    if (apiPathMatch) {
+                        finalUrl = API_BASE + apiPathMatch[1];
+                        console.log('🔄 XMLHttpRequest Redirect (cross-origin):', {
+                            from: url,
+                            to: finalUrl,
+                            method: method
+                        });
+                    }
+                }
+            }
+        }
+        
+        return originalXHROpen.call(this, method, finalUrl, ...args);
+    };
     
     console.log('✅ API Redirect + Teacher Filter initialized. Base path:', API_BASE);
 })();
