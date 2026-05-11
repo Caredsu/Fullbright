@@ -280,25 +280,28 @@ try {
     $total_evaluations = $evaluations_collection->estimatedDocumentCount();
     
     // Get recent evaluations with teacher info (with field projection)
-    $recent_evaluations = $evaluations_collection->find(
-        [],
-        [
-            'projection' => ['teacher_id' => 1, 'submitted_at' => 1, 'answers' => 1],
-            'sort' => ['submitted_at' => -1],
-            'limit' => 10
-        ]
+    // Convert cursor to array to iterate only once (performance optimization)
+    $recent_evaluations_raw = iterator_to_array(
+        $evaluations_collection->find(
+            [],
+            [
+                'projection' => ['teacher_id' => 1, 'submitted_at' => 1, 'answers' => 1],
+                'sort' => ['submitted_at' => -1],
+                'limit' => 10
+            ]
+        )
     );
     
-    // Extract teacher IDs from recent evaluations
+    // Extract all unique teacher IDs from evaluations in one pass
     $needed_teacher_ids = [];
-    foreach ($recent_evaluations as $eval) {
+    foreach ($recent_evaluations_raw as $eval) {
         $teacher_id = $eval['teacher_id'] ?? null;
         if ($teacher_id) {
             $needed_teacher_ids[(string)$teacher_id] = true;
         }
     }
     
-    // Fetch only the teachers we need (with field projection)
+    // Fetch all teachers in one batch query (with field projection)
     $teachers_cache = [];
     if (count($needed_teacher_ids) > 0) {
         $teacher_ids_to_fetch = array_map(function($id) {
@@ -307,6 +310,7 @@ try {
                 : $id;
         }, array_keys($needed_teacher_ids));
         
+        // Batch fetch all needed teachers
         $teachers_found = $teachers_collection->find(
             ['_id' => ['$in' => $teacher_ids_to_fetch]],
             ['projection' => ['first_name' => 1, 'last_name' => 1, 'middle_name' => 1, 'name' => 1]]
@@ -317,22 +321,17 @@ try {
         }
     }
     
-    // Reset the cursor for display - get again since we iterated it above (with field projection)
-    $recent_evaluations = $evaluations_collection->find(
-        [],
-        [
-            'projection' => ['teacher_id' => 1, 'submitted_at' => 1, 'answers' => 1],
-            'sort' => ['submitted_at' => -1],
-            'limit' => 10
-        ]
-    );
+    // Reuse the already-fetched data - no need to query again
+    $recent_evaluations = $recent_evaluations_raw;
     
-    // Get top performers using MongoDB aggregation pipeline
+    // Get top performers using MongoDB aggregation pipeline with early limit
     $teacher_ratings = [];
     $top_performers = [];
     
     try {
         $pipeline = [
+            // Match only evaluations with valid answers
+            ['$match' => ['answers' => ['$exists' => true, '$ne' => []]]],
             // Project only needed fields
             ['$project' => ['teacher_id' => 1, 'answers' => 1]],
             // Unwind answers array
@@ -347,35 +346,45 @@ try {
             ],
             // Sort by rating descending
             ['$sort' => ['avg_rating' => -1]],
-            // Get top 100 teachers
-            ['$limit' => 100]
+            // Limit to top performers only (don't fetch 100, only 10 needed)
+            ['$limit' => 10]
         ];
         
         $results = $evaluations_collection->aggregate($pipeline);
         
+        // Pre-fetch teacher names for all top performers (batch operation)
+        $top_teacher_ids = [];
         foreach ($results as $result) {
             $teacher_id = (string)$result['_id'];
+            $top_teacher_ids[$teacher_id] = $result;
+        }
+        
+        // Fetch missing teachers in batch if not in cache
+        $missing_ids = array_diff_key($top_teacher_ids, $teachers_cache);
+        if (count($missing_ids) > 0) {
+            $missing_ids_to_fetch = array_map(function($id) {
+                return ctype_xdigit($id) && strlen($id) === 24 
+                    ? new MongoDB\BSON\ObjectId($id) 
+                    : $id;
+            }, array_keys($missing_ids));
             
-            // Get teacher name from cache or fetch
+            $missing_teachers = $teachers_collection->find(
+                ['_id' => ['$in' => $missing_ids_to_fetch]],
+                ['projection' => ['first_name' => 1, 'last_name' => 1, 'middle_name' => 1, 'name' => 1]]
+            );
+            foreach ($missing_teachers as $teacher) {
+                $teacher_id_str = (string)$teacher['_id'];
+                $teachers_cache[$teacher_id_str] = $teacher;
+            }
+        }
+        
+        // Now build the final results using cached teacher data
+        foreach ($top_teacher_ids as $teacher_id => $result) {
             $teacher_name = 'Anonymous';
             if (isset($teachers_cache[$teacher_id])) {
                 $teacher = $teachers_cache[$teacher_id];
                 $full_name = trim(($teacher['first_name'] ?? '') . ' ' . ($teacher['middle_name'] ?? '') . ' ' . ($teacher['last_name'] ?? ''));
                 $teacher_name = !empty($full_name) ? $full_name : ($teacher['name'] ?? 'Anonymous');
-            } else {
-                // Fetch single teacher if not in cache
-                try {
-                    $teacher_obj_id = ctype_xdigit($teacher_id) && strlen($teacher_id) === 24 
-                        ? new MongoDB\BSON\ObjectId($teacher_id) 
-                        : $teacher_id;
-                    $teacher = $teachers_collection->findOne(['_id' => $teacher_obj_id]);
-                    if ($teacher) {
-                        $full_name = trim(($teacher['first_name'] ?? '') . ' ' . ($teacher['middle_name'] ?? '') . ' ' . ($teacher['last_name'] ?? ''));
-                        $teacher_name = !empty($full_name) ? $full_name : ($teacher['name'] ?? 'Anonymous');
-                    }
-                } catch (\Exception $e) {
-                    // Use anonymous if lookup fails
-                }
             }
             
             $teacher_ratings[] = [
@@ -396,9 +405,10 @@ try {
     // Calculate key metrics
     $completion_rate = $total_teachers > 0 ? round(($total_evaluations / $total_teachers) * 100, 1) : 0;
     
-    // Calculate average rating
+    // Calculate average rating from top performers (or from all if needed)
     $overall_avg_rating = count($teacher_ratings) > 0 
-        ? round(array_sum(array_column($teacher_ratings, 'avg_rating')) / count($teacher_ratings), 2)
+        ? round(array_sum(array_map(function($t) { return (float)$t['avg_rating'] * (int)$t['total_evals']; }, $teacher_ratings)) 
+                / array_sum(array_map(function($t) { return (int)$t['total_evals']; }, $teacher_ratings)), 2)
         : 0;
     
 } catch (\Exception $e) {
@@ -414,27 +424,26 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Teacher Evaluation System</title>
     
-    <!-- Preload critical resources for faster rendering -->
+    <!-- Preload critical Bootstrap CSS for faster rendering -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
     <link rel="preload" href="<?= ASSETS_URL ?>/css/dark-theme.css?v=2.0" as="style">
-    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/dark-theme.css?v=2.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     
-    <!-- Global and Component Styles -->
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/dashboard.css">
+    <!-- Global and Component Styles - load asynchronously -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/dashboard.css" media="print" onload="this.media='all'">
     
-    <!-- Real-Time Notifications -->
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css">
+    <!-- Real-Time Notifications - async load -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css" media="print" onload="this.media='all'">
     
     <!-- Async load non-critical styles -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" media="print" onload="this.media='all'">
     
-    <!-- Defer non-critical scripts -->
+    <!-- Chart.js - defer loading until page interactive -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
 </head>
 <body class="admin-page">
@@ -662,12 +671,14 @@ try {
         <div class="row mt-4">
             <div class="col-12">
                 <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-light">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Recent Evaluations</h5>
+                        <small class="text-muted">Last 5</small>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table id="recentEvaluationsTable" class="table table-hover mb-0">
+                    <div class="card-body p-0">
+                        <div class="recent-evals-scroll-container">
+                            <div class="table-responsive">
+                                <table id="recentEvaluationsTable" class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
                                         <th>Teacher</th>
@@ -741,6 +752,10 @@ try {
                                     ?>
                                 </tbody>
                             </table>
+                            </div>
+                        </div>
+                        <div class="recent-evals-footer">
+                            <a href="results.php" class="text-primary">View all evaluations →</a>
                         </div>
                     </div>
                 </div>
@@ -796,6 +811,51 @@ try {
             top: 80px !important;
             right: 20px !important;
             z-index: 1050 !important;
+        }
+        
+        /* Scrollable recent evaluations table */
+        .recent-evals-scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .recent-evals-scroll-container .table {
+            margin-bottom: 0;
+        }
+        
+        .recent-evals-scroll-container table thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .recent-evals-scroll-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .recent-evals-scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .recent-evals-scroll-container::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+        
+        .recent-evals-scroll-container::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+        
+        .recent-evals-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .recent-evals-footer a {
+            text-decoration: none;
+            font-weight: 500;
         }
     </style>
     

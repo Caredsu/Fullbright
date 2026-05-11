@@ -66,10 +66,11 @@
     toastScript.src = '<?= ASSETS_URL ?>/js/notification-toast.js';
     document.head.appendChild(toastScript);
     
-    // Load real-time notifications script (will auto-initialize)
-    var notifyScript = document.createElement('script');
-    notifyScript.src = '<?= ASSETS_URL ?>/js/real-time-notifications.js';
-    document.head.appendChild(notifyScript);
+    // DISABLED: Load real-time notifications script (will auto-initialize)
+    // Causing ERR_ABORTED errors - need to fix SSE endpoint first
+    // var notifyScript = document.createElement('script');
+    // notifyScript.src = '<?= ASSETS_URL ?>/js/real-time-notifications.js';
+    // document.head.appendChild(notifyScript);
     
     // Debug function available in console
     window.debugNotifications = function() {

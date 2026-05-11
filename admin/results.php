@@ -252,16 +252,25 @@ if (!empty($evaluations)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Results - Teacher Evaluation System</title>
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style">
+    <link rel="preload" href="<?= ASSETS_URL ?>/css/dark-theme.css?v=2.0" as="style">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- DataTables CSS -->
-    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet" media="print" onload="this.media='all'">
+    <!-- Responsive extension disabled due to compatibility issues -->
+    <!-- <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css" rel="stylesheet"> -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/dark-theme.css?v=2.0">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css">
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/results.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
+    
+    <!-- Chart.js - defer loading -->
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Non-critical CSS - async load -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/results.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/results-advanced.css">
     
     <!-- DataTables Dark Theme Customization -->
@@ -978,7 +987,8 @@ if (!empty($evaluations)) {
     <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    <!-- Responsive extension disabled due to compatibility issues -->
+    <!-- <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script> -->
     
     <!-- DataTables Initialization & Enhanced Features -->
     <script>
@@ -1009,42 +1019,74 @@ if (!empty($evaluations)) {
             });
             
             // Initialize DataTable
-            const table = new DataTable('#evaluationsTable', {
-                responsive: true,
-                pageLength: 10,
-                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
-                order: [[1, 'desc']],
-                language: {
-                    search: ' Quick Search:',
-                    lengthMenu: 'Show _MENU_ per page',
-                    info: 'Showing _START_ to _END_ of _TOTAL_ evaluations',
-                    infoEmpty: 'No evaluations available',
-                    infoFiltered: '(filtered from _MAX_ total)',
-                    paginate: {
-                        first: '« First',
-                        last: 'Last »',
-                        next: 'Next ›',
-                        previous: '‹ Previous'
+            let table;
+            try {
+                table = new DataTable('#evaluationsTable', {
+                    responsive: true,
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+                    order: [[1, 'desc']],
+                    language: {
+                        search: ' Quick Search:',
+                        lengthMenu: 'Show _MENU_ per page',
+                        info: 'Showing _START_ to _END_ of _TOTAL_ evaluations',
+                        infoEmpty: 'No evaluations available',
+                        infoFiltered: '(filtered from _MAX_ total)',
+                        paginate: {
+                            first: '« First',
+                            last: 'Last »',
+                            next: 'Next ›',
+                            previous: '‹ Previous'
+                        }
+                    },
+                    columnDefs: [
+                        { orderable: false, targets: [6] },
+                        { className: 'text-center', targets: [4, 5, 6] }
+                    ],
+                    dom: '<"top mb-2"<"row g-2"<"col-md-6"l><"col-md-6"f>>>' +
+                         '<"table-wrapper"tr>' +
+                         '<"bottom mt-3"<"row"<"col-md-6"i><"col-md-6"p>>>',
+                    drawCallback: function() {
+                        // Reattach event listeners after DataTable redraws
+                        attachViewButtonListeners();
+                        
+                        // Style the paging elements
+                        $('.dataTables_paginate').addClass('pagination pagination-sm justify-content-end');
+                        $('.paginate_button').addClass('page-item');
+                        $('.paginate_button a').addClass('page-link');
+                        $('.paginate_button.current a').closest('.page-item').addClass('active');
                     }
-                },
-                columnDefs: [
-                    { orderable: false, targets: [6] },
-                    { className: 'text-center', targets: [4, 5, 6] }
-                ],
-                dom: '<"top mb-2"<"row g-2"<"col-md-6"l><"col-md-6"f>>>' +
-                     '<"table-wrapper"tr>' +
-                     '<"bottom mt-3"<"row"<"col-md-6"i><"col-md-6"p>>>',
-                drawCallback: function() {
-                    // Reattach event listeners after DataTable redraws
-                    attachViewButtonListeners();
-                    
-                    // Style the paging elements
-                    $('.dataTables_paginate').addClass('pagination pagination-sm justify-content-end');
-                    $('.paginate_button').addClass('page-item');
-                    $('.paginate_button a').addClass('page-link');
-                    $('.paginate_button.current a').closest('.page-item').addClass('active');
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Error initializing DataTable:', error);
+                // Suppress errors from responsive extension and continue
+                table = new DataTable('#evaluationsTable', {
+                    responsive: false,  // Disable responsive to avoid errors
+                    pageLength: 10,
+                    lengthMenu: [[10, 25, 50, -1], [10, 25, 50, 'All']],
+                    order: [[1, 'desc']],
+                    language: {
+                        search: ' Quick Search:',
+                        lengthMenu: 'Show _MENU_ per page',
+                        info: 'Showing _START_ to _END_ of _TOTAL_ evaluations',
+                        infoEmpty: 'No evaluations available',
+                        infoFiltered: '(filtered from _MAX_ total)',
+                        paginate: {
+                            first: '« First',
+                            last: 'Last »',
+                            next: 'Next ›',
+                            previous: '‹ Previous'
+                        }
+                    },
+                    columnDefs: [
+                        { orderable: false, targets: [6] },
+                        { className: 'text-center', targets: [4, 5, 6] }
+                    ],
+                    dom: '<"top mb-2"<"row g-2"<"col-md-6"l><"col-md-6"f>>>' +
+                         '<"table-wrapper"tr>' +
+                         '<"bottom mt-3"<"row"<"col-md-6"i><"col-md-6"p>>>'
+                });
+            }
             
             // Attach view button listeners
             attachViewButtonListeners();
@@ -1055,7 +1097,10 @@ if (!empty($evaluations)) {
             
             function updateRecordCount() {
                 const info = table.page.info();
-                document.getElementById('recordCount').textContent = info.recordsDisplay;
+                const recordCountEl = document.getElementById('recordCount');
+                if (recordCountEl) {
+                    recordCountEl.textContent = info.recordsDisplay;
+                }
             }
             
             function attachViewButtonListeners() {

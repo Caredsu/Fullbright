@@ -8,17 +8,29 @@ let analyticsCharts = {};
 
 // Initialize Analytics Charts
 function initializeAnalyticsCharts() {
-    // Evaluation Status Distribution Chart
-    const statusCanvas = document.getElementById('evaluationStatusChart');
-    if (statusCanvas && typeof Chart !== 'undefined') {
-        const statusCtx = statusCanvas.getContext('2d');
-        analyticsCharts.status = new Chart(statusCtx, {
+    // Rating Distribution Chart
+    const distributionCanvas = document.getElementById('distributionChart');
+    if (distributionCanvas && typeof Chart !== 'undefined') {
+        const rating1 = parseInt(distributionCanvas.dataset.rating1) || 0;
+        const rating2 = parseInt(distributionCanvas.dataset.rating2) || 0;
+        const rating3 = parseInt(distributionCanvas.dataset.rating3) || 0;
+        const rating4 = parseInt(distributionCanvas.dataset.rating4) || 0;
+        const rating5 = parseInt(distributionCanvas.dataset.rating5) || 0;
+        
+        const distCtx = distributionCanvas.getContext('2d');
+        analyticsCharts.distribution = new Chart(distCtx, {
             type: 'doughnut',
             data: {
-                labels: statusCanvas.dataset.labels ? JSON.parse(statusCanvas.dataset.labels) : ['Completed', 'Pending'],
+                labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
                 datasets: [{
-                    data: statusCanvas.dataset.data ? JSON.parse(statusCanvas.dataset.data) : [0, 0],
-                    backgroundColor: ['#00d4ff', '#ffa500'],
+                    data: [rating1, rating2, rating3, rating4, rating5],
+                    backgroundColor: [
+                        '#ef4444', // Red for 1 star
+                        '#f97316', // Orange for 2 stars
+                        '#eab308', // Yellow for 3 stars
+                        '#84cc16', // Lime for 4 stars
+                        '#22c55e'  // Green for 5 stars
+                    ],
                     borderColor: '#ffffff',
                     borderWidth: 2
                 }]
@@ -41,28 +53,37 @@ function initializeAnalyticsCharts() {
         });
     }
     
-    // Time Series Chart
-    const timeSeriesCanvas = document.getElementById('evaluationTimeSeriesChart');
-    if (timeSeriesCanvas && typeof Chart !== 'undefined') {
-        const timeSeriesCtx = timeSeriesCanvas.getContext('2d');
-        analyticsCharts.timeSeries = new Chart(timeSeriesCtx, {
+    // Trends Chart
+    const trendsCanvas = document.getElementById('trendsChart');
+    if (trendsCanvas && typeof Chart !== 'undefined') {
+        const labels = JSON.parse(trendsCanvas.dataset.labels || '[]');
+        const values = JSON.parse(trendsCanvas.dataset.values || '[]');
+        
+        const trendsCtx = trendsCanvas.getContext('2d');
+        analyticsCharts.trends = new Chart(trendsCtx, {
             type: 'line',
             data: {
-                labels: timeSeriesCanvas.dataset.labels ? JSON.parse(timeSeriesCanvas.dataset.labels) : [],
+                labels: labels,
                 datasets: [{
-                    label: 'Evaluations Over Time',
-                    data: timeSeriesCanvas.dataset.data ? JSON.parse(timeSeriesCanvas.dataset.data) : [],
+                    label: 'Evaluations per Day',
+                    data: values,
                     borderColor: '#8b5cf6',
                     backgroundColor: 'rgba(139, 92, 246, 0.1)',
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: true,
                 plugins: {
                     legend: {
+                        display: true,
                         labels: {
                             color: '#000000'
                         }
@@ -72,56 +93,8 @@ function initializeAnalyticsCharts() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            color: '#000000'
-                        },
-                        grid: {
-                            color: '#e2e8f0'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#000000'
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // Department Comparison Chart
-    const departmentCanvas = document.getElementById('departmentComparisonChart');
-    if (departmentCanvas && typeof Chart !== 'undefined') {
-        const departmentCtx = departmentCanvas.getContext('2d');
-        analyticsCharts.department = new Chart(departmentCtx, {
-            type: 'bar',
-            data: {
-                labels: departmentCanvas.dataset.labels ? JSON.parse(departmentCanvas.dataset.labels) : [],
-                datasets: [{
-                    label: 'Evaluations by Department',
-                    data: departmentCanvas.dataset.data ? JSON.parse(departmentCanvas.dataset.data) : [],
-                    backgroundColor: '#8b5cf6',
-                    borderColor: '#7c3aed',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#000000'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: '#000000'
+                            color: '#000000',
+                            stepSize: 1
                         },
                         grid: {
                             color: '#e2e8f0'

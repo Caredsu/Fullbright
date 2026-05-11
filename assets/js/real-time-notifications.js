@@ -21,7 +21,7 @@ class RealTimeNotifications {
             // Dynamically calculate the notifications stream URL
             // Works from any admin page by going up to the root and finding api/
             streamUrl: this.getNotificationsStreamUrl(),
-            autoConnect: true,
+            autoConnect: false,  // Disabled due to SSE connection issues - will be manually triggered if needed
             onNewEvaluation: null,
             onError: null,
             ...options
