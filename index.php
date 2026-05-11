@@ -81,6 +81,12 @@ if (strpos($request, 'api/') === 0) {
         case 'pwa-debug':
             require_once __DIR__ . '/api/pwa-debug.php';
             break;
+        case 'system-feedback':
+            require_once __DIR__ . '/api/system-feedback.php';
+            break;
+        case 'tam-survey':
+            require_once __DIR__ . '/api/tam-survey.php';
+            break;
         default:
             sendError('Endpoint not found', 404);
     }
