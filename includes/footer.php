@@ -59,34 +59,29 @@
     console.log('🔐 Admin credentials set:', { adminId: window.ADMIN_ID, adminRole: window.ADMIN_ROLE });
 </script>
 
-<!-- Load real-time notifications scripts -->
+<!-- Load notification systems -->
 <script>
-    // Load notification toast script
+    // Load notification toast script for UI feedback
     var toastScript = document.createElement('script');
     toastScript.src = '<?= ASSETS_URL ?>/js/notification-toast.js';
     document.head.appendChild(toastScript);
     
-    // DISABLED: Load real-time notifications script (will auto-initialize)
-    // Causing ERR_ABORTED errors - need to fix SSE endpoint first
-    // var notifyScript = document.createElement('script');
-    // notifyScript.src = '<?= ASSETS_URL ?>/js/real-time-notifications.js';
-    // document.head.appendChild(notifyScript);
+    // Load notification polling script (checks for new evaluations every 5 seconds)
+    var pollingScript = document.createElement('script');
+    pollingScript.src = '<?= ASSETS_URL ?>/js/notification-polling.js';
+    document.head.appendChild(pollingScript);
     
-    // Debug function available in console
+    // Debug functions available in console
     window.debugNotifications = function() {
         console.log('=== NOTIFICATION DEBUG ===');
-        console.log('ADMIN_ID:', window.ADMIN_ID);
-        console.log('ADMIN_ROLE:', window.ADMIN_ROLE);
-        console.log('RealTimeNotifications class:', typeof RealTimeNotifications);
-        console.log('realTimeNotifications instance:', window.realTimeNotifications);
+        console.log('Poller status:', window.notificationPoller ? 'Active' : 'Not initialized');
+        console.log('Poller instance:', window.notificationPoller);
+        console.log('Last evaluation ID:', localStorage.getItem('lastEvaluationId'));
         console.log('Badge element:', document.getElementById('notif-badge'));
-        console.log('Notification total element:', document.getElementById('notif-total'));
-        console.log('Notification list element:', document.getElementById('notif-list'));
-        console.log('Navbar element:', document.querySelector('nav'));
-        if (window.realTimeNotifications) {
-            console.log('Connection status:', window.realTimeNotifications.isConnected);
-            console.log('EventSource:', window.realTimeNotifications.eventSource);
+        if (window.notificationPoller) {
+            console.log('Is polling:', window.notificationPoller.isPolling);
+            console.log('Polling interval:', window.notificationPoller.pollingInterval + 'ms');
         }
     };
-    console.log('💡 Run debugNotifications() in console to check notification system status');
+    console.log('💡 Notification polling active - Run debugNotifications() to check status');
 </script>
