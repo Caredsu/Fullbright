@@ -15,18 +15,26 @@ const getBasePath = () => {
 
 const BASE_PATH = getBasePath();
 
-// Determine API base URL
+// Determine API base URL based on environment
 const getAPIBaseURL = () => {
-  // In development mode (on port 5175), bypass the /pwa/api/ proxy
-  // and go directly to the real backend API
-  if (window.location.port === '5175' || window.location.port === '5174' || window.location.port === '5173') {
-    // Dev server: use the current host (works from phone too!)
-    const host = window.location.hostname;
-    return `http://${host}/teacher-eval/api/`;
+  // For development (localhost)
+  if (window.location.localhost || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    if (window.location.port === '5173' || window.location.port === '5174') {
+      // Vite dev server - use direct backend
+      return `http://${window.location.hostname}:80/teacher-eval/api/`;
+    }
+    // Apache/XAMPP
+    return '/teacher-eval/api/';
   }
-  // Production: use the real API endpoint, not the PWA proxy
-  // The API is at /teacher-eval/api/, not /teacher-eval/pwa/api/
-  return '/teacher-eval/api/';
+  
+  // For Vercel - use environment variable or backend API endpoint
+  const backendURL = import.meta.env.VITE_API_URL;
+  if (backendURL) {
+    return backendURL;
+  }
+  
+  // Fallback - won't work but prevents errors
+  return '/api/';
 };
 
 const API_BASE_URL = getAPIBaseURL();

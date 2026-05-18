@@ -5,9 +5,9 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/teacher-eval/pwa/',
+  base: '/',
   build: {
-    outDir: '../pwa',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
     minify: 'terser',
