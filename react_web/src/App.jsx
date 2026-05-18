@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Evaluation from './pages/Evaluation';
 import InstallPrompt from './components/InstallPrompt';
@@ -47,7 +48,7 @@ export default function App() {
       <div className="app">
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/evaluate/:teacherId" element={<Evaluation />} />
           </Routes>
