@@ -32,12 +32,28 @@ try {
     $clientLastId = isset($_GET['lastId']) && $_GET['lastId'] !== '' ? $_GET['lastId'] : null;
     $hasNew = ($latestId && $latestId !== $clientLastId);
     
-    http_response_code(200);
-    echo json_encode([
+    // Include full evaluation details if requested
+    $includeDetails = isset($_GET['includeDetails']) && $_GET['includeDetails'] === '1';
+    
+    $response = [
         'has_new' => $hasNew,
         'latest_id' => $latestId,
         'success' => true
-    ]);
+    ];
+    
+    if ($includeDetails && $latestEval) {
+        $response['latest_evaluation'] = [
+            '_id' => (string)$latestEval['_id'],
+            'teacher_id' => (string)($latestEval['teacher_id'] ?? ''),
+            'teacher_name' => $latestEval['teacher_name'] ?? 'Unknown Teacher',
+            'rating' => $latestEval['rating'] ?? 0,
+            'feedback' => $latestEval['feedback'] ?? '',
+            'submitted_at' => $latestEval['submitted_at'] ?? null
+        ];
+    }
+    
+    http_response_code(200);
+    echo json_encode($response);
     exit;
     
 } catch (Throwable $t) {
@@ -48,12 +64,5 @@ try {
         'success' => false
     ]);
     exit;
-}
-?>
-        'error' => 'System error: ' . $t->getMessage(),
-        'has_new' => false,
-        'latest_id' => null,
-        'success' => false
-    ]));
 }
 ?>

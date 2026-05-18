@@ -54,7 +54,14 @@ try {
         }
 
         $teacherId = $body['teacher_id'];
-        $feedback = sanitizeInput($body['feedback']);
+        $studentId = sanitizeInput($body['student_id'] ?? '');
+        $feedback = sanitizeInput($body['feedback'] ?? '');
+
+        // DEBUG: Log what we received
+        error_log('=== EVALUATION API DEBUG ===');
+        error_log('Body keys: ' . implode(', ', array_keys($body)));
+        error_log('student_id value: ' . var_export($studentId, true));
+        error_log('student_id from body: ' . var_export($body['student_id'] ?? 'NOT SET', true));
 
         // Validate teacher_id
         $teacherObjectId = stringToObjectId($teacherId);
@@ -114,13 +121,14 @@ try {
             }
         }
 
-        // Validate feedback length
-        if (strlen($feedback) < 10) {
-            sendError('Feedback must be at least 10 characters long', 400);
-        }
-
-        if (strlen($feedback) > 1000) {
-            sendError('Feedback must not exceed 1000 characters', 400);
+        // Validate feedback length (optional, but if provided must be valid)
+        if (!empty($feedback)) {
+            if (strlen($feedback) < 10) {
+                sendError('Feedback must be at least 10 characters long', 400);
+            }
+            if (strlen($feedback) > 1000) {
+                sendError('Feedback must not exceed 1000 characters', 400);
+            }
         }
 
         // Get session identifier (IP address + device ID for better tracking)
@@ -157,6 +165,7 @@ try {
             'teacher_id' => $teacherObjectId,
             'answers' => $answers,
             'feedback' => $feedback,
+            'student_id' => $studentId,  // Add student number/ID
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
             'device_id' => $deviceId,

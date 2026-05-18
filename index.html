@@ -14,7 +14,6 @@
     <script src="assets/js/api-redirect.js"></script>
     <!-- Already Evaluated Modal Handler -->
     <script src="assets/js/already-evaluated-modal.js"></script>
-    
     <!-- Loading Screen Styles -->
     <link rel="stylesheet" href="assets/css/loading-screen.css">
     
@@ -312,8 +311,7 @@
                     console.log('Unregistered service worker');
                 }
             });
-            
-            // Clear cache
+
             if ('caches' in window) {
                 caches.keys().then(function(names) {
                     names.forEach(name => {
@@ -323,16 +321,13 @@
                 });
             }
         }
-    </script>
-    
-    <script>
+
         function downloadAPK() {
             const mediaFireURL = 'https://www.mediafire.com/file/r3a16v3unrwxjt4/app-release.apk/file';
             window.open(mediaFireURL, '_blank');
         }
 
         function loadWebVersion() {
-            // Simply navigate to the Flutter web app
             window.location.href = '/teacher-eval/pwa/';
         }
     </script>

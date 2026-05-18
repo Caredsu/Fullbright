@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "123456789",
+    "project_id": "teacher-eval-app",
+    "storage_bucket": "teacher-eval-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:123456789:android:abcdef1234567890",
+        "android_client_info": {
+          "package_name": "com.example.teacher_eval_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "123456789.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.teacher_eval_mobile",
+            "cert_hash": [
+              "abcdef1234567890"
+            ]
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbcdef1234567890"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

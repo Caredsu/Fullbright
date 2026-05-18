@@ -198,11 +198,6 @@ if (session_status() === PHP_SESSION_NONE) {
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="<?= $adminBase ?>/system-feedback.php" onclick="console.log('System Feedback link: href=<?= $adminBase ?>/system-feedback.php')">
-                        <i class="bi bi-chat-dots"></i> System Feedback
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="<?= $adminBase ?>/tam-survey-results.php">
                         <i class="bi bi-graph-up"></i> TAM Survey Results
                     </a>

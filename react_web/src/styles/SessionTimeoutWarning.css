@@ -1,0 +1,186 @@
+/* Session Timeout Warning Modal */
+
+.session-timeout-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.3s ease-out;
+  backdrop-filter: blur(2px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.session-timeout-modal {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 420px;
+  width: 90%;
+  padding: 2rem;
+  animation: slideUp 0.3s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.session-timeout-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.session-timeout-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+.session-timeout-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.session-timeout-content {
+  margin-bottom: 2rem;
+}
+
+.session-timeout-message {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.95rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.session-timeout-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 12px;
+  margin: 1.5rem 0;
+  border: 2px solid #fecaca;
+}
+
+.timer-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #dc2626;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+}
+
+.timer-label {
+  font-size: 0.85rem;
+  color: #991b1b;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
+
+.session-timeout-info {
+  margin: 1rem 0 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.session-timeout-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-continue-session {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  background: #1e2a3a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-continue-session:hover {
+  background: #2d3f52;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 42, 58, 0.3);
+}
+
+.btn-continue-session:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(30, 42, 58, 0.2);
+}
+
+/* Mobile Responsive */
+@media (max-width: 480px) {
+  .session-timeout-modal {
+    width: 95%;
+    padding: 1.5rem;
+    max-width: 100%;
+  }
+
+  .session-timeout-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .session-timeout-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .timer-value {
+    font-size: 2rem;
+  }
+
+  .session-timeout-timer {
+    padding: 1rem;
+  }
+
+  .btn-continue-session {
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+  }
+}

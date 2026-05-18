@@ -1,3 +1,0 @@
-This file verifies that the pwa/ folder is properly tracked in git.
-If this file is present on the Render server, then git cloning worked correctly.
-Generated: 2026-05-05 11:15 UTC

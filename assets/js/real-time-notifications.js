@@ -217,48 +217,23 @@ class RealTimeNotifications {
         console.log('📋 Calling addToNotificationPanel...');
         this.addToNotificationPanel(teacherName, ratingDisplay, evaluation);
 
-        // Show toast notification ONLY if using dedicated toast system
+        // Show toast notification for new evaluation
         if (window.toast && typeof window.toast.show === 'function') {
-            try {
-                window.toast.show({
-                    type: 'success',
-                    icon: '📊',
-                    title: 'New Evaluation',
-                    message: `${teacherName} - ⭐ ${ratingDisplay}/5`,
-                    duration: 5000,
-                    action: {
-                        label: 'View',
-                        onClick: () => {
-                            this.refreshDashboard();
-                        }
-                    }
-                });
-            } catch (e) {
-                console.error('Toast show error:', e);
-                // Fallback to SweetAlert
-                if (window.Swal) {
-                    window.Swal.fire({
-                        position: 'top-end',
-                        icon: 'success',
-                        title: 'New Evaluation',
-                        text: `${teacherName} - ⭐ ${ratingDisplay}/5`,
-                        timer: 5000,
-                        timerProgressBar: true,
-                        showConfirmButton: false
-                    });
-                }
-            }
-        } else if (window.Swal) {
-            // Fallback to SweetAlert
-            window.Swal.fire({
-                position: 'top-end',
-                icon: 'success',
+            window.toast.show({
+                type: 'success',
+                icon: '📊',
                 title: 'New Evaluation',
-                text: `${teacherName} - ⭐ ${ratingDisplay}/5`,
-                timer: 5000,
-                timerProgressBar: true,
-                showConfirmButton: false
+                message: `${teacherName} - ⭐ ${ratingDisplay}/5`,
+                duration: 5000,
+                action: {
+                    label: 'View',
+                    onClick: () => {
+                        this.refreshDashboard();
+                    }
+                }
             });
+        } else {
+            console.warn('Toast notification system not available');
         }
 
         // Call custom callback
@@ -342,21 +317,6 @@ class RealTimeNotifications {
                 refreshed = true;
             } else {
                 console.warn('⚠️ initializeQuestionsPage function not found');
-            }
-        } else if (pathname.includes('/admin/system-feedback')) {
-            console.log('💬 Detected system feedback page');
-            if (typeof window.loadFeedbackData === 'function') {
-                console.log('🔄 Refreshing feedback data...');
-                window.loadFeedbackData();
-                refreshed = true;
-            } else if (typeof window.initializeSystemFeedbackPage === 'function') {
-                console.log('🔄 Reinitializing system feedback page...');
-                window.initializeSystemFeedbackPage();
-                refreshed = true;
-            } else {
-                console.warn('⚠️ loadFeedbackData or initializeSystemFeedbackPage function not found');
-                // Just silently continue - don't try soft reload
-                refreshed = true;
             }
         } else if (pathname.includes('/admin/dashboard')) {
             console.log('📊 Detected dashboard page');

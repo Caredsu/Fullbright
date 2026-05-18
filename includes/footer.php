@@ -51,6 +51,9 @@
     </div>
 </footer>
 
+<!-- Bootstrap Icons for Notifications -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
 <!-- Real-Time Notifications System - Available on all admin pages -->
 <script>
     // Set admin credentials for real-time notifications
@@ -61,15 +64,17 @@
 
 <!-- Load notification systems -->
 <script>
-    // Load notification toast script for UI feedback
+    // Load notification toast script FIRST for UI feedback
     var toastScript = document.createElement('script');
-    toastScript.src = '<?= ASSETS_URL ?>/js/notification-toast.js';
+    toastScript.src = '<?= ASSETS_URL ?>/js/notification-toast.js?v=' + Date.now();
+    toastScript.onload = function() {
+        console.log('✅ Toast system loaded');
+        // THEN load polling script after toast is ready
+        var pollingScript = document.createElement('script');
+        pollingScript.src = '<?= ASSETS_URL ?>/js/notification-polling.js?v=' + Date.now();
+        document.head.appendChild(pollingScript);
+    };
     document.head.appendChild(toastScript);
-    
-    // Load notification polling script (checks for new evaluations every 5 seconds)
-    var pollingScript = document.createElement('script');
-    pollingScript.src = '<?= ASSETS_URL ?>/js/notification-polling.js';
-    document.head.appendChild(pollingScript);
     
     // Debug functions available in console
     window.debugNotifications = function() {

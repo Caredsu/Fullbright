@@ -72,11 +72,15 @@ $username = sanitizeInput($body['username']);
 $password = $body['password'];
 
 try {
-    $db = Database::getInstance();
-    $usersCollection = $db->getCollection('users');
-
-    // Find user by username
-    $user = $usersCollection->findOne(['username' => $username]);
+    global $admins_collection;
+    
+    // Find user by username or email
+    $user = $admins_collection->findOne([
+        '$or' => [
+            ['username' => $username],
+            ['email' => $username]
+        ]
+    ]);
 
     if (!$user) {
         sendError('Invalid username or password', 401);

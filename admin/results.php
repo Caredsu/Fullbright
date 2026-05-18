@@ -78,9 +78,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['get_eval_details'])) 
         // Get overall feedback if available
         $feedback = $eval['feedback'] ?? 'No feedback provided';
         
+        // Get student_id if available
+        $student_id = $eval['student_id'] ?? 'Anonymous';
+        
         echo json_encode([
             'success' => true,
             'teacher_name' => $teacher_name,
+            'student_id' => $student_id,
             'submitted_at' => $submitted_at_formatted,
             'feedback' => $feedback,
             'avg_rating' => $avg_rating,
@@ -266,6 +270,9 @@ if (!empty($evaluations)) {
     
     <!-- Chart.js - defer loading -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Real-Time Notifications Toast - SYNCHRONOUS load (critical for visibility) -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css">
     
     <!-- Non-critical CSS - async load -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css" media="print" onload="this.media='all'">
@@ -586,7 +593,6 @@ if (!empty($evaluations)) {
     </div>  <!-- Close main-content -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="<?= ASSETS_URL ?>/js/api-service.js?v=2"></script>
     <script src="<?= ASSETS_URL ?>/js/main.js"></script>
     <script src="<?= ASSETS_URL ?>/js/confirmation.js"></script>
@@ -902,6 +908,9 @@ if (!empty($evaluations)) {
         function displayEvalDetails(data) {
             let html = '<div class="evaluation-details">';
             html += '<div class="mb-3" style="color: #000000;"><strong style="color: #000000;">Teacher:</strong> ' + escapeHtml(data.teacher_name) + '</div>';
+            if (data.student_id) {
+                html += '<div class="mb-3" style="color: #000000;"><strong style="color: #000000;">Student Number:</strong> ' + escapeHtml(data.student_id) + '</div>';
+            }
             html += '<div class="mb-3" style="color: #000000;"><strong style="color: #000000;">Submitted:</strong> ' + escapeHtml(data.submitted_at) + '</div>';
             html += '<div class="mb-3" style="color: #000000;"><strong style="color: #000000;">Overall Rating:</strong> <span class="badge" style="background: ' + data.qualitative_color + '; color: white; padding: 6px 12px; font-size: 13px;">⭐ ' + data.avg_rating + '/5 - ' + escapeHtml(data.qualitative) + '</span></div>';
             html += '<div class="mb-3" style="color: #666; font-size: 13px;"><em>' + escapeHtml(data.qualitative_description) + '</em></div>';

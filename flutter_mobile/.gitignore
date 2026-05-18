@@ -1,0 +1,17 @@
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+.gradle/
+.idea/
+local.properties
+*.log
+*.pyc
+*.swp
+.DS_Store
+thumbs.db
+.env
+.vscode/
+.idea

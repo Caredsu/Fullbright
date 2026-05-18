@@ -6,20 +6,47 @@
 require_once __DIR__ . '/config/database.php';
 
 try {
-    // Create a test evaluation
+    // Get a random teacher to use for the test evaluation
+    $teachers = $teachers_collection->find([])->toArray();
+    if (empty($teachers)) {
+        http_response_code(400);
+        die(json_encode([
+            'success' => false,
+            'error' => 'No teachers found in the system'
+        ], JSON_PRETTY_PRINT));
+    }
+    
+    $randomTeacher = $teachers[array_rand($teachers)];
+    $teacher_id = $randomTeacher['_id'];
+    $teacher_name = isset($randomTeacher['first_name']) && isset($randomTeacher['last_name']) 
+        ? trim($randomTeacher['first_name'] . ' ' . ($randomTeacher['middle_name'] ?? '') . ' ' . $randomTeacher['last_name'])
+        : 'Unknown Teacher';
+    
+    // Create a test evaluation with proper structure
+    $rating = rand(3, 5); // Random rating between 3-5
+    
     $testEval = [
-        'teacher_id' => 'test_teacher_' . time(),
-        'student_id' => 'test_student',
-        'evaluator_type' => 'student',
-        'ratings' => [
-            'Teaching Effectiveness' => 5,
-            'Communication' => 4,
-            'Knowledge' => 5
+        'teacher_id' => $teacher_id,
+        'teacher_name' => $teacher_name,
+        'rating' => $rating,
+        'answers' => [
+            [
+                'question_id' => 'teaching',
+                'rating' => $rating
+            ],
+            [
+                'question_id' => 'communication',
+                'rating' => $rating
+            ],
+            [
+                'question_id' => 'knowledge',
+                'rating' => $rating
+            ]
         ],
-        'comments' => 'Test evaluation for notification demo - ' . date('Y-m-d H:i:s'),
+        'feedback' => 'Test evaluation - ' . date('Y-m-d H:i:s'),
         'submitted_at' => new MongoDB\BSON\UTCDateTime(time() * 1000),
         'created_at' => new MongoDB\BSON\UTCDateTime(time() * 1000),
-        'average_rating' => 4.67
+        'evaluator_type' => 'student'
     ];
 
     $result = $evaluations_collection->insertOne($testEval);
@@ -28,8 +55,10 @@ try {
         'success' => true,
         'message' => 'Test evaluation created successfully!',
         'evaluation_id' => (string)$result->getInsertedId(),
+        'teacher_name' => $teacher_name,
+        'rating' => $rating,
         'created_at' => date('Y-m-d H:i:s'),
-        'next_step' => 'Return to admin dashboard - badge should appear within 5 seconds'
+        'next_step' => 'Check dashboard - toast and badge should appear within 5 seconds'
     ], JSON_PRETTY_PRINT);
 
 } catch (Exception $e) {

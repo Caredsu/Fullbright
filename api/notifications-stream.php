@@ -239,7 +239,7 @@ while ((time() - $startTime) < $maxDuration) {
                     'id' => (string)$eval['_id'],
                     'teacher_id' => (string)$teacherId,
                     'teacher_name' => $teacherName,
-                    'submitted_by' => isset($eval['student_id']) ? $eval['student_id'] : 'Unknown',
+                    'submitted_by' => isset($eval['student_id']) ? $eval['student_id'] : (isset($eval['submitted_by']) ? $eval['submitted_by'] : 'Unknown'),
                     'timestamp' => isset($eval['created_at']) ? $eval['created_at']->toDateTime()->format('Y-m-d H:i:s') : date('Y-m-d H:i:s'),
                     'rating' => $teacherRating
                 ];

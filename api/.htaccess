@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Don't rewrite actual files
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^(.*)$ - [L]
+    
+    # Don't rewrite actual directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.*)$ - [L]
+    
+    # Route specific endpoints to their PHP files
+    RewriteRule ^teachers$ teachers.php [QSA,L]
+    RewriteRule ^questions$ questions.php [QSA,L]
+    RewriteRule ^evaluations$ evaluations.php [QSA,L]
+    RewriteRule ^login$ login.php [QSA,L]
+    RewriteRule ^departments$ departments.php [QSA,L]
+    RewriteRule ^check-evaluated-teachers$ check-evaluated-teachers.php [QSA,L]
+    RewriteRule ^pwa-debug$ pwa-debug.php [QSA,L]
+    RewriteRule ^tam-survey$ tam-survey.php [QSA,L]
+    
+</IfModule>

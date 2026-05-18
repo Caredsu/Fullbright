@@ -1,0 +1,774 @@
+/* Dashboard Styles - Material Design 3 */
+
+.dashboard-container {
+  min-height: 100vh;
+  background: var(--bg-light);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 100px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* App Header */
+.app-header {
+  background: var(--primary);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header-logo {
+  height: 70px;
+  width: auto;
+  margin-right: 1rem;
+}
+
+.app-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  color: white;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.icon-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Search Section */
+.search-section {
+  background: var(--primary);
+  padding: 1rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.search-bar {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.2rem;
+  color: var(--gray-500);
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: var(--gray-900);
+  outline: none;
+  transition: var(--transition);
+  box-sizing: border-box;
+}
+
+.search-input::placeholder {
+  color: var(--gray-500);
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+/* Filter Section */
+.filter-section {
+  background: white;
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  overflow-x: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.department-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  justify-content: center;
+}
+
+.filter-chip {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--gray-300);
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  border-color: var(--primary);
+}
+
+.filter-chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Teachers List */
+.teachers-list {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  box-sizing: border-box;
+  /* Mobile: 1 column grid */
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  margin: 0;
+}
+
+.teacher-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  border: 1px solid var(--gray-200);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.teacher-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Avatar */
+.teacher-avatar {
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+.teacher-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-initial {
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+/* Teacher Details */
+.teacher-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.teacher-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 0.25rem 0;
+}
+
+.teacher-email {
+  color: var(--gray-600);
+  font-size: 0.9rem;
+  margin: 0 0 0.25rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.teacher-department {
+  color: var(--gray-500);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Teacher Action Button */
+.teacher-action {
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.btn-evaluate {
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-evaluate:hover {
+  background: var(--primary-dark);
+  transform: scale(1.05);
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-500);
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+}
+
+/* Loading State - Skeleton Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background: var(--bg-light);
+  width: 100%;
+  overflow-x: hidden;
+  padding-top: 1rem;
+}
+
+/* Skeleton Header */
+.skeleton-header {
+  width: 100%;
+  background: var(--primary);
+  padding: 1rem;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skeleton-logo {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-title {
+  width: 200px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton Search & Filters */
+.skeleton-search {
+  width: 95%;
+  height: 40px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  animation: shimmer 1.5s infinite;
+  box-shadow: var(--shadow-sm);
+}
+
+.skeleton-filters {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  box-sizing: border-box;
+  min-height: 50px;
+}
+
+.skeleton-filter-chip {
+  width: 70px;
+  height: 35px;
+  background: white;
+  border-radius: 20px;
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+/* Skeleton Cards */
+.skeleton-cards {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.skeleton-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 240px;
+}
+
+.skeleton-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--gray-200);
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-text-line {
+  width: 100%;
+  height: 16px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text-short {
+  width: 70%;
+  height: 14px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-button {
+  width: 100%;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
+  opacity: 0.6;
+  margin-top: auto;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 70px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.bottom-nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--gray-600);
+  transition: all 0.2s ease;
+  flex: 1;
+  height: 100%;
+}
+
+.bottom-nav-btn:hover {
+  color: var(--primary);
+  background: rgba(25, 118, 210, 0.05);
+}
+
+.bottom-nav-btn:active {
+  color: var(--primary);
+  background: rgba(25, 118, 210, 0.1);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-container {
+    min-height: 100vh;
+    padding-bottom: 120px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .app-title {
+    font-size: 1.1rem;
+  }
+
+  .header-logo {
+    height: 50px;
+    margin-right: 0;
+    margin-bottom: 0.5rem;
+  }
+
+  .search-section {
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .filter-section {
+    padding: 1rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .department-filters {
+    width: 100%;
+  }
+
+  .teacher-details {
+    width: 100%;
+  }
+
+  .teachers-list {
+    padding: 0.75rem;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+  }
+
+  .teacher-card {
+    padding: 1rem;
+    margin: 0;
+  }
+
+  .teacher-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .teacher-name {
+    font-size: 1rem;
+  }
+
+  .btn-evaluate {
+    width: 100%;
+    padding: 0.6rem 1rem;
+  }
+
+  .filter-chip {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-container {
+    padding-bottom: 120px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    padding: 0.75rem;
+  }
+
+  .search-section {
+    padding: 0.75rem;
+  }
+
+  .filter-section {
+    padding: 0.75rem;
+  }
+
+  .teachers-list {
+    grid-template-columns: 1fr;
+    padding: 0.5rem;
+    gap: 0.5rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .teacher-card {
+    padding: 0.75rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Desktop Styles */
+@media (min-width: 768px) {
+  .dashboard-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding-bottom: 0;
+    width: 100%;
+  }
+
+  .app-header {
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .header-logo {
+    margin-right: 1rem;
+  }
+
+  .search-section {
+    padding: 2rem 1.5rem;
+    max-width: 100%;
+  }
+
+  .search-bar {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .filter-section {
+    padding: 2rem 1.5rem;
+  }
+
+  .teachers-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .teacher-card {
+    padding: 2rem;
+  }
+
+  .teacher-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .teacher-name {
+    font-size: 1.1rem;
+  }
+
+  .btn-evaluate {
+    width: 100%;
+  }
+
+  /* Hide bottom navigation on desktop */
+  .bottom-nav {
+    display: none;
+  }
+}
+
+/* Recent Evaluations Section */
+.recent-section {
+  background: white;
+  padding: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recent-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  margin: 0 0 0.75rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recent-eval-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 4px solid var(--primary);
+  animation: cardEnter 0.4s ease-out;
+}
+
+.recent-label {
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+.recent-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.recent-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+/* Filter Section Updates */
+.filter-header {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-count {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin: 0.75rem 0 0 0;
+  text-align: right;
+}
+
+/* Teacher Info Updates */
+.teacher-info {
+  flex: 1;
+  width: 100%;
+}
+
+.dept-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Teachers Grid */
+.teachers-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 1.5rem;
+  }
+
+  .stat-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .recent-section {
+    padding: 1.5rem;
+  }
+
+  .teachers-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .teachers-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

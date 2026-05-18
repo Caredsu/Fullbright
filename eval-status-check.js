@@ -9,7 +9,11 @@
 
   async function checkEvaluationStatus() {
     try {
-      const url = 'http://localhost/teacher-eval/index.php?request=api/evaluations/status';
+      const baseUrl = window.location.origin;
+      const pathname = window.location.pathname;
+      // Handle both /teacher-eval/ and root deployments
+      const basePath = pathname.includes('/teacher-eval/') ? '/teacher-eval' : '';
+      const url = `${baseUrl}${basePath}/index.php?request=api/evaluations/status`;
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

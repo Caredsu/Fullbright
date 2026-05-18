@@ -99,27 +99,79 @@ class NotificationPoller {
     }
 
     showNotification() {
-        // Use existing toast system if available
-        if (typeof showNotificationToast === 'function') {
-            showNotificationToast({
-                type: 'success',
-                title: 'New Evaluation',
-                message: 'A new teacher evaluation has been submitted!',
-                duration: 5000
-            });
-        } else if (typeof Swal !== 'undefined') {
-            // Fallback to SweetAlert2
-            Swal.fire({
-                icon: 'success',
-                title: 'New Evaluation',
-                text: 'A new teacher evaluation has been submitted!',
-                timer: 5000,
-                timerProgressBar: true,
-                showConfirmButton: false
-            });
-        } else {
-            // Simple alert as last resort
-            console.log('🔔 New evaluation notification - check Results page');
+        console.log('📱 showNotification() triggered');
+        
+        // Fetch the latest evaluation details
+        fetch('/teacher-eval/api/check-new-evaluations.php?includeDetails=1', {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📱 Evaluation details received:', data);
+            
+            let title = 'New Evaluation';
+            let message = 'A new teacher evaluation has been submitted!';
+            
+            if (data.latest_evaluation) {
+                const evaluation = data.latest_evaluation;
+                const teacherName = evaluation.teacher_name || `Teacher #${evaluation.teacher_id?.substring(0, 8)}`;
+                const rating = evaluation.rating ? evaluation.rating.toFixed(1) : '?';
+                message = `${teacherName} - ⭐ ${rating}/5`;
+            }
+            
+            console.log('📱 Toast message:', message);
+            console.log('📱 window.toast available?', !!window.toast);
+            console.log('📱 window.toast.show available?', typeof window.toast?.show);
+            
+            // Show toast notification
+            if (window.toast && typeof window.toast.show === 'function') {
+                console.log('📱 Calling window.toast.show()...');
+                window.toast.show({
+                    type: 'success',
+                    icon: 'bi bi-check-circle-fill',
+                    title: title,
+                    message: message,
+                    duration: 15000,  // Show for 15 seconds so it's visible
+                    action: {
+                        label: 'View',
+                        onClick: () => {
+                            console.log('📱 Toast action button clicked');
+                            this.refreshDashboard();
+                        }
+                    }
+                });
+                console.log('📱 Toast shown successfully');
+            } else {
+                console.log('🔔 Toast system not available:', title, message);
+            }
+        })
+        .catch(error => {
+            console.error('📱 Error fetching evaluation details:', error);
+            // Show simple notification anyway
+            if (window.toast && typeof window.toast.show === 'function') {
+                window.toast.show({
+                    type: 'success',
+                    icon: 'bi bi-check-circle-fill',
+                    title: 'New Evaluation',
+                    message: 'A new teacher evaluation has been submitted!',
+                    duration: 15000  // Show for 15 seconds
+                });
+            }
+        });
+    }
+
+    refreshDashboard() {
+        const pathname = window.location.pathname;
+        console.log('🔄 Dashboard refresh triggered');
+        
+        // Simple page reload for dashboard
+        if (pathname.includes('/admin/dashboard')) {
+            location.reload();
         }
     }
 

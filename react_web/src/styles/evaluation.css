@@ -1,0 +1,851 @@
+/* Evaluation Page Styles - Material Design 3 */
+
+.evaluation-container {
+  min-height: 100vh;
+  background: var(--bg-light);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 100px;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Header with Teacher Info */
+.evaluation-header {
+  background: var(--primary);
+  color: white;
+  padding: 2rem 1.5rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  flex-shrink: 0;
+}
+
+.btn-back {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  width: fit-content;
+  align-self: flex-start;
+}
+
+.btn-back:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-back:active {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0.98);
+}
+
+.teacher-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 900px;
+  width: 100%;
+}
+
+.teacher-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.teacher-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.teacher-header p {
+  margin: 0.25rem 0 0 0;
+  opacity: 0.9;
+  font-size: 0.95rem;
+}
+
+/* Evaluation Form */
+.evaluation-form {
+  flex: 1;
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 1.5rem;
+  padding-top: 2rem;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+.alert-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.alert-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Questions Container */
+.questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.question-item {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.question-item:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary);
+}
+
+.question-text {
+  display: flex;
+  gap: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--gray-900);
+  margin-bottom: 1rem;
+}
+
+.question-number {
+  color: var(--primary);
+  font-weight: 700;
+  min-width: 2rem;
+  flex-shrink: 0;
+}
+
+/* Rating Options - Star Style */
+.rating-options {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.rating-label {
+  cursor: pointer;
+  position: relative;
+}
+
+.rating-label input {
+  display: none;
+}
+
+.rating-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+  font-weight: 700;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 2px solid transparent;
+}
+
+.rating-label:hover .rating-btn {
+  background: var(--gray-200);
+  transform: scale(1.1);
+}
+
+.rating-btn.selected {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+/* Feedback Section */
+.feedback-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 2rem;
+}
+
+.feedback-toggle {
+  margin-bottom: 1rem;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggle-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.toggle-text {
+  font-weight: 500;
+  color: var(--gray-700);
+  font-size: 0.95rem;
+}
+
+.feedback-input-container {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.feedback-textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: white;
+  color: var(--gray-900);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.95rem;
+  resize: vertical;
+  transition: all 0.2s ease;
+}
+
+.feedback-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30, 42, 58, 0.1);
+}
+
+.feedback-textarea::placeholder {
+  color: var(--gray-500);
+}
+
+.feedback-hint {
+  font-size: 0.85rem;
+  color: var(--gray-500);
+  margin-top: 0.5rem;
+  text-align: right;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.btn {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  flex: 1;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--gray-200);
+  color: var(--gray-900);
+}
+
+.btn-secondary:hover {
+  background: var(--gray-300);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+/* Loading State - Skeleton Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  background: var(--bg-light);
+  width: 100%;
+  padding-top: 1rem;
+}
+
+/* Skeleton Header */
+.skeleton-header {
+  width: 100%;
+  background: var(--primary);
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
+  margin-bottom: 1rem;
+}
+
+.skeleton-back-btn {
+  width: 60px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 1rem;
+}
+
+.skeleton-teacher-info {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.skeleton-avatar-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  animation: shimmer 1.5s infinite;
+  flex-shrink: 0;
+}
+
+.skeleton-teacher-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-text-xl {
+  width: 150px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-text-sm {
+  width: 120px;
+  height: 16px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton Questions */
+.skeleton-questions {
+  width: 100%;
+  max-width: 900px;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeleton-question {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-question-text {
+  width: 100%;
+  height: 20px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+  margin-bottom: 0.75rem;
+}
+
+.skeleton-rating-options {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.skeleton-rating-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--gray-200);
+  border-radius: 50%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton Feedback */
+.skeleton-feedback {
+  background: white;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1rem;
+}
+
+.skeleton-checkbox {
+  width: 18px;
+  height: 18px;
+  background: var(--gray-200);
+  border-radius: 4px;
+  animation: shimmer 1.5s infinite;
+  display: inline-block;
+  margin-right: 0.75rem;
+}
+
+.skeleton-textarea {
+  width: 100%;
+  height: 100px;
+  background: var(--gray-200);
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Skeleton Buttons */
+.skeleton-buttons {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  margin-bottom: 3rem;
+}
+
+.skeleton-btn {
+  flex: 1;
+  height: 45px;
+  background: var(--gray-200);
+  border-radius: 8px;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .evaluation-container {
+    padding-bottom: 120px;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .evaluation-header {
+    padding: 1.5rem 1rem;
+  }
+
+  .teacher-header {
+    gap: 1rem;
+  }
+
+  .teacher-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .teacher-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .evaluation-form {
+    padding: 0 1rem;
+    padding-top: 1.5rem;
+  }
+
+  .rating-options {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .rating-btn {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    margin-bottom: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+  }
+
+  .question-item {
+    padding: 1rem;
+  }
+
+  .question-text {
+    font-size: 0.95rem;
+  }
+}
+
+.rating-options {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.rating-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.rating-label input {
+  display: none;
+}
+
+.rating-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border: 2px solid var(--gray-300);
+  border-radius: 50%;
+  background: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.rating-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: scale(1.05);
+}
+
+.rating-btn.selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.form-actions .btn {
+  flex: 1;
+}
+
+/* Progress Indicator Styles */
+.progress-container {
+  background: white;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.progress-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.progress-percentage {
+  font-size: 0.9rem;
+  color: var(--gray-500);
+  font-weight: 500;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+}
+
+/* Validation Feedback */
+.validation-feedback {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.validation-success {
+  color: #10b981;
+}
+
+.validation-error {
+  color: #ef4444;
+}
+
+.validation-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Loading Spinner Animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Submit Button States */
+.btn-submit-disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  background: #d1d5db !important;
+}
+
+.btn-submit-disabled:hover {
+  background: #d1d5db !important;
+  transform: none !important;
+}
+
+/* Success Screen Animation */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+/* Mobile Responsive Improvements */
+@media (max-width: 600px) {
+  .progress-container {
+    padding: 0.75rem;
+  }
+
+  .progress-label {
+    font-size: 0.85rem;
+  }
+
+  .progress-bar {
+    height: 6px;
+  }
+
+  .validation-feedback {
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+  }
+
+  .rating-btn {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+    border-radius: 50%;
+  }
+
+  .rating-options {
+    gap: 0.4rem;
+  }
+
+  .question-item {
+    padding: 0.75rem;
+  }
+
+  .form-textarea {
+    font-size: 16px !important;
+    padding: 0.75rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .evaluation-container {
+    padding: 1rem;
+  }
+
+  .teacher-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .teacher-avatar {
+    width: 100px;
+    height: 100px;
+  }
+
+  .teacher-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .evaluation-form {
+    padding: 1.5rem;
+  }
+
+  .question-item {
+    padding: 1rem;
+  }
+
+  .rating-options {
+    gap: 0.75rem;
+  }
+
+  .rating-btn {
+    width: 42px;
+    height: 42px;
+    font-size: 1rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .evaluation-container {
+    padding: 0.5rem;
+  }
+
+  .evaluation-header {
+    padding: 1rem;
+  }
+
+  .teacher-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .teacher-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .rating-btn {
+    width: 38px;
+    height: 38px;
+    font-size: 0.9rem;
+  }
+
+  .rating-options {
+    gap: 0.5rem;
+  }
+
+  .question-text {
+    font-size: 0.95rem;
+  }
+}

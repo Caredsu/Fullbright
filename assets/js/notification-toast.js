@@ -7,6 +7,8 @@ class NotificationToast {
     constructor() {
         this.container = null;
         this.initContainer();
+        console.log('🍞 NotificationToast class initialized');
+        console.log('🍞 Container:', this.container);
     }
 
     initContainer() {
@@ -16,7 +18,17 @@ class NotificationToast {
             this.container = document.createElement('div');
             this.container.id = 'notification-toasts';
             this.container.className = 'notification-toasts-container';
+            
+            // Debug: log computed styles
+            console.log('🍞 Toast container created');
+            console.log('🍞 Container className:', this.container.className);
+            
             document.body.appendChild(this.container);
+            
+            // Verify it was added
+            const verifyContainer = document.getElementById('notification-toasts');
+            console.log('🍞 Container appended to body:', !!verifyContainer);
+            console.log('🍞 Computed styles:', window.getComputedStyle(this.container));
         }
     }
 
@@ -30,6 +42,8 @@ class NotificationToast {
             action = null
         } = options;
 
+        console.log('🍞 Toast.show() called with:', { type, title, message, duration });
+
         const toastId = 'toast-' + Date.now();
         const toast = document.createElement('div');
         toast.id = toastId;
@@ -37,15 +51,22 @@ class NotificationToast {
 
         let iconHtml = '';
         if (icon) {
-            iconHtml = `<span class="toast-icon">${icon}</span>`;
+            // Check if it's a Bootstrap icon class (starts with 'bi')
+            if (typeof icon === 'string' && icon.startsWith('bi')) {
+                iconHtml = `<i class="toast-icon ${icon}"></i>`;
+            } else {
+                // Treat as emoji or text
+                iconHtml = `<span class="toast-icon">${icon}</span>`;
+            }
         } else {
+            // Default icons using Bootstrap Icons
             const icons = {
-                success: '✓',
-                error: '✕',
-                warning: '⚠',
-                info: 'ℹ'
+                success: 'bi bi-check-circle-fill',
+                error: 'bi bi-exclamation-circle-fill',
+                warning: 'bi bi-exclamation-triangle-fill',
+                info: 'bi bi-info-circle-fill'
             };
-            iconHtml = `<span class="toast-icon">${icons[type]}</span>`;
+            iconHtml = `<i class="toast-icon ${icons[type]}"></i>`;
         }
 
         let actionHtml = '';
@@ -66,6 +87,15 @@ class NotificationToast {
         `;
 
         this.container.appendChild(toast);
+        
+        console.log('🍞 Toast appended to container. Total toasts:', this.container.children.length);
+        console.log('🍞 Toast element:', toast);
+        console.log('🍞 Container visibility:', {
+            display: window.getComputedStyle(this.container).display,
+            visibility: window.getComputedStyle(this.container).visibility,
+            zIndex: window.getComputedStyle(this.container).zIndex,
+            position: window.getComputedStyle(this.container).position
+        });
 
         // Close button handler
         toast.querySelector('.toast-close').addEventListener('click', () => {
@@ -119,3 +149,4 @@ class NotificationToast {
 
 // Initialize globally
 window.toast = new NotificationToast();
+console.log('🍞 window.toast initialized:', window.toast);

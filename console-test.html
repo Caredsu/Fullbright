@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Console Debug Test</title>
+    <link rel="stylesheet" href="assets/css/notification-toast.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+        .console-line {
+            margin: 5px 0;
+            padding: 3px;
+        }
+        .log { color: #d4d4d4; }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .info { color: #3b82f6; }
+        .test-btn {
+            padding: 10px 20px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .test-btn:hover {
+            background: #059669;
+        }
+    </style>
+</head>
+<body>
+    <h1>Toast Notification Console Debug</h1>
+    
+    <button class="test-btn" onclick="testToast()">Test Toast Notification</button>
+    
+    <h2>Console Output:</h2>
+    <div class="console" id="console"></div>
+    
+    <script>
+        // Redirect console.log to the page
+        const consoleDiv = document.getElementById('console');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function addConsoleOutput(message, type = 'log') {
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            
+            // Also output to real console
+            if (type === 'log') originalLog(message);
+            else if (type === 'error') originalError(message);
+            else if (type === 'warn') originalWarn(message);
+        }
+        
+        console.log = function(...args) {
+            addConsoleOutput(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            addConsoleOutput(args.join(' '), 'error');
+        };
+        
+        console.warn = function(...args) {
+            addConsoleOutput(args.join(' '), 'warn');
+        };
+        
+        // Load toast system
+        const toastScript = document.createElement('script');
+        toastScript.src = 'assets/js/notification-toast.js';
+        document.head.appendChild(toastScript);
+        
+        function testToast() {
+            console.log('=== TESTING TOAST NOTIFICATION ===');
+            console.log('window.toast available?', !!window.toast);
+            console.log('window.toast type:', typeof window.toast);
+            
+            if (window.toast) {
+                console.log('Calling window.toast.show()...');
+                window.toast.show({
+                    type: 'success',
+                    icon: '📊',
+                    title: 'Test Notification',
+                    message: 'This is a test evaluation - Vince Badua ⭐ 4.5/5',
+                    duration: 15000,
+                    action: {
+                        label: 'View',
+                        onClick: () => {
+                            console.log('Toast action clicked!');
+                        }
+                    }
+                });
+                console.log('✅ Toast.show() completed');
+            } else {
+                console.error('❌ window.toast not available!');
+            }
+        }
+        
+        // Auto-test on load
+        window.addEventListener('load', function() {
+            console.log('=== PAGE LOADED ===');
+            console.log('Toast system status:', window.toast ? '✅ READY' : '❌ NOT LOADED');
+            setTimeout(testToast, 1000);
+        });
+    </script>
+</body>
+</html>

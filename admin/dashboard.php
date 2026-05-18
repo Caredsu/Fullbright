@@ -432,16 +432,13 @@ try {
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/dark-theme.css?v=2.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
     
+    <!-- Real-Time Notifications Toast - SYNCHRONOUS load (critical for visibility) -->
+    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css">
+    
     <!-- Global and Component Styles - load asynchronously -->
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/global.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/components.css" media="print" onload="this.media='all'">
     <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/pages/dashboard.css" media="print" onload="this.media='all'">
-    
-    <!-- Real-Time Notifications - async load -->
-    <link rel="stylesheet" href="<?= ASSETS_URL ?>/css/notification-toast.css" media="print" onload="this.media='all'">
-    
-    <!-- Async load non-critical styles -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" media="print" onload="this.media='all'">
     
     <!-- Chart.js - defer loading until page interactive -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
@@ -767,7 +764,6 @@ try {
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
     <script src="<?= ASSETS_URL ?>/js/api-service.js?v=2"></script>
     <script src="<?= ASSETS_URL ?>/js/main.js"></script>
     <script src="<?= ASSETS_URL ?>/js/global.js"></script>
