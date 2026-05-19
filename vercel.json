@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd react_web && npm run build",
+  "outputDirectory": "react_web/dist",
+  "public": "react_web/dist"
+}
