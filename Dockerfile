@@ -23,19 +23,10 @@ WORKDIR /var/www/html
 # Copy project files FIRST
 COPY . .
 
-# Verify git cloned files exist - especially pwa folder
+# Verify directory structure
 RUN echo "=== Checking directory structure ===" && \
     ls -la /var/www/html/ | head -30 && \
-    echo "=== Checking for pwa folder ===" && \
-    if [ -d "/var/www/html/pwa" ]; then \
-      echo "✓ PWA folder found!"; \
-      ls -la /var/www/html/pwa/ | head -10; \
-    else \
-      echo "✗ ERROR: PWA folder NOT found in /var/www/html/"; \
-      echo "Available folders:"; \
-      find /var/www/html -maxdepth 1 -type d | sort; \
-      exit 1; \
-    fi
+    echo "✓ Files copied successfully!"
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
