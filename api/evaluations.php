@@ -53,16 +53,17 @@ try {
             sendError('Field \'ratings\' or \'answers\' is required', 400);
         }
 
-        $teacherId = $body['teacher_id'] ?? null;
-        $studentId = sanitizeInput($body['student_id'] ?? '');
-        $feedback = sanitizeInput($body['feedback'] ?? '');
+        // Safely extract fields with null coalescing
+        $teacherId = isset($body['teacher_id']) ? $body['teacher_id'] : null;
+        $studentId = isset($body['student_id']) ? sanitizeInput($body['student_id']) : '';
+        $feedback = isset($body['feedback']) ? sanitizeInput($body['feedback']) : '';
 
         // DEBUG: Log what we received
         error_log('=== EVALUATION API DEBUG ===');
         error_log('Body keys: ' . implode(', ', array_keys($body)));
         error_log('student_id value: ' . var_export($studentId, true));
-        error_log('student_id from body: ' . var_export($body['student_id'] ?? 'NOT SET', true));
         error_log('teacher_id value: ' . var_export($teacherId, true));
+        error_log('feedback value: ' . var_export($feedback, true));
 
         // Validate teacher_id - MUST be provided
         if (!$teacherId) {
