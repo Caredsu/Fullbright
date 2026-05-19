@@ -53,7 +53,7 @@ try {
             sendError('Field \'ratings\' or \'answers\' is required', 400);
         }
 
-        $teacherId = $body['teacher_id'];
+        $teacherId = $body['teacher_id'] ?? null;
         $studentId = sanitizeInput($body['student_id'] ?? '');
         $feedback = sanitizeInput($body['feedback'] ?? '');
 
@@ -62,6 +62,12 @@ try {
         error_log('Body keys: ' . implode(', ', array_keys($body)));
         error_log('student_id value: ' . var_export($studentId, true));
         error_log('student_id from body: ' . var_export($body['student_id'] ?? 'NOT SET', true));
+        error_log('teacher_id value: ' . var_export($teacherId, true));
+
+        // Validate teacher_id - MUST be provided
+        if (!$teacherId) {
+            sendError('Teacher ID is required', 400);
+        }
 
         // Validate teacher_id
         $teacherObjectId = stringToObjectId($teacherId);
