@@ -48,8 +48,8 @@ RUN echo "=== Checking directory structure ===" && \
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Enable Apache mod_rewrite and mod_headers
-RUN a2enmod rewrite headers
+# Enable Apache mod_rewrite, mod_headers, and mod_alias
+RUN a2enmod rewrite headers alias
 
 # Disable default Apache config
 RUN a2dissite 000-default || true
