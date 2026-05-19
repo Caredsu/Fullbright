@@ -1,7 +1,7 @@
 FROM php:8.4-apache
 
 # Force cache invalidation - timestamp changes every commit
-ENV BUILD_TIMESTAMP="2026-05-19_12-30-00_UTC"
+ENV BUILD_TIMESTAMP="2026-05-19_13-45-00_UTC"
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
