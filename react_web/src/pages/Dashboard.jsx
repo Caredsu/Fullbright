@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, RotateCw, ArrowLeft, Search } from 'lucide-react';
 import api from '../services/api';
-import fbcLogo from '../../../assets/assets/images/fbc_logo2.png';
+import fbcLogo from '../../../assets/images/fbc_logo2.png';
 import '../styles/dashboard.css';
 
 const DEPARTMENTS = ['All', 'ECT', 'EDUC', 'CCJE', 'BHT'];
