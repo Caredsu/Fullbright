@@ -13,7 +13,7 @@ const getAPIBaseURL = () => {
   }
   
   // For production (Vercel) - use Render backend
-  return 'https://fullbright-college-1.onrender.com/api/';
+  return 'https://fullbright.onrender.com/api/';
 };
 
 const API_BASE_URL = getAPIBaseURL();
