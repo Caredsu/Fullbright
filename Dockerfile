@@ -53,7 +53,7 @@ RUN chown -R www-data:www-data /var/www/html && \
 
 # Final verification
 RUN echo "=== Final verification ===" && \
-    [ -d "/var/www/html/pwa" ] && echo "✓ PWA exists before start" || echo "✗ PWA missing before start"
+    [ -d "/var/www/html/assets" ] && echo "✓ Assets folder exists" || echo "⚠ Assets folder missing (will be built at runtime)"
 
 # Expose port
 EXPOSE 8080
