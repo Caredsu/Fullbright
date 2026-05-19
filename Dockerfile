@@ -1,3 +1,15 @@
+# ===== BUILD STAGE: Build React App =====
+FROM node:22-alpine AS react-builder
+
+WORKDIR /app
+
+# Copy React web project
+COPY react_web/ .
+
+# Install dependencies and build
+RUN npm install && npm run build
+
+# ===== FINAL STAGE: PHP + Apache Backend =====
 FROM php:8.4-apache
 
 # Force cache invalidation - timestamp changes every commit
@@ -23,9 +35,14 @@ WORKDIR /var/www/html
 # Copy project files FIRST
 COPY . .
 
+# Copy built React app into Apache root
+COPY --from=react-builder /app/dist /var/www/html/pwa
+
 # Verify directory structure
 RUN echo "=== Checking directory structure ===" && \
     ls -la /var/www/html/ | head -30 && \
+    echo "✓ React build copied to pwa/" && \
+    ls -la /var/www/html/pwa | head -20 && \
     echo "✓ Files copied successfully!"
 
 # Install PHP dependencies
