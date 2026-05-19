@@ -3,8 +3,11 @@ FROM node:22-alpine AS react-builder
 
 WORKDIR /app
 
-# Copy React web project
-COPY react_web/ .
+# Copy entire repo to get access to assets folder for imports
+COPY . .
+
+# Navigate to react_web and build
+WORKDIR /app/react_web
 
 # Install dependencies and build
 RUN npm install && npm run build
@@ -37,10 +40,10 @@ COPY . .
 
 # Copy built React app directly to /var/www/html (will overwrite index.html with React's)
 # Keep the React build as the primary entry point
-COPY --from=react-builder /app/dist/* /var/www/html/
+COPY --from=react-builder /app/react_web/dist/* /var/www/html/
 
 # Also keep a copy in /pwa for reference
-COPY --from=react-builder /app/dist /var/www/html/pwa
+COPY --from=react-builder /app/react_web/dist /var/www/html/pwa
 
 # Verify directory structure
 RUN echo "=== Checking directory structure ===" && \
