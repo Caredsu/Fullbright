@@ -139,15 +139,10 @@ export default function Landing() {
                   id="studentId"
                   value={studentId}
                   onChange={handleInputChange}
-                  placeholder="2201010092"
+                  placeholder="Enter your 10-digit ID"
                   maxLength="10"
                   className="form-input"
                 />
-                <p className="form-hint">
-                  Format: YYSMDDSSSS (10 digits)
-                  <br />
-                  <small>YY: School year | SM: Semester (01-02) | DD: Department (01-08) | SSSS: Series</small>
-                </p>
               </div>
 
               {error && (
