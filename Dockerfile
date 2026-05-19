@@ -35,14 +35,17 @@ WORKDIR /var/www/html
 # Copy project files FIRST
 COPY . .
 
-# Copy built React app into Apache root
+# Copy built React app directly to /var/www/html (will overwrite index.html with React's)
+# Keep the React build as the primary entry point
+COPY --from=react-builder /app/dist/* /var/www/html/
+
+# Also keep a copy in /pwa for reference
 COPY --from=react-builder /app/dist /var/www/html/pwa
 
 # Verify directory structure
 RUN echo "=== Checking directory structure ===" && \
     ls -la /var/www/html/ | head -30 && \
-    echo "✓ React build copied to pwa/" && \
-    ls -la /var/www/html/pwa | head -20 && \
+    echo "✓ React build copied to root and /pwa/" && \
     echo "✓ Files copied successfully!"
 
 # Install PHP dependencies
