@@ -12,8 +12,8 @@ const getAPIBaseURL = () => {
     return '/teacher-eval/api/';
   }
   
-  // For production (Vercel) - use Render backend
-  return '/api/';
+  // For production (Vercel) - use dedicated Render API service
+  return 'https://teacher-eval-api.onrender.com/api/';
 };
 
 const API_BASE_URL = getAPIBaseURL();
