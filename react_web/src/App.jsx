@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import Evaluation from './pages/Evaluation';
 import InstallPrompt from './components/InstallPrompt';
@@ -9,14 +10,24 @@ import './App.css';
 // Get base path for routing
 const getBasePath = () => {
   const pathname = window.location.pathname;
-  const pwaIndex = pathname.indexOf('/pwa/');
   
-  if (pwaIndex !== -1) {
-    return pathname.substring(0, pwaIndex + 5);
-  } else if (pathname.includes('/teacher-eval/')) {
-    return '/teacher-eval/pwa/';
+  // For Vercel production (root deployment)
+  if (pathname === '/' || pathname.startsWith('/?') || !pathname.includes('teacher-eval')) {
+    return '/';
   }
-  return '/pwa/';
+  
+  // For local development with /teacher-eval/ path
+  if (pathname.includes('/teacher-eval/')) {
+    return '/teacher-eval/';
+  }
+  
+  // For PWA installations (keep backward compatibility)
+  if (pathname.includes('/pwa/')) {
+    const pwaIndex = pathname.indexOf('/pwa/');
+    return pathname.substring(0, pwaIndex + 5);
+  }
+  
+  return '/';
 };
 
 const BASE_PATH = getBasePath();
@@ -47,7 +58,7 @@ export default function App() {
       <div className="app">
         <main className="app-main">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<Landing />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/evaluate/:teacherId" element={<Evaluation />} />
           </Routes>
