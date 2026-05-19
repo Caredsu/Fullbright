@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../vendor/autoload.php';
-require_once __DIR__ . '/../includes/helpers.php';  // SET UP ERROR HANDLER FIRST
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../includes/helpers.php';
 require_once __DIR__ . '/../includes/duplicate-prevention.php';
 
 setJsonHeader();
