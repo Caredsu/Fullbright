@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, AlertCircle } from 'lucide-react';
 import DataPrivacyModal from '../components/DataPrivacyModal';
-import fbcLogo from '../../../assets/images/fbc_logo2.png';
+import fbcLogo from '../assets/images/fbc_logo2.png';
 import '../styles/landing.css';
 
 const DEPARTMENT_CODES = {
