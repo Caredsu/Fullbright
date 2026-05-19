@@ -1,0 +1,60 @@
+# ===== API-ONLY DOCKERFILE: PHP + Apache for API endpoints =====
+FROM php:8.4-apache
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    unzip \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MongoDB extension
+RUN pecl install mongodb && docker-php-ext-enable mongodb
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Enable mod_rewrite for .htaccess
+RUN a2enmod rewrite
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy only API-related files
+COPY api/ /var/www/html/api/
+COPY app/ /var/www/html/app/
+COPY includes/ /var/www/html/includes/
+COPY config/ /var/www/html/config/
+COPY storage/ /var/www/html/storage/
+COPY vendor/ /var/www/html/vendor/
+COPY composer.json /var/www/html/
+COPY public_api.php /var/www/html/
+COPY index.php /var/www/html/
+COPY .htaccess /var/www/html/ 2>/dev/null || true
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html && \
+    chmod -R 755 /var/www/html && \
+    chmod -R 777 /var/www/html/storage/
+
+# Configure Apache
+RUN echo '<Directory /var/www/html>' > /etc/apache2/conf-available/api.conf && \
+    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/conf-available/api.conf && \
+    echo '    AllowOverride All' >> /etc/apache2/conf-available/api.conf && \
+    echo '    Require all granted' >> /etc/apache2/conf-available/api.conf && \
+    echo '</Directory>' >> /etc/apache2/conf-available/api.conf && \
+    a2enconf api
+
+# Expose port
+EXPOSE 8080
+
+# Set environment
+ENV PORT=8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/test.php || exit 1
+
+# Start Apache in foreground
+CMD ["apache2-foreground"]

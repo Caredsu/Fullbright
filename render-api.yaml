@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: teacher-eval-api
+    runtime: docker
+    dockerfilePath: Dockerfile.api
+    region: singapore
+    plan: starter
+    numInstances: 1
+    healthCheckPath: /api/test.php
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_HOST
+        value: mongodb+srv://Fullbright:alhamer1@cluster0.d5w3hon.mongodb.net/teacher_eval?retryWrites=true&w=majority
+      - key: DB_NAME
+        value: teacher_eval
+      - key: APP_ENV
+        value: production
+      - key: APP_URL
+        value: https://teacher-eval-api.onrender.com
+      - key: APP_DEBUG
+        value: "false"
+      - key: JWT_SECRET
+        value: teacher_eval_secret_key_2024_april_secure
+      - key: CORS_ORIGINS
+        value: "https://fullbright.onrender.com,https://fullbright-college-1.onrender.com,http://localhost:3000,http://localhost:3001"
