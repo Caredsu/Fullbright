@@ -29,11 +29,13 @@ COPY config/ /var/www/html/config/
 COPY storage/ /var/www/html/storage/
 COPY vendor/ /var/www/html/vendor/
 COPY composer.json /var/www/html/
-COPY .env /var/www/html/
 COPY public_api.php /var/www/html/
 COPY index.php /var/www/html/
 COPY .htaccess /var/www/html/ 2>/dev/null || true
 COPY assets/images/ /var/www/html/assets/images/ 2>/dev/null || true
+
+# Create empty .env file (will be overridden by Render env vars)
+RUN touch /var/www/html/.env && chmod 644 /var/www/html/.env
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html && \
