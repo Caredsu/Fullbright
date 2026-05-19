@@ -58,6 +58,7 @@
   font-weight: 700;
   margin-bottom: 15px;
   letter-spacing: -1px;
+  color: white;
 }
 
 .landing-subtitle {
@@ -77,9 +78,9 @@
 
 /* Student ID Form */
 .landing-form {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--border-radius);
   padding: 40px 30px;
   margin: 50px auto;
@@ -105,10 +106,12 @@
 
 .form-group label {
   display: block;
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: 10px;
+  color: #06d9ff;
+  font-weight: 900;
+  font-size: 1.15rem;
+  margin-bottom: 15px;
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+  letter-spacing: 1px;
 }
 
 .form-input {
