@@ -21,7 +21,7 @@ RUN a2enmod rewrite
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy only API-related files
+# Copy only PHP backend files (NO React building)
 COPY api/ /var/www/html/api/
 COPY app/ /var/www/html/app/
 COPY includes/ /var/www/html/includes/
@@ -32,6 +32,7 @@ COPY composer.json /var/www/html/
 COPY public_api.php /var/www/html/
 COPY index.php /var/www/html/
 COPY .htaccess /var/www/html/ 2>/dev/null || true
+COPY assets/images/ /var/www/html/assets/images/ 2>/dev/null || true
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html && \
