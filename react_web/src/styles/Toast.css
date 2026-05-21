@@ -20,6 +20,10 @@
 }
 
 .toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -33,7 +37,10 @@
 
 @media (max-width: 640px) {
   .toast {
-    min-width: 100%;
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
     margin: 0;
   }
 }

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Home, RotateCw, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react';
-import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import api, { getErrorMessage } from '../services/api';
 import Toast from '../components/Toast';
 import '../styles/evaluation.css';
+import '../styles/pagination.css';
 import '../styles/Toast.css';
 
 export default function Evaluation() {
   const { teacherId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [teacher, setTeacher] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [responses, setResponses] = useState({});
@@ -22,10 +25,11 @@ export default function Evaluation() {
   const [success, setSuccess] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [retrying, setRetrying] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const QUESTIONS_PER_PAGE = 5;
 
   useEffect(() => {
     fetchData();
-    loadDraft();
     
     // Confirm before leaving with unsaved changes
     const handleBeforeUnload = (e) => {
@@ -43,12 +47,9 @@ export default function Evaluation() {
   const fetchData = async () => {
     try {
       const [teacherRes, questionsRes] = await Promise.all([
-        api.get(`teachers.php?id=${teacherId}`),  // Use teachers.php not teachers-simple.php
+        api.get(`teachers.php?id=${teacherId}`),
         api.get('questions.php')
       ]);
-
-      console.log('Teacher Response:', teacherRes.data);
-      console.log('Questions Response:', questionsRes.data);
 
       // Handle teacher response - data is directly the teacher object
       if (teacherRes.data.success && teacherRes.data.data) {
@@ -58,15 +59,22 @@ export default function Evaluation() {
       if (questionsRes.data.success) {
         const questionsList = questionsRes.data.data || [];
         setQuestions(questionsList);
+        
         // Initialize responses
         const init = {};
         questionsList.forEach(q => {
           init[q.id || q._id] = 0;
         });
+        
+        // Set initial responses, then load draft if available
         setResponses(init);
+        
+        // Load draft AFTER questions are loaded
+        setTimeout(() => {
+          loadDraft(init);
+        }, 0);
       }
     } catch (err) {
-      console.error('Fetch error:', err);
       setError('Failed to load data: ' + (err.message || 'Unknown error'));
     } finally {
       setLoading(false);
@@ -85,6 +93,10 @@ export default function Evaluation() {
 
   // Draft Management - Auto-save to localStorage
   const saveDraft = (currentResponses, currentPositive, currentNegative) => {
+    // Calculate progress for display
+    const answeredCount = Object.values(currentResponses).filter(r => r !== 0).length;
+    const progress = questions.length > 0 ? Math.round((answeredCount / questions.length) * 100) : 0;
+    
     const draft = {
       teacherId,
       responses: currentResponses,
@@ -92,16 +104,22 @@ export default function Evaluation() {
       negativeFeedback: currentNegative,
       hasPositiveFeedback,
       hasNegativeFeedback,
+      progress,
       timestamp: Date.now()
     };
     localStorage.setItem('evaluation_draft', JSON.stringify(draft));
   };
 
-  const loadDraft = () => {
+  const loadDraft = (initialResponses = {}) => {
     try {
       const draft = JSON.parse(localStorage.getItem('evaluation_draft') || '{}');
       if (draft.teacherId === teacherId && Date.now() - draft.timestamp < 30 * 60 * 1000) { // 30 min
-        setResponses(draft.responses || {});
+        // Merge saved responses with initialized ones
+        const mergedResponses = {
+          ...initialResponses,
+          ...(draft.responses || {})
+        };
+        setResponses(mergedResponses);
         setPositiveFeedback(draft.positiveFeedback || '');
         setNegativeFeedback(draft.negativeFeedback || '');
         setHasPositiveFeedback(draft.hasPositiveFeedback || false);
@@ -109,7 +127,7 @@ export default function Evaluation() {
         addToast('Draft restored!', 'info');
       }
     } catch (err) {
-      console.error('Failed to load draft:', err);
+      // Failed to load draft
     }
   };
 
@@ -139,6 +157,38 @@ export default function Evaluation() {
   const progressPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   const isComplete = answeredCount === totalQuestions && totalQuestions > 0;
 
+  // Pagination logic
+  const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
+  const startIndex = (currentPage - 1) * QUESTIONS_PER_PAGE;
+  const endIndex = startIndex + QUESTIONS_PER_PAGE;
+  const paginatedQuestions = questions.slice(startIndex, endIndex);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      // Scroll to top of questions section
+      setTimeout(() => {
+        const questionsSection = document.querySelector('.questions-section');
+        if (questionsSection) {
+          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      // Scroll to top of questions section
+      setTimeout(() => {
+        const questionsSection = document.querySelector('.questions-section');
+        if (questionsSection) {
+          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 0);
+    }
+  };
+
   // Auto-save on response change
   useEffect(() => {
     if (questions.length > 0) {
@@ -167,14 +217,10 @@ export default function Evaluation() {
     try {
       const payload = {
         teacher_id: teacherId,
-        answers: responses
+        answers: responses,
+        // Include student_id for accountability tracking
+        student_id: user?.student_number || 'anonymous'
       };
-
-      // Include student_id if available
-      const studentId = localStorage.getItem('student_id');
-      if (studentId) {
-        payload.student_id = studentId;
-      }
 
       // Include feedback types if provided
       if (hasPositiveFeedback && positiveFeedback.trim()) {
@@ -201,7 +247,7 @@ export default function Evaluation() {
         addToast(errorMsg, 'error');
       }
     } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || 'Error submitting evaluation';
+      const errorMsg = getErrorMessage(err) || 'Error submitting evaluation';
       setError(errorMsg);
       addToast(errorMsg, 'error');
     } finally {
@@ -427,11 +473,11 @@ export default function Evaluation() {
           </div>
         )}
 
-        <div className="questions-container">
-          {questions.map((question, idx) => (
+        <div className="questions-container questions-section">
+          {paginatedQuestions.map((question, idx) => (
             <div key={question.id} className="question-item">
               <div className="question-text">
-                <span className="question-number">{idx + 1}.</span>
+                <span className="question-number">{startIndex + idx + 1}.</span>
                 <span>{question.question_text || question.text}</span>
               </div>
               
@@ -467,9 +513,37 @@ export default function Evaluation() {
               )}
             </div>
           ))}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination-controls">
+              <button
+                type="button"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 1}
+                className="pagination-btn pagination-btn-prev"
+                aria-label="Previous page"
+              >
+                ← Previous
+              </button>
+              <span className="pagination-info" role="status" aria-live="polite">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="pagination-btn pagination-btn-next"
+                aria-label="Next page"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* Feedback Sections */}
+        {/* Feedback Sections - Show only on last page */}
+        {(currentPage === totalPages && totalPages > 0) && (
         <div className="feedback-section">
           {/* Positive Feedback */}
           <div className="feedback-toggle" style={{ marginTop: '1.5rem' }}>
@@ -525,6 +599,7 @@ export default function Evaluation() {
             </div>
           )}
         </div>
+        )}
 
         <div className="form-actions">
           <button 

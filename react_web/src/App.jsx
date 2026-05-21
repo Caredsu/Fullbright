@@ -5,6 +5,9 @@ import Dashboard from './pages/Dashboard';
 import Evaluation from './pages/Evaluation';
 import InstallPrompt from './components/InstallPrompt';
 import SessionTimeoutManager from './components/SessionTimeoutManager';
+import ErrorBoundary from './components/ErrorBoundary';
+import { AuthProvider } from './contexts/AuthContext';
+import './styles/accessibility.css';
 import './App.css';
 
 // Get base path for routing
@@ -38,7 +41,9 @@ export default function App() {
     // Register service worker for PWA capabilities
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register(`${BASE_PATH}service-worker.js`)
-        .catch(err => console.log('SW registration failed:', err));
+        .catch(err => {
+          // SW registration failed
+        });
     }
 
     // Detect if app is installed
@@ -48,22 +53,25 @@ export default function App() {
     } else if (window.matchMedia('(display-mode: standalone)').matches) {
       displayMode = 'standalone';
     }
-    console.log('[PWA] Display mode:', displayMode);
   }, []);
 
   return (
-    <Router basename={BASE_PATH}>
-      <InstallPrompt />
-      <SessionTimeoutManager />
-      <div className="app">
-        <main className="app-main">
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/evaluate/:teacherId" element={<Evaluation />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router basename={BASE_PATH}>
+          <InstallPrompt />
+          <SessionTimeoutManager />
+          <div className="app">
+            <main className="app-main">
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/evaluate/:teacherId" element={<Evaluation />} />
+              </Routes>
+            </main>
+          </div>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

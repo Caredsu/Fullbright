@@ -28,12 +28,36 @@
 /* Logo Section */
 .landing-logo-section {
   margin-bottom: 40px;
+  animation: slideDown 0.5s ease-out;
 }
 
 .landing-logo {
   max-width: 120px;
   height: auto;
   animation: slideDown 0.5s ease-out;
+  filter: drop-shadow(0 4px 12px rgba(6, 182, 212, 0.2));
+  transition: all 0.3s ease;
+}
+
+.landing-logo:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 20px rgba(6, 182, 212, 0.4));
+}
+
+/* Success Animation */
+.success-fade {
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes slideDown {
@@ -51,6 +75,7 @@
 .landing-welcome {
   margin-bottom: 50px;
   color: white;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .landing-title {
@@ -58,7 +83,10 @@
   font-weight: 700;
   margin-bottom: 15px;
   letter-spacing: -1px;
-  color: white;
+  background: linear-gradient(135deg, #ffffff, var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .landing-subtitle {
@@ -66,6 +94,7 @@
   color: var(--accent);
   margin-bottom: 25px;
   font-weight: 500;
+  text-shadow: 0 2px 8px rgba(6, 182, 212, 0.2);
 }
 
 .landing-description {
@@ -86,6 +115,7 @@
   margin: 50px auto;
   max-width: 500px;
   animation: slideUp 0.6s ease-out 0.2s both;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
 @keyframes slideUp {
@@ -124,7 +154,7 @@
   color: white;
   letter-spacing: 2px;
   text-align: center;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   font-family: 'Courier New', monospace;
 }
 
@@ -132,7 +162,13 @@
   outline: none;
   border-color: var(--accent);
   background: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+  transform: scale(1.02);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .form-input::placeholder {
@@ -166,11 +202,38 @@
   color: #fecaca;
   font-size: 0.95rem;
   animation: slideDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
 }
 
 .error-message svg {
   flex-shrink: 0;
   color: #fca5a5;
+}
+
+.alert {
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  animation: slideDown 0.3s ease-out;
+  backdrop-filter: blur(10px);
+}
+
+.alert-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fecaca;
+}
+
+.alert-success {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #86efac;
+}
+
+.alert-loading {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #bfdbfe;
 }
 
 /* Features Section */
@@ -180,6 +243,7 @@
   gap: 25px;
   margin-bottom: 50px;
   padding: 0 20px;
+  animation: fadeInUp 0.6s ease-out 0.4s both;
 }
 
 .feature-card {
@@ -188,8 +252,21 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: var(--border-radius);
   padding: 30px 20px;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   color: white;
+  animation: slideUp 0.6s ease-out forwards;
+}
+
+.feature-card:nth-child(1) {
+  animation-delay: 0.4s;
+}
+
+.feature-card:nth-child(2) {
+  animation-delay: 0.5s;
+}
+
+.feature-card:nth-child(3) {
+  animation-delay: 0.6s;
 }
 
 .feature-card:hover {
@@ -199,15 +276,31 @@
 }
 
 .feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 20px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(6, 182, 212, 0.1));
+  border: 2px solid rgba(6, 182, 212, 0.4);
+  border-radius: 12px;
   color: var(--accent);
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.4), rgba(6, 182, 212, 0.2));
+  border-color: var(--accent);
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
 }
 
 .feature-card h3 {
   font-size: 1.25rem;
   margin-bottom: 10px;
   font-weight: 600;
+  color: white;
 }
 
 .feature-card p {
@@ -235,7 +328,7 @@
   border: none;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -248,8 +341,12 @@
 
 .btn-primary:hover:not(:disabled) {
   background: #0891b2;
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(6, 182, 212, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(6, 182, 212, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px);
 }
 
 .btn-primary:disabled {
@@ -270,7 +367,8 @@
 .btn-secondary:hover {
   background: var(--accent);
   color: var(--primary);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(6, 182, 212, 0.3);
 }
 
 .btn-large {
@@ -286,6 +384,11 @@
   font-size: 0.9rem;
   padding-top: 30px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  animation: fadeInUp 0.6s ease-out 0.8s both;
+}
+
+.landing-footer:hover {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* Responsive Design */

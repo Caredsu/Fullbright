@@ -1,0 +1,126 @@
+/* Draft Recovery Banner */
+.draft-recovery-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #78350f;
+  border-bottom: 2px solid #d97706;
+  flex-wrap: wrap;
+}
+
+.draft-recovery-content {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 200px;
+}
+
+.draft-recovery-icon {
+  color: #92400e;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.draft-recovery-text {
+  flex: 1;
+}
+
+.draft-recovery-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0 0 0.25rem 0;
+  color: #92400e;
+}
+
+.draft-recovery-info {
+  font-size: 0.875rem;
+  margin: 0;
+  color: #a16207;
+}
+
+.draft-recovery-info strong {
+  color: #78350f;
+}
+
+.draft-recovery-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.draft-recovery-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.draft-recovery-btn.restore {
+  background: white;
+  color: #b45309;
+  border: 2px solid white;
+}
+
+.draft-recovery-btn.restore:hover {
+  background: #fef3c7;
+  color: #92400e;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.draft-recovery-btn.restore:focus {
+  outline: 2px solid #78350f;
+  outline-offset: 2px;
+}
+
+.draft-recovery-btn.discard {
+  background: rgba(255, 255, 255, 0.3);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.draft-recovery-btn.discard:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+.draft-recovery-btn.discard:focus {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .draft-recovery-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .draft-recovery-content {
+    width: 100%;
+  }
+
+  .draft-recovery-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .draft-recovery-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}

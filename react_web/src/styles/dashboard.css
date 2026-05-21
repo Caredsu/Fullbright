@@ -95,6 +95,9 @@
   outline: none;
   transition: var(--transition);
   box-sizing: border-box;
+  min-height: 44px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .search-input::placeholder {
@@ -102,7 +105,8 @@
 }
 
 .search-input:focus {
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.2);
+  border: 2px solid var(--primary);
 }
 
 /* Filter Section */
@@ -134,10 +138,19 @@
   color: var(--gray-700);
   transition: var(--transition);
   white-space: nowrap;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  touch-action: manipulation;
 }
 
 .filter-chip:hover {
   border-color: var(--primary);
+}
+
+.filter-chip:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 .filter-chip.active {
@@ -168,30 +181,39 @@
   background: white;
   border-radius: 12px;
   padding: 1.5rem 1rem;
-  border: 1px solid var(--gray-200);
+  border: 2px solid var(--gray-200);
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.3s ease;
   box-shadow: var(--shadow-sm);
   text-align: center;
+  min-height: 280px;
+  user-select: none;
 }
 
 .teacher-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.teacher-card:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 
 /* Avatar */
 .teacher-avatar {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  border: 3px solid white;
 }
 
 .teacher-avatar img {
@@ -203,7 +225,7 @@
 .avatar-initial {
   color: white;
   font-weight: bold;
-  font-size: 1.5rem;
+  font-size: 1.75rem;
 }
 
 /* Teacher Details */
@@ -242,7 +264,7 @@
 
 .btn-evaluate {
   width: 100%;
-  padding: 0.6rem 1rem;
+  padding: 0.75rem 1rem;
   background: var(--primary);
   color: white;
   border: none;
@@ -251,11 +273,22 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: var(--transition);
+  min-height: 44px;
+  touch-action: manipulation;
 }
 
 .btn-evaluate:hover {
   background: var(--primary-dark);
   transform: scale(1.05);
+}
+
+.btn-evaluate:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.btn-evaluate:active {
+  transform: scale(0.98);
 }
 
 /* Empty State */
@@ -439,6 +472,8 @@
   transition: all 0.2s ease;
   flex: 1;
   height: 100%;
+  min-height: 56px;
+  touch-action: manipulation;
 }
 
 .bottom-nav-btn:hover {
@@ -446,9 +481,16 @@
   background: rgba(25, 118, 210, 0.05);
 }
 
+.bottom-nav-btn:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  color: var(--primary);
+}
+
 .bottom-nav-btn:active {
   color: var(--primary);
   background: rgba(25, 118, 210, 0.1);
+  transform: scale(0.95);
 }
 
 .nav-icon {

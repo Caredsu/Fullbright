@@ -43,12 +43,46 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   response => response,
   error => {
+    // Handle 401 Unauthorized
     if (error.response?.status === 401) {
       localStorage.clear();
       window.location.href = '/';
     }
+    
+    // Enhance error object with user-friendly message
+    const errorData = error.response?.data || {};
+    const statusCode = error.response?.status;
+    
+    let userMessage = error.message;
+    
+    if (errorData.message) {
+      userMessage = errorData.message;
+    } else if (statusCode === 400) {
+      userMessage = 'Invalid request. Please check your input.';
+    } else if (statusCode === 403) {
+      userMessage = 'You do not have permission to perform this action.';
+    } else if (statusCode === 404) {
+      userMessage = 'The requested resource was not found.';
+    } else if (statusCode === 500) {
+      userMessage = 'Server error. Please try again later.';
+    } else if (error.code === 'ECONNABORTED') {
+      userMessage = 'Request timeout. Please check your connection.';
+    } else if (error.message === 'Network Error') {
+      userMessage = 'Network error. Please check your internet connection.';
+    }
+    
+    error.userMessage = userMessage;
     return Promise.reject(error);
   }
 );
+
+/**
+ * Helper to extract user-friendly error message
+ * @param {Error} error - Error object from API call
+ * @returns {string} User-friendly error message
+ */
+export const getErrorMessage = (error) => {
+  return error?.userMessage || error?.message || 'An unexpected error occurred';
+};
 
 export default api;
