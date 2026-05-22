@@ -41,12 +41,24 @@ try {
                     sendError('Question not found', 404);
                 }
                 
+                // Default rating scale if not defined
+                $defaultRatingScale = [
+                    1 => 'Does not meet expectations',
+                    2 => 'Below average / Needs improvement',
+                    3 => 'Meets expectations / Average',
+                    4 => 'Exceeds expectations / Good',
+                    5 => 'Outstanding / Excellent'
+                ];
+                
+                $ratingScale = $question['rating_scale'] ?? $defaultRatingScale;
+                
                 sendSuccess([
                     'id' => objectIdToString($question['_id']),
                     'question_text' => $question['question_text'] ?? '',
                     'question_order' => $question['question_order'] ?? $question['display_order'] ?? 0,
                     'required' => $question['required'] ?? 0,
                     'status' => $question['status'] ?? 'active',
+                    'rating_scale' => $ratingScale,
                     'created_at' => isset($question['created_at']) ? $question['created_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_at' => isset($question['updated_at']) ? $question['updated_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_by' => $question['updated_by'] ?? 'system'
@@ -64,12 +76,24 @@ try {
             )->toArray();
 
             $formattedQuestions = array_map(function($question) {
+                // Default rating scale if not defined
+                $defaultRatingScale = [
+                    1 => 'Does not meet expectations',
+                    2 => 'Below average / Needs improvement',
+                    3 => 'Meets expectations / Average',
+                    4 => 'Exceeds expectations / Good',
+                    5 => 'Outstanding / Excellent'
+                ];
+                
+                $ratingScale = $question['rating_scale'] ?? $defaultRatingScale;
+                
                 return [
                     'id' => objectIdToString($question['_id']),
                     'question_text' => $question['question_text'] ?? '',
                     'question_order' => $question['question_order'] ?? $question['display_order'] ?? 0,
                     'required' => $question['required'] ?? 0,
                     'status' => $question['status'] ?? 'active',
+                    'rating_scale' => $ratingScale,
                     'created_at' => isset($question['created_at']) ? $question['created_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_at' => isset($question['updated_at']) ? $question['updated_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_by' => $question['updated_by'] ?? 'system'
@@ -108,6 +132,12 @@ try {
         $questionText = sanitizeInput($body['question_text']);
         $status = sanitizeInput($body['status'] ?? 'active');
         $required = isset($body['required']) ? (int)$body['required'] : 0;
+        
+        // Handle rating scale (optional)
+        $ratingScale = [];
+        if (isset($body['rating_scale']) && is_array($body['rating_scale'])) {
+            $ratingScale = $body['rating_scale'];
+        }
 
         // Get next question order
         $lastQuestion = $questions_collection->findOne([], ['sort' => ['question_order' => -1]]);
@@ -115,7 +145,7 @@ try {
 
         // Insert new question
         $now = new MongoDB\BSON\UTCDateTime(time() * 1000);
-        $result = $questions_collection->insertOne([
+        $insertData = [
             'question_text' => $questionText,
             'question_order' => $nextOrder,
             'required' => $required,
@@ -123,14 +153,22 @@ try {
             'created_at' => $now,
             'updated_at' => $now,
             'updated_by' => $_SESSION['admin_username'] ?? $_SESSION['admin_id'] ?? 'system'
-        ]);
+        ];
+        
+        // Add rating scale if provided
+        if (!empty($ratingScale)) {
+            $insertData['rating_scale'] = $ratingScale;
+        }
+        
+        $result = $questions_collection->insertOne($insertData);
 
         sendSuccess([
             'id' => objectIdToString($result->getInsertedId()),
             'question_text' => $questionText,
             'question_order' => $nextOrder,
             'required' => $required,
-            'status' => $status
+            'status' => $status,
+            'rating_scale' => !empty($ratingScale) ? $ratingScale : []
         ], 'Question added successfully', 201);
 
     } elseif ($method === 'PUT') {
@@ -180,6 +218,16 @@ try {
         if (isset($body['required'])) {
             $updateData['required'] = (int)$body['required'];
         }
+        
+        // Handle rating scale (optional)
+        if (isset($body['rating_scale'])) {
+            if (is_array($body['rating_scale']) && !empty($body['rating_scale'])) {
+                $updateData['rating_scale'] = $body['rating_scale'];
+            } else {
+                // If empty rating_scale is sent, remove it from the document
+                $updateData['rating_scale'] = null;
+            }
+        }
 
         if (empty($updateData)) {
             sendError('No fields to update', 400);
@@ -195,13 +243,25 @@ try {
         );
 
         $updatedQuestion = $questions_collection->findOne(['_id' => $objectId]);
+        
+        // Return with rating scale in response
+        $defaultRatingScale = [
+            1 => 'Does not meet expectations',
+            2 => 'Below average / Needs improvement',
+            3 => 'Meets expectations / Average',
+            4 => 'Exceeds expectations / Good',
+            5 => 'Outstanding / Excellent'
+        ];
+        
+        $ratingScale = $updatedQuestion['rating_scale'] ?? $defaultRatingScale;
 
         sendSuccess([
             'id' => objectIdToString($updatedQuestion['_id']),
             'question_text' => $updatedQuestion['question_text'] ?? '',
             'question_order' => $updatedQuestion['question_order'] ?? 0,
             'required' => $updatedQuestion['required'] ?? 0,
-            'status' => $updatedQuestion['status'] ?? 'active'
+            'status' => $updatedQuestion['status'] ?? 'active',
+            'rating_scale' => $ratingScale
         ], 'Question updated successfully', 200);
 
     } elseif ($method === 'DELETE') {

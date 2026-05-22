@@ -22,8 +22,9 @@ export default function Dashboard() {
   const [draft, setDraft] = useState(null);
   const [showBackOnlineToast, setShowBackOnlineToast] = useState(false);
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
+  const [evaluatedTeachers, setEvaluatedTeachers] = useState([]);
   const navigate = useNavigate();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const { isOnline, backOnlineNotification, dismissNotification } = useOfflineDetection();
 
   // Redirect if not authenticated
@@ -111,6 +112,36 @@ export default function Dashboard() {
     }
   }, []);
 
+  // Fetch evaluated teachers for current student
+  const fetchEvaluatedTeachers = useCallback(async () => {
+    try {
+      const studentId = user?.student_number || localStorage.getItem('student_number');
+      const url = studentId 
+        ? `check-evaluated-teachers.php?student_id=${encodeURIComponent(studentId)}`
+        : 'check-evaluated-teachers.php';
+      
+      const response = await api.get(url);
+      console.log('📊 Evaluated Teachers Response:', response.data);
+      
+      if (response.data.success && response.data.data) {
+        const evaluatedList = response.data.data.evaluated_teachers || [];
+        console.log('📋 Evaluated List:', evaluatedList);
+        
+        const evaluatedIds = evaluatedList.map(t => {
+          const id = t._id || t.id;
+          console.log('ID extracted:', id, 'from:', t);
+          return id;
+        });
+        
+        console.log('✅ Evaluated IDs:', evaluatedIds);
+        setEvaluatedTeachers(evaluatedIds);
+      }
+    } catch (err) {
+      console.error('❌ Failed to fetch evaluated teachers:', err);
+      // Silently fail - don't block the dashboard
+    }
+  }, [user]);
+
   // Use local cache for teachers (5 minute cache)
   const { data: cachedTeachers, loading: cacheLoading, error: cacheError } = useLocalCache(
     'teachers_list',
@@ -126,8 +157,9 @@ export default function Dashboard() {
     }
     if (cachedTeachers && cachedTeachers.length > 0) {
       loadDraftInfo();
+      fetchEvaluatedTeachers();
     }
-  }, [cachedTeachers, cacheLoading, cacheError, loadDraftInfo]);
+  }, [cachedTeachers, cacheLoading, cacheError, loadDraftInfo, fetchEvaluatedTeachers]);
 
   const fetchTeachers = async () => {
     setLoading(true);
@@ -394,15 +426,20 @@ export default function Dashboard() {
 
                 {/* Action Button */}
                 <div className="teacher-action">
+                  {console.log(`Teacher ${teacher.name}: id=${teacher.id}, isEvaluated=${evaluatedTeachers.includes(teacher.id)}`)}
                   <button 
-                    className="btn-evaluate"
+                    className={`btn-evaluate ${evaluatedTeachers.includes(teacher.id) ? 'btn-disabled' : ''}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleEvaluate(teacher.id);
+                      if (!evaluatedTeachers.includes(teacher.id)) {
+                        handleEvaluate(teacher.id);
+                      }
                     }}
                     aria-label={`Evaluate ${teacher.name}`}
+                    disabled={evaluatedTeachers.includes(teacher.id)}
+                    title={evaluatedTeachers.includes(teacher.id) ? 'Already evaluated' : 'Evaluate this teacher'}
                   >
-                    Evaluate →
+                    {evaluatedTeachers.includes(teacher.id) ? '✓ Evaluated' : 'Evaluate →'}
                   </button>
                 </div>
               </div>

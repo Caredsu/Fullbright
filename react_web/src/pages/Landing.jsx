@@ -153,7 +153,7 @@ export default function Landing() {
               <button
                 type="submit"
                 className="btn btn-primary btn-large"
-                disabled={!studentNumber || loading || !consentGiven}
+                disabled={studentNumber.length < 10 || loading || !consentGiven}
               >
                 {loading ? (
                   <>

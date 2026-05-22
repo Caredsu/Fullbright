@@ -57,6 +57,8 @@ try {
         $teacherId = isset($body['teacher_id']) ? $body['teacher_id'] : null;
         $studentId = isset($body['student_id']) ? sanitizeInput($body['student_id']) : '';
         $feedback = isset($body['feedback']) ? sanitizeInput($body['feedback']) : '';
+        $positiveFeedback = isset($body['positive_feedback']) ? sanitizeInput($body['positive_feedback']) : '';
+        $negativeFeedback = isset($body['negative_feedback']) ? sanitizeInput($body['negative_feedback']) : '';
 
         // DEBUG: Log what we received
         error_log('=== EVALUATION API DEBUG ===');
@@ -64,6 +66,8 @@ try {
         error_log('student_id value: ' . var_export($studentId, true));
         error_log('teacher_id value: ' . var_export($teacherId, true));
         error_log('feedback value: ' . var_export($feedback, true));
+        error_log('positive_feedback value: ' . var_export($positiveFeedback, true));
+        error_log('negative_feedback value: ' . var_export($negativeFeedback, true));
 
         // Validate teacher_id - MUST be provided
         if (!$teacherId) {
@@ -137,6 +141,26 @@ try {
                 sendError('Feedback must not exceed 1000 characters', 400);
             }
         }
+        
+        // Validate positive feedback
+        if (!empty($positiveFeedback)) {
+            if (strlen($positiveFeedback) < 5) {
+                sendError('Positive feedback must be at least 5 characters long', 400);
+            }
+            if (strlen($positiveFeedback) > 500) {
+                sendError('Positive feedback must not exceed 500 characters', 400);
+            }
+        }
+        
+        // Validate negative feedback
+        if (!empty($negativeFeedback)) {
+            if (strlen($negativeFeedback) < 5) {
+                sendError('Negative feedback must be at least 5 characters long', 400);
+            }
+            if (strlen($negativeFeedback) > 500) {
+                sendError('Negative feedback must not exceed 500 characters', 400);
+            }
+        }
 
         // Get session identifier (IP address + device ID for better tracking)
         $ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
@@ -168,17 +192,29 @@ try {
         require_once __DIR__ . '/../app/Models/Evaluation.php';
         $evaluationModel = new \App\Models\Evaluation($evaluations_collection);
         
-        $evaluationId = $evaluationModel->create([
+        $evaluationData = [
             'teacher_id' => $teacherObjectId,
             'answers' => $answers,
-            'feedback' => $feedback,
             'student_id' => $studentId,  // Add student number/ID
             'ip_address' => $ipAddress,
             'user_agent' => $userAgent,
             'device_id' => $deviceId,
             'device_fingerprint' => generateDeviceFingerprint($deviceId, $ipAddress, $userAgent),
             'session_identifier' => $ipAddress  // For quick lookups
-        ]);
+        ];
+        
+        // Add feedback fields if provided
+        if (!empty($feedback)) {
+            $evaluationData['feedback'] = $feedback;
+        }
+        if (!empty($positiveFeedback)) {
+            $evaluationData['positive_feedback'] = $positiveFeedback;
+        }
+        if (!empty($negativeFeedback)) {
+            $evaluationData['negative_feedback'] = $negativeFeedback;
+        }
+        
+        $evaluationId = $evaluationModel->create($evaluationData);
         
         // Update submission log to completed
         if ($logId) {

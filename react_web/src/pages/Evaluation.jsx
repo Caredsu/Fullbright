@@ -4,6 +4,7 @@ import { Home, RotateCw, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-re
 import { useAuth } from '../contexts/AuthContext';
 import api, { getErrorMessage } from '../services/api';
 import Toast from '../components/Toast';
+import AlreadyEvaluatedModal from '../components/AlreadyEvaluatedModal';
 import '../styles/evaluation.css';
 import '../styles/pagination.css';
 import '../styles/Toast.css';
@@ -26,6 +27,7 @@ export default function Evaluation() {
   const [toasts, setToasts] = useState([]);
   const [retrying, setRetrying] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAlreadyEvaluated, setIsAlreadyEvaluated] = useState(false);
   const QUESTIONS_PER_PAGE = 5;
 
   useEffect(() => {
@@ -46,18 +48,35 @@ export default function Evaluation() {
 
   const fetchData = async () => {
     try {
-      const [teacherRes, questionsRes] = await Promise.all([
+      const [teacherRes, questionsRes, evaluatedRes] = await Promise.all([
         api.get(`teachers.php?id=${teacherId}`),
-        api.get('questions.php')
+        api.get('questions.php'),
+        api.get('check-evaluated-teachers.php')
       ]);
 
       // Handle teacher response - data is directly the teacher object
       if (teacherRes.data.success && teacherRes.data.data) {
         setTeacher(teacherRes.data.data);
       }
+
+      // Check if this teacher is already evaluated
+      if (evaluatedRes.data.success && evaluatedRes.data.data) {
+        const evaluatedTeachers = evaluatedRes.data.data.evaluated_teachers || [];
+        const isEvaluated = evaluatedTeachers.some(t => 
+          (t._id && t._id === teacherId) || (t.id && t.id === teacherId)
+        );
+        if (isEvaluated) {
+          setIsAlreadyEvaluated(true);
+          setLoading(false);
+          return;
+        }
+      }
+
       // Handle questions response - data is an array of questions
       if (questionsRes.data.success) {
         const questionsList = questionsRes.data.data || [];
+        console.log('📋 Questions fetched from API:', questionsList);
+        console.log('🎯 First question rating_scale:', questionsList[0]?.rating_scale);
         setQuestions(questionsList);
         
         // Initialize responses
@@ -409,6 +428,11 @@ export default function Evaluation() {
 
   return (
     <div className="evaluation-container">
+      {/* Already Evaluated Modal */}
+      {isAlreadyEvaluated && teacher && (
+        <AlreadyEvaluatedModal teacher={teacher} />
+      )}
+
       {/* Toast Container */}
       <div className="toast-container">
         {toasts.map(toast => (
@@ -443,6 +467,7 @@ export default function Evaluation() {
         )}
       </div>
 
+      {!isAlreadyEvaluated && (
       <form onSubmit={handleSubmit} className="evaluation-form">
         {error && (
           <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
@@ -481,29 +506,35 @@ export default function Evaluation() {
                 <span>{question.question_text || question.text}</span>
               </div>
               
-              <div className="rating-options">
-                {[1, 2, 3, 4, 5].map(rating => (
-                  <label key={rating} className="rating-label">
-                    <input
-                      type="radio"
-                      name={`question_${question.id}`}
-                      value={rating}
-                      checked={responses[question.id] === rating}
-                      onChange={() => handleRating(question.id, rating)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'ArrowRight' && rating < 5) {
-                          handleRating(question.id, rating + 1);
-                        } else if (e.key === 'ArrowLeft' && rating > 1) {
-                          handleRating(question.id, rating - 1);
-                        }
-                      }}
-                      required
-                    />
-                    <span className={`rating-btn ${responses[question.id] === rating ? 'selected' : ''}`}>
-                      {rating}
-                    </span>
-                  </label>
-                ))}
+              <div className="rating-options rating-vertical">
+                {[1, 2, 3, 4, 5].map(rating => {
+                  const ratingDescription = question.rating_scale?.[String(rating)] || 
+                    ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
+                  
+                  return (
+                    <label key={rating} className="rating-label-radio">
+                      <input
+                        type="radio"
+                        name={`question_${question.id}`}
+                        value={rating}
+                        checked={responses[question.id] === rating}
+                        onChange={() => handleRating(question.id, rating)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'ArrowRight' && rating < 5) {
+                            handleRating(question.id, rating + 1);
+                          } else if (e.key === 'ArrowLeft' && rating > 1) {
+                            handleRating(question.id, rating - 1);
+                          }
+                        }}
+                        required
+                      />
+                      <span className="radio-circle"></span>
+                      <span className="radio-text">
+                        <strong>{rating}</strong> - {ratingDescription}
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
               {responses[question.id] > 0 && (
                 <div className="validation-feedback validation-success">
@@ -633,6 +664,7 @@ export default function Evaluation() {
           }
         `}</style>
       </form>
+      )}
 
       <nav className="bottom-nav">
         <button className="bottom-nav-btn" title="Home" onClick={() => navigate('/dashboard')}>

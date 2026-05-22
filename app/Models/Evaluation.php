@@ -75,6 +75,8 @@ class Evaluation
             'subject' => $data['subject'] ?? '',
             'answers' => $data['answers'] ?? [],
             'feedback' => $data['feedback'] ?? '',
+            'positive_feedback' => $data['positive_feedback'] ?? '',
+            'negative_feedback' => $data['negative_feedback'] ?? '',
             'student_id' => $data['student_id'] ?? '',
             'device_id' => $data['device_id'] ?? '',
             'device_fingerprint' => $data['device_fingerprint'] ?? '',

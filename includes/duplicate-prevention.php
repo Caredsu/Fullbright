@@ -219,4 +219,86 @@ function createSubmissionLogIndexes() {
     }
 }
 
+/**
+ * Clear/Override evaluation for a student-teacher pair (ADMIN ONLY)
+ * Allows student to re-evaluate a teacher in new academic year/period
+ */
+function clearStudentTeacherEvaluation($submissionLogId) {
+    global $db;
+    
+    try {
+        $submissionLogs = $db->selectCollection('submission_logs');
+        
+        // Delete the submission log record
+        $result = $submissionLogs->deleteOne([
+            '_id' => new \MongoDB\BSON\ObjectId($submissionLogId)
+        ]);
+        
+        return [
+            'success' => true,
+            'message' => 'Evaluation record cleared successfully',
+            'deleted_count' => $result->getDeletedCount()
+        ];
+        
+    } catch (\Exception $e) {
+        error_log("Clear evaluation error: " . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Error clearing evaluation: ' . $e->getMessage()
+        ];
+    }
+}
+
+/**
+ * Get evaluation records for admin management
+ * Returns submission logs with teacher info
+ */
+function getEvaluationRecordsForManagement($filters = []) {
+    global $db;
+    
+    try {
+        $submissionLogs = $db->selectCollection('submission_logs');
+        $teachers_collection = $db->selectCollection('teachers');
+        
+        // Build query
+        $query = [];
+        
+        if (!empty($filters['teacher_id'])) {
+            $query['teacher_id'] = new \MongoDB\BSON\ObjectId($filters['teacher_id']);
+        }
+        
+        if (!empty($filters['device_fingerprint'])) {
+            $query['device_fingerprint'] = $filters['device_fingerprint'];
+        }
+        
+        if (!empty($filters['status'])) {
+            $query['status'] = $filters['status'];
+        }
+        
+        if (!empty($filters['days'])) {
+            $daysAgo = new \MongoDB\BSON\UTCDateTime((time() - $filters['days'] * 86400) * 1000);
+            $query['submitted_at'] = ['$gte' => $daysAgo];
+        }
+        
+        // Get records
+        $records = $submissionLogs->find($query, [
+            'sort' => ['submitted_at' => -1],
+            'limit' => 200
+        ])->toArray();
+        
+        // Enrich with teacher info
+        foreach ($records as &$record) {
+            $teacher = $teachers_collection->findOne(['_id' => $record['teacher_id']]);
+            $record['teacher_name'] = $teacher['full_name'] ?? 'Unknown';
+            $record['teacher_code'] = $teacher['teacher_code'] ?? 'N/A';
+        }
+        
+        return $records;
+        
+    } catch (\Exception $e) {
+        error_log("Get evaluation records error: " . $e->getMessage());
+        return [];
+    }
+}
+
 ?>

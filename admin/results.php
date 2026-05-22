@@ -75,8 +75,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['get_eval_details'])) 
             $submitted_at_formatted = $dt->format('M d, Y h:i A');
         }
         
-        // Get overall feedback if available
-        $feedback = $eval['feedback'] ?? 'No feedback provided';
+        // Get feedback fields (both old single feedback and new positive/negative feedback)
+        $feedback = $eval['feedback'] ?? '';
+        $positiveFeedback = $eval['positive_feedback'] ?? '';
+        $negativeFeedback = $eval['negative_feedback'] ?? '';
+        
+        // Build feedback display (show positive and negative separately if both exist)
+        $feedbackDisplay = '';
+        if (!empty($positiveFeedback) || !empty($negativeFeedback)) {
+            if (!empty($positiveFeedback)) {
+                $feedbackDisplay .= '<strong>Positive Feedback:</strong> ' . htmlspecialchars($positiveFeedback);
+            }
+            if (!empty($negativeFeedback)) {
+                if (!empty($positiveFeedback)) {
+                    $feedbackDisplay .= '<br><br>';
+                }
+                $feedbackDisplay .= '<strong>Negative Feedback:</strong> ' . htmlspecialchars($negativeFeedback);
+            }
+        } elseif (!empty($feedback)) {
+            $feedbackDisplay = htmlspecialchars($feedback);
+        } else {
+            $feedbackDisplay = 'No feedback provided';
+        }
         
         // Get student_id if available
         $student_id = $eval['student_id'] ?? 'Anonymous';
@@ -86,7 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['get_eval_details'])) 
             'teacher_name' => $teacher_name,
             'student_id' => $student_id,
             'submitted_at' => $submitted_at_formatted,
-            'feedback' => $feedback,
+            'feedback' => $feedbackDisplay,
+            'positive_feedback' => $positiveFeedback,
+            'negative_feedback' => $negativeFeedback,
             'avg_rating' => $avg_rating,
             'qualitative' => $qualitative['rating'],
             'qualitative_color' => $qualitative['badge_bg'],
@@ -936,7 +958,24 @@ if (!empty($evaluations)) {
             html += '</tbody></table></div>';
             html += '<hr style="border-color: #e2e8f0;">';
             html += '<h6 style="color: #000000;">Qualitative Feedback:</h6>';
-            html += '<div style="background: #f8fafc; color: #000000; padding: 15px; border-radius: 6px; border-left: 3px solid #8b5cf6; min-height: 80px; word-wrap: break-word;">' + escapeHtml(data.feedback) + '</div>';
+            
+            // Display positive and negative feedback separately if both exist
+            if (data.positive_feedback || data.negative_feedback) {
+                if (data.positive_feedback) {
+                    html += '<div class="mb-3">';
+                    html += '<div style="color: #16a34a; font-weight: 600; margin-bottom: 8px;">✓ Positive Feedback:</div>';
+                    html += '<div style="background: #f0fdf4; color: #000000; padding: 12px; border-radius: 6px; border-left: 4px solid #16a34a; word-wrap: break-word; font-size: 14px;">' + escapeHtml(data.positive_feedback) + '</div>';
+                    html += '</div>';
+                }
+                if (data.negative_feedback) {
+                    html += '<div class="mb-3">';
+                    html += '<div style="color: #dc2626; font-weight: 600; margin-bottom: 8px;">✗ Negative Feedback:</div>';
+                    html += '<div style="background: #fef2f2; color: #000000; padding: 12px; border-radius: 6px; border-left: 4px solid #dc2626; word-wrap: break-word; font-size: 14px;">' + escapeHtml(data.negative_feedback) + '</div>';
+                    html += '</div>';
+                }
+            } else {
+                html += '<div style="background: #f8fafc; color: #000000; padding: 15px; border-radius: 6px; border-left: 3px solid #8b5cf6; min-height: 80px; word-wrap: break-word;">' + escapeHtml(data.feedback) + '</div>';
+            }
             html += '</div>';
             
             const container = document.getElementById('evalDetailsContent');

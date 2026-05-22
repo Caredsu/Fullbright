@@ -87,33 +87,52 @@ try {
         exit;
     }
     
-    // Bulk mode (existing)
+    // Bulk mode - Check by student_id or device fingerprint
+    $studentId = $_GET['student_id'] ?? sanitizeInput($_POST['student_id'] ?? $_SESSION['student_id'] ?? '');
     $deviceId = $_GET['device_id'] ?? null;
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    $deviceFingerprint = generateDeviceFingerprint($deviceId, $ipAddress, $userAgent);
     
-    // Find all COMPLETED submissions from this device
-    $completedEvaluations = $submissionLogs->find([
-        'device_fingerprint' => $deviceFingerprint,
-        'status' => 'completed'
-    ], [
+    // Prepare query - Check by student_id first (primary), then device fingerprint (fallback)
+    $query = [];
+    $source = 'unknown';
+    
+    if (!empty($studentId)) {
+      $query = ['student_id' => $studentId];
+      $source = 'student_id';
+    } else {
+      $deviceFingerprint = generateDeviceFingerprint($deviceId, $ipAddress, $userAgent);
+      $query = ['device_fingerprint' => $deviceFingerprint];
+      $source = 'device_fingerprint';
+    }
+
+    // Get evaluations collection to find completed evaluations
+    $collections = $db->listCollections();
+    $collectionNames = array_map(fn($c) => $c->getName(), iterator_to_array($collections));
+    
+    $evaluatedTeacherIds = [];
+    
+    if (in_array('evaluations', $collectionNames)) {
+      $evaluations = $db->selectCollection('evaluations');
+      
+      // Find all completed evaluations by this student/device
+      $completedEvaluations = $evaluations->find($query, [
         'projection' => [
-            'teacher_id' => 1,
-            'submitted_at' => 1,
-            'status' => 1
+          'teacher_id' => 1,
+          'submitted_at' => 1
         ]
-    ])->toArray();
-    
-    // Convert to array of teacher IDs
-    $evaluatedTeacherIds = array_map(function($eval) {
+      ])->toArray();
+      
+      // Convert to array of teacher IDs
+      $evaluatedTeacherIds = array_map(function($eval) {
         return objectIdToString($eval['teacher_id']);
-    }, $completedEvaluations);
+      }, $completedEvaluations);
+    }
     
     sendSuccess([
-        'evaluated_teachers' => $evaluatedTeacherIds,
-        'count' => count($evaluatedTeacherIds),
-        'device_fingerprint' => substr($deviceFingerprint, 0, 8) . '***',
-        'source' => 'database'
+      'evaluated_teachers' => array_map(function($id) { return ['_id' => $id, 'id' => $id]; }, $evaluatedTeacherIds),
+      'count' => count($evaluatedTeacherIds),
+      'source' => $source,
+      'student_id' => !empty($studentId) ? substr($studentId, 0, 3) . '***' : null
     ], 'Evaluated teachers retrieved successfully', 200);
     
 } catch (\Exception $e) {

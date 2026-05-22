@@ -150,6 +150,89 @@ requirePermission('manage_questions');
                                 <option value="inactive">Inactive (hide in evaluation)</option>
                             </select>
                         </div>
+
+                        <!-- Rating Scale Descriptions -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Rating Scale Descriptions (Optional)</label>
+                            <small class="text-muted d-block mb-3">Add descriptions for each rating level (1-5)</small>
+                            
+                            <div class="rating-scale-inputs">
+                                <!-- Rating 1 -->
+                                <div class="mb-2">
+                                    <label for="rating_1" class="form-label form-label-sm">
+                                        <span class="badge bg-danger">1</span> Lowest Rating
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-sm" 
+                                        id="rating_1" 
+                                        name="rating_1"
+                                        placeholder="e.g., Does not meet expectations"
+                                        maxlength="80"
+                                    >
+                                </div>
+
+                                <!-- Rating 2 -->
+                                <div class="mb-2">
+                                    <label for="rating_2" class="form-label form-label-sm">
+                                        <span class="badge bg-warning">2</span> Below Average
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-sm" 
+                                        id="rating_2" 
+                                        name="rating_2"
+                                        placeholder="e.g., Below average / Needs improvement"
+                                        maxlength="80"
+                                    >
+                                </div>
+
+                                <!-- Rating 3 -->
+                                <div class="mb-2">
+                                    <label for="rating_3" class="form-label form-label-sm">
+                                        <span class="badge bg-info">3</span> Average
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-sm" 
+                                        id="rating_3" 
+                                        name="rating_3"
+                                        placeholder="e.g., Meets expectations / Average"
+                                        maxlength="80"
+                                    >
+                                </div>
+
+                                <!-- Rating 4 -->
+                                <div class="mb-2">
+                                    <label for="rating_4" class="form-label form-label-sm">
+                                        <span class="badge bg-success">4</span> Exceeds Expectations
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-sm" 
+                                        id="rating_4" 
+                                        name="rating_4"
+                                        placeholder="e.g., Exceeds expectations / Good"
+                                        maxlength="80"
+                                    >
+                                </div>
+
+                                <!-- Rating 5 -->
+                                <div class="mb-2">
+                                    <label for="rating_5" class="form-label form-label-sm">
+                                        <span class="badge bg-success">5</span> Highest Rating
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-sm" 
+                                        id="rating_5" 
+                                        name="rating_5"
+                                        placeholder="e.g., Outstanding / Excellent"
+                                        maxlength="80"
+                                    >
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="modal-footer">

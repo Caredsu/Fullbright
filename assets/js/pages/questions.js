@@ -137,6 +137,15 @@ function openQuestionModal() {
     document.getElementById('display_order').value = '';
     document.getElementById('required').checked = false;
     document.getElementById('status').value = 'active';
+    
+    // Clear rating scale fields
+    for (let i = 1; i <= 5; i++) {
+        const ratingInput = document.getElementById(`rating_${i}`);
+        if (ratingInput) {
+            ratingInput.value = '';
+        }
+    }
+    
     if (questionModal) {
         questionModal.show();
     }
@@ -155,11 +164,28 @@ function submitQuestion() {
         return;
     }
     
+    // Collect rating scale if provided
+    const ratingScale = {};
+    let hasRatingScale = false;
+    
+    for (let i = 1; i <= 5; i++) {
+        const ratingInput = document.getElementById(`rating_${i}`);
+        if (ratingInput && ratingInput.value.trim()) {
+            ratingScale[i] = ratingInput.value.trim();
+            hasRatingScale = true;
+        }
+    }
+    
     const data = {
         question_text: questionText,
         required: document.getElementById('required').checked ? 1 : 0,
         status: document.getElementById('status').value
     };
+    
+    // Include rating scale only if at least one rating is provided
+    if (hasRatingScale) {
+        data.rating_scale = ratingScale;
+    }
     
     if (isEditing) {
         api.updateQuestion(questionId, data)
@@ -202,6 +228,25 @@ function editQuestion(questionId) {
                 document.getElementById('display_order').value = question.question_order || '';
                 document.getElementById('required').checked = question.required == 1;
                 document.getElementById('status').value = question.status || 'active';
+                
+                // Populate rating scale fields if they exist
+                if (question.rating_scale) {
+                    for (let i = 1; i <= 5; i++) {
+                        const ratingInput = document.getElementById(`rating_${i}`);
+                        if (ratingInput) {
+                            // Try both numeric and string keys since JSON keys are strings
+                            ratingInput.value = (question.rating_scale[i] || question.rating_scale[String(i)] || '');
+                        }
+                    }
+                } else {
+                    // Clear rating scale fields
+                    for (let i = 1; i <= 5; i++) {
+                        const ratingInput = document.getElementById(`rating_${i}`);
+                        if (ratingInput) {
+                            ratingInput.value = '';
+                        }
+                    }
+                }
                 
                 document.getElementById('questionForm').dataset.questionId = questionId;
                 document.getElementById('modalTitle').textContent = 'Edit Question';
