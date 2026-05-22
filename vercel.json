@@ -1,11 +1,13 @@
 {
-  "buildCommand": "cd react_web && npm run build",
-  "outputDirectory": "react_web/dist",
-  "public": "react_web/dist",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "react_web/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
     }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
