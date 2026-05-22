@@ -44,7 +44,7 @@ export default function Evaluation() {
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [teacherId, navigate]);
+  }, [teacherId]);
 
   const fetchData = async () => {
     try {
