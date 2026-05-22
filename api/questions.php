@@ -52,13 +52,19 @@ try {
                 
                 $ratingScale = $question['rating_scale'] ?? $defaultRatingScale;
                 
+                // Ensure rating scale keys are strings for consistent access in React
+                $ratingScaleWithStringKeys = [];
+                foreach ($ratingScale as $key => $value) {
+                    $ratingScaleWithStringKeys[(string)$key] = $value;
+                }
+                
                 sendSuccess([
                     'id' => objectIdToString($question['_id']),
                     'question_text' => $question['question_text'] ?? '',
                     'question_order' => $question['question_order'] ?? $question['display_order'] ?? 0,
                     'required' => $question['required'] ?? 0,
                     'status' => $question['status'] ?? 'active',
-                    'rating_scale' => $ratingScale,
+                    'rating_scale' => $ratingScaleWithStringKeys,
                     'created_at' => isset($question['created_at']) ? $question['created_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_at' => isset($question['updated_at']) ? $question['updated_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_by' => $question['updated_by'] ?? 'system'
@@ -87,13 +93,19 @@ try {
                 
                 $ratingScale = $question['rating_scale'] ?? $defaultRatingScale;
                 
+                // Ensure rating scale keys are strings for consistent access in React
+                $ratingScaleWithStringKeys = [];
+                foreach ($ratingScale as $key => $value) {
+                    $ratingScaleWithStringKeys[(string)$key] = $value;
+                }
+                
                 return [
                     'id' => objectIdToString($question['_id']),
                     'question_text' => $question['question_text'] ?? '',
                     'question_order' => $question['question_order'] ?? $question['display_order'] ?? 0,
                     'required' => $question['required'] ?? 0,
                     'status' => $question['status'] ?? 'active',
-                    'rating_scale' => $ratingScale,
+                    'rating_scale' => $ratingScaleWithStringKeys,
                     'created_at' => isset($question['created_at']) ? $question['created_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_at' => isset($question['updated_at']) ? $question['updated_at']->toDateTime()->format('Y-m-d H:i:s') : '',
                     'updated_by' => $question['updated_by'] ?? 'system'
