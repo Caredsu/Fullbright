@@ -321,7 +321,7 @@ export default function Evaluation() {
   // Success Screen
   if (success) {
     return (
-      <div className="evaluation-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '1rem' }}>
+      <div className="evaluation-container success-wrapper">
         {/* Toast Container */}
         <div className="toast-container">
           {toasts.map(toast => (
@@ -334,94 +334,26 @@ export default function Evaluation() {
           ))}
         </div>
 
-        <div className="success-screen" style={{
-          textAlign: 'center',
-          padding: '3rem',
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '20px',
-          boxShadow: '0 20px 60px rgba(102, 126, 234, 0.4)',
-          maxWidth: '400px',
-          animation: 'slideUp 0.6s ease-out'
-        }}>
-          <div style={{
-            fontSize: '80px',
-            marginBottom: '1.5rem',
-            animation: 'bounce 0.8s ease-out'
-          }}>
-            ✅
+        <div className="success-card">
+          <div className="success-icon" aria-hidden>
+            <svg width="88" height="88" viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="44" cy="44" r="44" fill="#ffffff22" />
+              <path d="M30 45l7 6 20-22" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-          <h1 style={{
-            color: 'white',
-            fontSize: '28px',
-            marginBottom: '0.5rem',
-            fontWeight: 'bold'
-          }}>
-            Success!
-          </h1>
-          <h2 style={{
-            color: '#e0e7ff',
-            fontSize: '20px',
-            marginBottom: '1rem',
-            fontWeight: 'normal'
-          }}>
-            Evaluation Submitted
-          </h2>
-          <p style={{
-            color: '#c7d2fe',
-            fontSize: '14px',
-            marginBottom: '2rem',
-            lineHeight: '1.6'
-          }}>
-            Thank you for evaluating <strong>{teacher?.first_name} {teacher?.last_name}</strong>. Your feedback has been recorded and will help improve our teaching quality.
-          </p>
-          <p style={{
-            color: '#a5b4fc',
-            fontSize: '13px',
-            marginTop: '1.5rem'
-          }}>
-            Redirecting to dashboard in 3 seconds...
-          </p>
-          <button
-            onClick={() => navigate('/dashboard')}
-            style={{
-              marginTop: '2rem',
-              padding: '12px 30px',
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              border: '2px solid rgba(255, 255, 255, 0.3)',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              transition: 'all 0.3s ease',
-              backdropFilter: 'blur(4px)'
-            }}
-            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.3)'}
-            onMouseLeave={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
-          >
-            Back to Dashboard
-          </button>
+
+          <h1 className="success-title">Success!</h1>
+          <p className="success-subtitle">Evaluation Submitted</p>
+
+          <p className="success-message">Thank you for evaluating <strong>{teacher?.first_name} {teacher?.last_name}</strong>. Your feedback has been recorded and will help improve teaching quality.</p>
+
+          <div className="success-actions">
+            <button className="btn btn-primary btn-success" onClick={() => navigate('/dashboard')}>Back to Dashboard</button>
+            <button className="btn btn-outline btn-success-ghost" onClick={() => navigate('/')}>Evaluate Another</button>
+          </div>
+
+          <div className="success-note">Redirecting to dashboard in a moment…</div>
         </div>
-        <style>{`
-          @keyframes slideUp {
-            from {
-              opacity: 0;
-              transform: translateY(30px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          @keyframes bounce {
-            0%, 100% {
-              transform: scale(1);
-            }
-            50% {
-              transform: scale(1.2);
-            }
-          }
-        `}</style>
       </div>
     );
   }

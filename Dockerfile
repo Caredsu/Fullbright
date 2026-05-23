@@ -21,6 +21,7 @@ ENV BUILD_TIMESTAMP="2026-05-19_13-45-00_UTC"
 # Install dependencies
 RUN apt-get update && apt-get install -y \
     libssl-dev \
+    libzstd-dev \
     unzip \
     git \
     curl \

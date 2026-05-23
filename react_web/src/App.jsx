@@ -44,9 +44,6 @@ export default function App() {
         .catch(err => {
           // SW registration failed
         });
-    // small no-op console to change build hash for cache-bust deploy
-    // eslint-disable-next-line no-console
-    console.log('deploy-cache-bust');
     }
 
     // Detect if app is installed

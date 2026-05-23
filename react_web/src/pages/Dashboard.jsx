@@ -34,14 +34,20 @@ export default function Dashboard() {
     }
   }, [isAuthenticated, navigate]);
 
-  // Show welcome toast on first load
+  // Show welcome toast on first load for the current authenticated user
   useEffect(() => {
-    const hasShownWelcome = sessionStorage.getItem('welcome_shown');
-    if (!hasShownWelcome) {
+    const studentNumber = user?.student_number || localStorage.getItem('student_number');
+    const welcomeStorageKey = studentNumber
+      ? `dashboard_welcome_shown_${studentNumber}`
+      : 'dashboard_welcome_shown';
+
+    const hasShownWelcome = sessionStorage.getItem(welcomeStorageKey);
+
+    if (!hasShownWelcome && isAuthenticated) {
       setShowWelcomeToast(true);
-      sessionStorage.setItem('welcome_shown', 'true');
+      sessionStorage.setItem(welcomeStorageKey, 'true');
     }
-  }, []);
+  }, [isAuthenticated, user]);
 
   // Show toast when coming back online
   useEffect(() => {
@@ -270,7 +276,7 @@ export default function Dashboard() {
       {/* Welcome Toast */}
       {showWelcomeToast && (
         <Toast
-          message={`Welcome ${localStorage.getItem('student_number')}! 👋`}
+          message={`Welcome ${user?.student_number || localStorage.getItem('student_number') || ''}! 👋`}
           type="success"
           duration={4000}
           onClose={() => setShowWelcomeToast(false)}
@@ -385,23 +391,30 @@ export default function Dashboard() {
         
         {filteredTeachers.length > 0 ? (
           <div className="teachers-grid" role="region" aria-label="Teachers list">
-            {filteredTeachers.map(teacher => (
-              <div 
-                key={teacher.id} 
-                className="teacher-card"
-                onClick={() => handleEvaluate(teacher.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleEvaluate(teacher.id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={`${teacher.name}, ${teacher.department} department. Click to evaluate.`}
-              >
-                {/* Avatar */}
-                <div className="teacher-avatar">
+            {filteredTeachers.map(teacher => {
+              const isEvaluated = evaluatedTeachers.includes(teacher.id);
+              return (
+                <div 
+                  key={teacher.id} 
+                  className={`teacher-card ${isEvaluated ? 'teacher-card-disabled' : ''}`}
+                  onClick={() => {
+                    if (!isEvaluated) {
+                      handleEvaluate(teacher.id);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isEvaluated) {
+                      e.preventDefault();
+                      handleEvaluate(teacher.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={isEvaluated ? -1 : 0}
+                  aria-label={`${teacher.name}, ${teacher.department} department.${isEvaluated ? ' Already evaluated.' : ' Click to evaluate.'}`}
+                  aria-disabled={isEvaluated}
+                >
+                  {/* Avatar */}
+                  <div className="teacher-avatar">
                   {teacher.picture_url ? (
                     <LazyImage
                       src={teacher.picture_url}
@@ -426,7 +439,6 @@ export default function Dashboard() {
 
                 {/* Action Button */}
                 <div className="teacher-action">
-                  {console.log(`Teacher ${teacher.name}: id=${teacher.id}, isEvaluated=${evaluatedTeachers.includes(teacher.id)}`)}
                   <button 
                     className={`btn-evaluate ${evaluatedTeachers.includes(teacher.id) ? 'btn-disabled' : ''}`}
                     onClick={(e) => {
@@ -443,7 +455,8 @@ export default function Dashboard() {
                   </button>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="empty-state">

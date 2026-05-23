@@ -78,11 +78,16 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    if (user?.student_number) {
+      sessionStorage.removeItem(`dashboard_welcome_shown_${user.student_number}`);
+    }
+    sessionStorage.removeItem('dashboard_welcome_shown');
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_data');
+    localStorage.removeItem('student_number');
   };
 
   const value = {
