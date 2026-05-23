@@ -464,7 +464,7 @@ const ALLOWED_DEPARTMENTS = ['ECT', 'EDUC', 'CCJE', 'BHT'];
                         return;
                     }
                     
-                    // Show preview
+                    // Show preview (read for preview only, don't store)
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         const preview = document.getElementById('picturePreview');
@@ -507,22 +507,40 @@ const ALLOWED_DEPARTMENTS = ['ECT', 'EDUC', 'CCJE', 'BHT'];
                 
                 // Handle picture upload if file selected
                 if (pictureInput.files.length > 0) {
-                    // For large files, only add picture if file is reasonable size (< 1MB for base64)
-                    const file = pictureInput.files[0];
-                    if (file.size > 1048576) { // 1MB limit
-                        showError('Picture file is too large. Max 1MB. Consider reducing image resolution.');
-                        return;
-                    }
-                    
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        data.picture = event.target.result; // Base64 encoded image
-                        submitTeacherForm(teacherId, isEditing, data);
-                    };
-                    reader.readAsDataURL(file);
+                    uploadTeacherImage(pictureInput.files[0])
+                        .then(imagePath => {
+                            data.picture = imagePath; // Store file path (not base64!)
+                            submitTeacherForm(teacherId, isEditing, data);
+                        })
+                        .catch(error => {
+                            showError('Image upload failed: ' + error);
+                        });
                 } else {
                     submitTeacherForm(teacherId, isEditing, data);
                 }
+            });
+        }
+        
+        
+        function uploadTeacherImage(file) {
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('image', file);
+                
+                fetch('/teacher-eval/api/upload-teacher-image.php', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success && result.data && result.data.path) {
+                            resolve(result.data.path);
+                        } else {
+                            reject(result.message || 'Failed to upload image');
+                        }
+                    })
+                    .catch(error => reject(error.message));
             });
         }
         

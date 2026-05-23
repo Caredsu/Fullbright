@@ -1,0 +1,14 @@
+# Allow direct access to image files
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+# Prevent execution of scripts
+<FilesMatch "\.(php|phtml|php3|php4|php5|phtml)$">
+    Deny from all
+</FilesMatch>
+
+# Allow image files
+<FilesMatch "\.(jpg|jpeg|png|gif|webp)$">
+    Allow from all
+</FilesMatch>
