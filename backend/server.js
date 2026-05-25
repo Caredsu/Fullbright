@@ -65,19 +65,25 @@ const io = initializeSocket(httpServer);
 app.locals.io = io;
 
 // Middleware
+const defaultOrigins = [
+  'http://localhost',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:3002',
+  'http://localhost:3003',
+  'http://localhost:3004',
+  'http://localhost:5173',
+  'http://192.168.1.187:5173',
+  'https://fullbright.vercel.app',
+  'https://evaluation-backend-kaah.onrender.com'
+];
+
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? [...new Set([...process.env.CORS_ORIGINS.split(',').map(o => o.trim()), ...defaultOrigins])]
+  : defaultOrigins;
+
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || [
-    'http://localhost',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3002',
-    'http://localhost:3003',
-    'http://localhost:3004',
-    'http://localhost:5173',
-    'http://192.168.1.187:5173',
-    'https://fullbright.vercel.app',
-    'https://evaluation-backend-kaah.onrender.com'
-  ],
+  origin: corsOrigins,
   credentials: true
 }));
 
