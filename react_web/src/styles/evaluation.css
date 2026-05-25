@@ -10,11 +10,11 @@
   overflow-x: hidden;
 }
 
-/* Header with Teacher Info */
+/* Header with Teacher Info - Responsive */
 .evaluation-header {
   background: var(--primary);
   color: white;
-  padding: 2rem 1.5rem;
+  padding: 1rem;
   box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
@@ -24,6 +24,18 @@
   flex-shrink: 0;
 }
 
+@media (min-width: 640px) {
+  .evaluation-header {
+    padding: 1.5rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .evaluation-header {
+    padding: 2rem 2.5rem;
+  }
+}
+
 .btn-back {
   background: rgba(255, 255, 255, 0.2);
   color: white;
@@ -31,16 +43,28 @@
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 500;
   transition: all 0.2s ease;
   width: fit-content;
   align-self: flex-start;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
-.btn-back:hover {
-  background: rgba(255, 255, 255, 0.3);
-  border-color: rgba(255, 255, 255, 0.5);
+@media (min-width: 640px) {
+  .btn-back {
+    font-size: 0.95rem;
+    min-height: 44px;
+  }
+}
+
+@media (hover: hover) {
+  .btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
 }
 
 .btn-back:active {
@@ -51,40 +75,100 @@
 .teacher-header {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  max-width: 900px;
+  gap: 1rem;
+  max-width: 100%;
   width: 100%;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .teacher-header {
+    gap: 1.5rem;
+  }
 }
 
 .teacher-avatar {
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid rgba(255, 255, 255, 0.3);
   flex-shrink: 0;
 }
 
+@media (min-width: 640px) {
+  .teacher-avatar {
+    width: 70px;
+    height: 70px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .teacher-avatar {
+    width: 80px;
+    height: 80px;
+  }
+}
+
 .teacher-header h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin: 0;
   font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .teacher-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .teacher-header h1 {
+    font-size: 1.75rem;
+  }
 }
 
 .teacher-header p {
   margin: 0.25rem 0 0 0;
   opacity: 0.9;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
+  width: 100%;
 }
 
-/* Evaluation Form */
+@media (min-width: 640px) {
+  .teacher-header p {
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .teacher-header p {
+    font-size: 0.95rem;
+  }
+}
+
+/* Evaluation Form - Responsive */
 .evaluation-form {
   flex: 1;
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
   width: 100%;
-  padding: 0 1.5rem;
-  padding-top: 2rem;
+  padding: 1rem;
+  padding-top: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .evaluation-form {
+    max-width: 900px;
+    padding: 1.5rem 2rem;
+    padding-top: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .evaluation-form {
+    padding: 2rem 2.5rem;
+  }
 }
 
 .alert {

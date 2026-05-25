@@ -7,6 +7,7 @@ import InstallPrompt from './components/InstallPrompt';
 import SessionTimeoutManager from './components/SessionTimeoutManager';
 import ErrorBoundary from './components/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
+import './styles/responsive.css';
 import './styles/accessibility.css';
 import './App.css';
 
