@@ -7,9 +7,6 @@ import { authAPI } from '../services/api';
 
 function Settings() {
   const [settings, setSettings] = useState({
-    system_name: 'Teacher Evaluation System',
-    system_email: 'admin@system.local',
-    support_email: 'support@system.local',
     eval_enabled: '1',
     min_rating: '1',
     max_rating: '5'
@@ -23,7 +20,6 @@ function Settings() {
 
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const handleChange = (field, value) => {
@@ -79,19 +75,6 @@ function Settings() {
     }
   };
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate saving - in a real app, this would call an API
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setSuccessMsg('Settings saved successfully');
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      console.error('Failed to save settings:', err);
-    } finally {
-      setIsSaving(false);
-    }
-  };
 
   return (
     <div>
@@ -102,46 +85,6 @@ function Settings() {
 
       {successMsg && <div className="bg-green-50 text-green-800 p-3 rounded-lg mb-4">{successMsg}</div>}
       {errorMsg && <div className="bg-red-50 text-red-800 p-3 rounded-lg mb-4">{errorMsg}</div>}
-
-      {/* General Settings */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>General Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="system_name">System Name</Label>
-            <Input
-              id="system_name"
-              value={settings.system_name}
-              onChange={(e) => handleChange('system_name', e.target.value)}
-              placeholder="Enter system name"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="system_email">System Email</Label>
-            <Input
-              id="system_email"
-              type="email"
-              value={settings.system_email}
-              onChange={(e) => handleChange('system_email', e.target.value)}
-              placeholder="Enter system email"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="support_email">Support Email</Label>
-            <Input
-              id="support_email"
-              type="email"
-              value={settings.support_email}
-              onChange={(e) => handleChange('support_email', e.target.value)}
-              placeholder="Enter support email"
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Evaluation Settings */}
       <Card className="mb-6">
@@ -238,15 +181,6 @@ function Settings() {
           </Button>
         </CardContent>
       </Card>
-
-      <div className="flex gap-2">
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Saving...' : 'Save Settings'}
-        </Button>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Cancel
-        </Button>
-      </div>
     </div>
   );
 }

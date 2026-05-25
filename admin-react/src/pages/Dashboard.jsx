@@ -92,6 +92,112 @@ function Dashboard() {
     );
   }
 
+  // Simple bar chart component for rating distribution
+  const RatingChart = ({ data }) => {
+    if (!data || Object.keys(data).length === 0) {
+      return <p className="text-sm text-muted-foreground">No rating data available</p>;
+    }
+
+    const maxCount = Math.max(...Object.values(data));
+    
+    return (
+      <div className="flex items-end gap-4 h-48">
+        {Object.entries(data).map(([rating, count]) => {
+          const percentage = (count / maxCount) * 100;
+          return (
+            <div key={rating} className="flex-1 flex flex-col items-center">
+              <div className="w-full bg-gradient-to-t from-blue-400 to-blue-600 rounded-t-lg" style={{ height: `${percentage}%`, minHeight: '20px' }}>
+                <span className="text-xs font-bold text-white mt-1">{count}</span>
+              </div>
+              <span className="text-xs font-medium mt-2">{rating.replace('rating_', '')}/5</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Status breakdown chart
+  const StatusChart = ({ data }) => {
+    const total = Object.values(data).reduce((a, b) => a + b, 0);
+    if (total === 0) {
+      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
+    }
+
+    const colors = {
+      completed: 'bg-green-500',
+      in_progress: 'bg-yellow-500',
+      pending: 'bg-red-500'
+    };
+
+    return (
+      <div className="space-y-3">
+        {Object.entries(data).map(([status, count]) => {
+          const percentage = (count / total) * 100;
+          return (
+            <div key={status} className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium capitalize">{status.replace('_', ' ')}</span>
+                  <span className="text-sm font-bold">{count}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`h-2 rounded-full ${colors[status] || 'bg-blue-500'}`} style={{ width: `${percentage}%` }}></div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Recent evaluations table
+  const RecentEvaluationsTable = ({ evaluations }) => {
+    if (!evaluations || evaluations.length === 0) {
+      return <p className="text-sm text-muted-foreground">No recent evaluations</p>;
+    }
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="border-b">
+            <tr>
+              <th className="text-left py-2 px-2">Teacher</th>
+              <th className="text-left py-2 px-2">Evaluator</th>
+              <th className="text-center py-2 px-2">Rating</th>
+              <th className="text-left py-2 px-2">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {evaluations.map((evaluation) => (
+              <tr key={evaluation.id} className="border-b hover:bg-slate-50">
+                <td className="py-3 px-2">{evaluation.teacher_name}</td>
+                <td className="py-3 px-2">{evaluation.evaluator}</td>
+                <td className="py-3 px-2 text-center">
+                  <span className="font-bold text-lg">{evaluation.rating}</span>
+                  <span className="text-gray-500">/5</span>
+                </td>
+                <td className="py-3 px-2">
+                  <Badge 
+                    variant="outline"
+                    className={
+                      evaluation.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
+                      evaluation.status === 'in_progress' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                      'bg-gray-50 text-gray-700 border-gray-200'
+                    }
+                  >
+                    {evaluation.status.replace('_', ' ')}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -126,75 +232,33 @@ function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Teacher Performance Trends</CardTitle>
-            <CardDescription>Average ratings over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200">
-              <p className="text-muted-foreground text-sm">Chart visualization will be displayed here</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
             <CardTitle>Evaluation Distribution</CardTitle>
-            <CardDescription>Rating breakdown</CardDescription>
+            <CardDescription>Rating breakdown across all evaluations</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200">
-              <p className="text-muted-foreground text-sm">Chart visualization will be displayed here</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* System Status & Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Evaluations</CardTitle>
-            <CardDescription>Latest submission activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">Recent evaluation activity will be displayed here</p>
+            <RatingChart data={stats?.ratingDistribution} />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>System Status</CardTitle>
-            <CardDescription>Service health</CardDescription>
+            <CardTitle>Evaluation Status</CardTitle>
+            <CardDescription>Breakdown by completion status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Database</span>
-                <Badge variant="default" className="bg-green-600">Connected</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">API Server</span>
-                <Badge variant="default" className="bg-green-600">Running</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Backend</span>
-                <Badge variant="default" className="bg-green-600">Online</Badge>
-              </div>
-            </div>
+            <StatusChart data={stats?.evaluationStatus} />
           </CardContent>
         </Card>
       </div>
 
-      {/* Department Performance */}
+      {/* Recent Evaluations */}
       <Card>
         <CardHeader>
-          <CardTitle>Department Performance</CardTitle>
-          <CardDescription>Evaluation metrics by department</CardDescription>
+          <CardTitle>Recent Evaluations</CardTitle>
+          <CardDescription>Latest submission activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center bg-slate-50 rounded-lg border border-slate-200">
-            <p className="text-muted-foreground text-sm">Department performance metrics will be displayed here</p>
-          </div>
+          <RecentEvaluationsTable evaluations={stats?.recentEvaluations} />
         </CardContent>
       </Card>
     </div>
