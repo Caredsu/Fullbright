@@ -21,11 +21,19 @@ class SocketService {
       return this.socket;
     }
 
+    console.log('🔌 Attempting Socket.IO connection to:', url);
+    
     this.socket = io(url, {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 10,
+      // Use both WebSocket and polling for better compatibility
+      transports: ['websocket', 'polling'],
+      // For Render/production HTTPS
+      secure: url.includes('https'),
+      // RejectUnauthorized for self-signed certs if needed
+      rejectUnauthorized: false
     });
 
     this.socket.on('connect', () => {
@@ -34,13 +42,20 @@ class SocketService {
       
       // Tell server admin is here
       if (adminId) {
+        console.log('📍 Emitting admin-join with ID:', adminId);
         this.socket.emit('admin-join', adminId);
+      } else {
+        console.warn('⚠️ No adminId provided for Socket.IO connection');
       }
     });
 
     this.socket.on('disconnect', () => {
       console.log('❌ Disconnected from Socket.IO server');
       this.isConnected = false;
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('Socket.IO connection error:', error);
     });
 
     this.socket.on('error', (error) => {

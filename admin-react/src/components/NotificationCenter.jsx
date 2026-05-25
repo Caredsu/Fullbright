@@ -9,8 +9,25 @@ export default function NotificationCenter() {
   const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => {
+    // Get admin ID from stored user data
+    const adminUserData = localStorage.getItem('adminUser');
+    let adminId = null;
+    
+    if (adminUserData) {
+      try {
+        const userData = JSON.parse(adminUserData);
+        adminId = userData.id || userData._id || userData.username;
+        console.log('🔐 Admin ID for Socket.IO:', adminId);
+      } catch (err) {
+        console.error('Failed to parse admin user data:', err);
+      }
+    }
+    
+    if (!adminId) {
+      console.warn('⚠️ No admin ID found in localStorage');
+    }
+
     // Connect to Socket.IO using environment variable or default to localhost
-    const adminId = localStorage.getItem('adminId');
     const socketUrl = import.meta.env.VITE_API_URL 
       ? import.meta.env.VITE_API_URL 
       : 'http://localhost:3001';

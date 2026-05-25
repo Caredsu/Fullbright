@@ -7,6 +7,7 @@ import { Server } from 'socket.io';
 
 export const initializeSocket = (httpServer) => {
   const io = new Server(httpServer, {
+    transports: ['websocket', 'polling'],
     cors: {
       origin: [
         'http://localhost:3003',
