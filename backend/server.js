@@ -66,7 +66,17 @@ app.locals.io = io;
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || ['http://localhost', 'http://localhost:3000', 'http://localhost:3001', 'http://localhost:3002', 'http://localhost:3003', 'http://localhost:3004', 'http://localhost:5173'],
+  origin: process.env.CORS_ORIGINS?.split(',').map(o => o.trim()) || [
+    'http://localhost',
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'http://localhost:3003',
+    'http://localhost:3004',
+    'http://localhost:5173',
+    'http://192.168.1.187:5173',
+    'https://evaluation-backend-kaah.onrender.com'
+  ],
   credentials: true
 }));
 

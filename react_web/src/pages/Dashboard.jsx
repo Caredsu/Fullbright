@@ -319,7 +319,6 @@ export default function Dashboard() {
       {/* Search Bar */}
       <div className="search-section">
         <div className="search-bar">
-          <Search size={18} className="search-icon" aria-hidden="true" />
           <input
             type="text"
             placeholder="Search teachers by name or email..."
@@ -370,22 +369,6 @@ export default function Dashboard() {
 
       {/* Teachers List */}
       <div className="teachers-list">
-        {error && (
-          <div className="alert alert-error flex gap-2 mb-4" role="alert" aria-live="assertive">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
-            <div className="flex-1">
-              <p>{error}</p>
-              <button 
-                onClick={fetchTeachers}
-                className="mt-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                aria-label="Retry loading teachers"
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-        
         {filteredTeachers.length > 0 ? (
           <div className="teachers-grid" role="region" aria-label="Teachers list">
             {filteredTeachers.map(teacher => {
@@ -457,8 +440,26 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="empty-state">
-            <p>No teachers found</p>
-            <p className="empty-hint">Try adjusting your search or filters</p>
+            {error ? (
+              <>
+                <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-500" aria-hidden="true" />
+                <p className="text-lg font-semibold mb-2">Unable to load the teacher list</p>
+                <p className="text-gray-600 mb-6">Please try again</p>
+                <button 
+                  onClick={fetchTeachers}
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-8 py-3 rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105 active:scale-95"
+                  aria-label="Retry loading teachers"
+                >
+                  <RotateCw size={20} />
+                  <span>Retry</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <p>No teachers found</p>
+                <p className="empty-hint">Try adjusting your search or filters</p>
+              </>
+            )}
           </div>
         )}
       </div>

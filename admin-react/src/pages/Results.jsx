@@ -126,21 +126,8 @@ function Results() {
   };
 
   const calculateAverageRating = (evaluation) => {
-    // Handle both new format (object) and old format (array)
-    let ratings = [];
-    
-    if (Array.isArray(evaluation.answers)) {
-      // Old format: array of {rating: X} objects
-      ratings = evaluation.answers.map(a => a.rating || 0);
-    } else if (typeof evaluation.answers === 'object' && evaluation.answers !== null) {
-      // New format: object with question_id -> rating mapping
-      ratings = Object.values(evaluation.answers).filter(v => typeof v === 'number');
-    } else if (evaluation.rating) {
-      // Fallback to single rating field
-      return evaluation.rating;
-    }
-    
-    if (ratings.length === 0) return evaluation.rating || 0;
+    if (!evaluation.answers || evaluation.answers.length === 0) return 0;
+    const ratings = evaluation.answers.map(a => a.rating || 0);
     return Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10;
   };
 
@@ -328,15 +315,9 @@ function Results() {
               {
                 key: 'responses',
                 label: 'Responses',
-                render: (row) => {
-                  let count = 0;
-                  if (Array.isArray(row.answers)) {
-                    count = row.answers.length;
-                  } else if (typeof row.answers === 'object' && row.answers !== null) {
-                    count = Object.keys(row.answers).length;
-                  }
-                  return <Badge variant="secondary">{count}</Badge>;
-                },
+                render: (row) => (
+                  <Badge variant="secondary">{row.answers ? row.answers.length : 0}</Badge>
+                ),
               },
             ]}
             data={evaluations}
@@ -403,45 +384,29 @@ function Results() {
                     </tr>
                   </TableHeader>
                   <TableBody>
-                    {(() => {
-                      let answersList = [];
-                      
-                      if (Array.isArray(selectedEval.answers)) {
-                        // Old format: array of answers
-                        answersList = selectedEval.answers;
-                      } else if (typeof selectedEval.answers === 'object' && selectedEval.answers !== null) {
-                        // New format: object with question_id -> rating mapping
-                        answersList = Object.entries(selectedEval.answers).map(([questionId, rating]) => ({
-                          question_id: questionId,
-                          rating: rating,
-                          question_text: getQuestionText(questionId)
-                        }));
-                      }
-                      
-                      return answersList.length > 0 ? (
-                        answersList.map((answer, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>
-                              {answer.question_text || getQuestionText(answer.question_id) || 'Unknown Question'}
-                            </TableCell>
-                            <TableCell>
-                              <Badge 
-                                style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
-                                className="text-white"
-                              >
-                                {answer.rating || 'N/A'}/5
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={2} className="text-center text-muted-foreground">
-                            No ratings found
+                    {selectedEval.answers && selectedEval.answers.length > 0 ? (
+                      selectedEval.answers.map((answer, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            {answer.question_text || getQuestionText(answer.question_id) || 'Unknown Question'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
+                              className="text-white"
+                            >
+                              {answer.rating || 'N/A'}/5
+                            </Badge>
                           </TableCell>
                         </TableRow>
-                      );
-                    })()}
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={2} className="text-center text-muted-foreground">
+                          No ratings found
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>

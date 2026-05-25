@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import { questionsAPI } from '../services/api';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../components/ui/Table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/Dialog';
 import { Input } from '../components/ui/Input';
 import { Textarea } from '../components/ui/Textarea';
 import { Label } from '../components/ui/Label';
 import { Badge } from '../components/ui/Badge';
-import DataTable from '../components/DataTable';
 import ToastContainer from '../components/ToastContainer';
 import useToast from '../hooks/useToast';
 
 function Questions() {
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [formErrors, setFormErrors] = useState({});
@@ -29,7 +38,7 @@ function Questions() {
 
   useEffect(() => {
     fetchQuestions();
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     if (editingQuestion) {
@@ -50,12 +59,12 @@ function Questions() {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      // Load all questions for client-side pagination
-      const response = await questionsAPI.getAll(1, 1000);
+      const response = await questionsAPI.getAll(page, 20);
       console.log('Questions API Response:', response);
       const questionData = response.data?.data?.data || response.data?.data || [];
       console.log('Question Data:', questionData);
       setQuestions(Array.isArray(questionData) ? questionData : []);
+      setTotal(response.data?.data?.pagination?.total || 0);
     } catch (err) {
       console.error('Error fetching questions:', err);
       error(err.response?.data?.message || 'Failed to load questions');
@@ -70,10 +79,10 @@ function Questions() {
     setShowModal(true);
   };
 
-  const handleDelete = async (questionId) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this question?')) {
       try {
-        await questionsAPI.delete(questionId);
+        await questionsAPI.delete(id);
         success('Question deleted successfully');
         fetchQuestions();
       } catch (err) {
@@ -174,31 +183,75 @@ function Questions() {
 
       <Card>
         <CardContent>
-          <DataTable
-            columns={[
-              {
-                key: 'text',
-                label: 'Question',
-                render: (row) => {
-                  const displayText = (row.text || row.question_text || '').substring(0, 50);
-                  const fullText = row.text || row.question_text || '';
-                  return displayText + (fullText.length > 50 ? '...' : '');
-                },
-              },
-              {
-                key: 'type',
-                label: 'Type',
-                render: (row) => <Badge>{row.type || 'rating'}</Badge>,
-              },
-            ]}
-            data={questions}
-            loading={loading}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            searchableFields={['text', 'type']}
-          />
+          <Table>
+            <TableHeader>
+              <tr>
+                <TableHead>Question</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Actions</TableHead>
+              </tr>
+            </TableHeader>
+            <TableBody>
+              {questions.map((q) => {
+                const displayText = (q.text || q.question_text || '').substring(0, 50);
+                const fullText = q.text || q.question_text || '';
+                return (
+                  <TableRow key={q.id}>
+                    <TableCell>{displayText + (fullText.length > 50 ? '...' : '')}</TableCell>
+                    <TableCell><Badge>{q.type || 'rating'}</Badge></TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-150"
+                          onClick={() => handleEdit(q)}
+                          title="Edit"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-150"
+                          onClick={() => handleDelete(q.id)}
+                          title="Delete"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between gap-4 mt-6">
+        <div className="text-sm text-gray-600">
+          Page <span className="font-semibold text-gray-900">{page}</span> of <span className="font-semibold text-gray-900">{Math.ceil(total / 20) || 1}</span> ({total} total)
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => Math.max(p - 1, 1))}
+            disabled={page === 1}
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage(p => p + 1)}
+            disabled={page >= Math.ceil(total / 20)}
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-2xl">

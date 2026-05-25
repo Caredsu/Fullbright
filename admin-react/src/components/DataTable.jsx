@@ -126,8 +126,8 @@ function DataTable({ columns, data, loading, onEdit, onDelete, searchableFields 
     <div className="space-y-4">
       {/* TOOLBAR SECTION */}
       {searchableFields.length > 0 && (
-        <div className="flex items-center justify-start gap-4">
-          <div className="relative w-80">
+        <div className="flex items-center justify-between gap-4">
+          <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"

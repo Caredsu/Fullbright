@@ -11,15 +11,10 @@ const getAPIBaseURL = () => {
   
   // For development (localhost or local network)
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168')) {
-    if (window.location.port === '5173' || window.location.port === '5174') {
-      // Vite dev server - connect to Node.js backend
-      const url = `http://${window.location.hostname}:3001/api`;
-      console.log('🚀 Using Node.js backend:', url);
-      return url;
-    }
-    // Apache/XAMPP
-    console.log('🚀 Using Apache/XAMPP backend: /teacher-eval/api');
-    return '/teacher-eval/api';
+    // Always use the same hostname for the backend (just change port to 3001)
+    const url = `http://${window.location.hostname}:3001/api`;
+    console.log('🚀 Using Node.js backend:', url);
+    return url;
   }
   
   // Default fallback to production Render backend

@@ -42,7 +42,6 @@ export const getQuestions = async (req, res, next) => {
             category: q.category || '',
             options: q.options || [],
             criteria: q.options || [],
-            rating_scale: q.rating_scale || null,
             status: q.status || 'active',
             required: q.required || false,
             created_at: q.created_at?.toISOString?.() || '',
@@ -90,7 +89,6 @@ export const getQuestionById = async (req, res, next) => {
       category: question.category || '',
       options: question.options || [],
       criteria: question.options || [],
-      rating_scale: question.rating_scale || null,
       status: question.status || 'active',
       required: question.required || false,
       created_at: question.created_at?.toISOString?.() || '',
@@ -110,7 +108,7 @@ export const getQuestionById = async (req, res, next) => {
 
 export const createQuestion = async (req, res, next) => {
   try {
-    const { text, category, type, options, rating_scale } = req.body;
+    const { text, category, type, options } = req.body;
 
     if (!text) {
       return res.status(400).json({
@@ -126,7 +124,6 @@ export const createQuestion = async (req, res, next) => {
       category: category || 'general',
       type: type || 'rating', // rating, multiple_choice, text, etc.
       options: options || [],
-      rating_scale: rating_scale || null,
       created_at: new Date(),
       updated_at: new Date(),
       created_by: req.session?.username || 'system'
@@ -150,7 +147,7 @@ export const createQuestion = async (req, res, next) => {
 export const updateQuestion = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { text, category, type, options, rating_scale } = req.body;
+    const { text, category, type, options } = req.body;
 
     const questionsCollection = getCollection('questions');
 
@@ -159,7 +156,6 @@ export const updateQuestion = async (req, res, next) => {
     if (category) updateData.category = category;
     if (type) updateData.type = type;
     if (options) updateData.options = options;
-    if (rating_scale !== undefined) updateData.rating_scale = rating_scale;
     updateData.updated_at = new Date();
 
     const result = await questionsCollection.findOneAndUpdate(
