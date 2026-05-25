@@ -51,7 +51,8 @@ export default function Evaluation() {
       const [teacherRes, questionsRes, evaluatedRes] = await Promise.all([
         api.get(`teachers/${teacherId}`),
         api.get('questions'),
-        api.get('evaluations')
+        // Call per-student endpoint to check ONLY this student's evaluations
+        api.get(`evaluations/check-evaluated-teachers?student_number=${encodeURIComponent(user?.student_number || '')}`)
       ]);
 
       // Handle teacher response - data is directly the teacher object
@@ -59,13 +60,16 @@ export default function Evaluation() {
         setTeacher(teacherRes.data.data);
       }
 
-      // Check if this teacher is already evaluated
+      // Check if this teacher is already evaluated BY THIS STUDENT
       if (evaluatedRes.data.success && evaluatedRes.data.data) {
-        const evaluationsList = evaluatedRes.data.data.data || [];
-        const isEvaluated = evaluationsList.some(e => 
-          (e.teacher_id && e.teacher_id === teacherId) || (e.teacher_id && e.teacher_id.toString() === teacherId)
+        // New endpoint returns { success, data: { teacher_id: {...}, ... }, count }
+        // where data keys are teacher_ids
+        const evaluatedTeacherIds = Object.keys(evaluatedRes.data.data);
+        const isEvaluated = evaluatedTeacherIds.some(id => 
+          id === teacherId || id.toString() === teacherId
         );
         if (isEvaluated) {
+          console.log(`⚠️ Teacher ${teacherId} already evaluated by student ${user?.student_number}`);
           setIsAlreadyEvaluated(true);
           setLoading(false);
           return;
