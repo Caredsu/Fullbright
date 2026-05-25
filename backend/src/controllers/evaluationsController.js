@@ -171,6 +171,14 @@ export const createEvaluation = async (req, res, next) => {
   try {
     const { teacher_id, questions_responses, rating, feedback, answers, student_id, positive_feedback, negative_feedback } = req.body;
 
+    // Validate student_id - must not be anonymous or empty
+    if (!student_id || student_id === 'anonymous' || student_id.trim() === '') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid session: Student must be authenticated before submitting evaluations'
+      });
+    }
+
     const evaluationsCollection = getCollection('evaluations');
 
     // Support both old and new payload formats
@@ -180,7 +188,7 @@ export const createEvaluation = async (req, res, next) => {
       evaluated_by: req.session?.user_id ? new ObjectId(req.session.user_id) : student_id,
       questions_responses: questions_responses || [],
       answers: answers || {},  // New format: object with question_id -> rating mapping
-      student_id: student_id || req.session?.user_id || 'anonymous',
+      student_id: student_id, // Always use valid student_id - never 'anonymous'
       rating: rating || null,
       feedback: feedback || positive_feedback || '',
       negative_feedback: negative_feedback || '',
@@ -199,7 +207,7 @@ export const createEvaluation = async (req, res, next) => {
     if (io && teacher) {
       notifyNewEvaluation(io, {
         teacherId: teacher_id,
-        studentId: student_id || req.session?.user_id,
+        studentId: student_id,
         averageRating: rating,
         feedback: feedback || positive_feedback || '',
         teacherName: `${teacher.first_name} ${teacher.last_name}`

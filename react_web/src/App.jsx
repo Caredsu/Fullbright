@@ -6,6 +6,7 @@ import Evaluation from './pages/Evaluation';
 import InstallPrompt from './components/InstallPrompt';
 import SessionTimeoutManager from './components/SessionTimeoutManager';
 import ErrorBoundary from './components/ErrorBoundary';
+import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
 import './styles/responsive.css';
 import './styles/accessibility.css';
@@ -66,8 +67,22 @@ export default function App() {
             <main className="app-main">
               <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/evaluate/:teacherId" element={<Evaluation />} />
+                <Route 
+                  path="/dashboard" 
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  } 
+                />
+                <Route 
+                  path="/evaluate/:teacherId" 
+                  element={
+                    <ProtectedRoute>
+                      <Evaluation />
+                    </ProtectedRoute>
+                  } 
+                />
               </Routes>
             </main>
           </div>

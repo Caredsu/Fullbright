@@ -225,6 +225,14 @@ export default function Evaluation() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validate student number before submission
+    if (!user?.student_number || user.student_number === 'anonymous') {
+      addToast('Invalid session: Please log in with your student number', 'error');
+      setError('Invalid student number. Please log in again.');
+      navigate('/');
+      return;
+    }
+
     if (!isComplete) {
       addToast('Please answer all questions before submitting', 'error');
       return;
@@ -237,8 +245,8 @@ export default function Evaluation() {
       const payload = {
         teacher_id: teacherId,
         answers: responses,
-        // Include student_id for accountability tracking
-        student_id: user?.student_number || 'anonymous'
+        // Always include valid student_id - never allow anonymous submissions
+        student_id: user.student_number
       };
 
       // Include feedback types if provided
