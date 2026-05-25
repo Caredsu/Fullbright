@@ -69,27 +69,27 @@
 
 @media (min-width: 640px) {
   .container {
-    max-width: var(--container-tablet);
+    max-width: 100%;
     padding: 0 var(--spacing-lg);
   }
 }
 
 @media (min-width: 1024px) {
   .container {
-    max-width: var(--container-desktop);
+    max-width: 100%;
     padding: 0 var(--spacing-2xl);
   }
 }
 
 @media (min-width: 1440px) {
   .container {
-    max-width: var(--container-xl);
+    max-width: 100%;
   }
 }
 
 @media (min-width: 1920px) {
   .container {
-    max-width: var(--container-2xl);
+    max-width: 100%;
   }
 }
 
