@@ -136,46 +136,80 @@ class AlreadyEvaluatedModalHandler {
     }
 
 /**
-     * Check if teacher was already evaluated (LocalStorage first)
+     * Get current student number from localStorage
      */
-    isTeacherAlreadyEvaluated(teacherId) {
-        const key = `evaluated_teacher_${teacherId}`;
-        return localStorage.getItem(key) !== null;
+    getCurrentStudentNumber() {
+        try {
+            const userData = localStorage.getItem('user_data');
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user.student_number || user.studentNumber || null;
+            }
+        } catch (e) {
+            console.warn('Could not parse user data');
+        }
+        return null;
     }
 
     /**
-     * Full per-click check: LocalStorage → AJAX → show modal + Flutter badge if true
+     * Create unique key using device ID + student number + teacher ID
+     * This allows different students on the same device to evaluate the same teacher
+     */
+    getEvaluationKey(teacherId) {
+        const deviceId = this.getOrCreateDeviceId();
+        const studentNumber = this.getCurrentStudentNumber();
+        
+        if (studentNumber) {
+            // Track per student per device
+            return `evaluated_${deviceId}|${studentNumber}|${teacherId}`;
+        } else {
+            // Fallback to device-only tracking
+            return `evaluated_${deviceId}|${teacherId}`;
+        }
+    }
+
+    /**
+     * Check if teacher was already evaluated (per student on this device)
+     */
+    isTeacherAlreadyEvaluated(teacherId) {
+        const key = this.getEvaluationKey(teacherId);
+        const result = localStorage.getItem(key) !== null;
+        
+        console.log(`🔍 Checking teacher ${teacherId} | Key: ${key} | Already Evaluated: ${result} | Student: ${this.getCurrentStudentNumber()}`);
+        return result;
+    }
+
+    /**
+     * Full per-click check: LocalStorage first (per-student) → show modal if already evaluated
      */
     async checkTeacherEvaluated(teacherId, teacherName) {
-        const key = `evaluated_teacher_${teacherId}`;
+        const key = this.getEvaluationKey(teacherId);
         
-        // 1. LocalStorage first (task spec)
+        // 1. LocalStorage first (per-student per-device)
         if (localStorage.getItem(key)) {
-            console.log('🚫 LocalStorage: already evaluated', teacherId);
+            console.log(`🚫 Already evaluated by this student: ${teacherId} | Key: ${key}`);
             this.showModal(teacherName);
-            this.informFlutterDisable(teacherId); // Tell Flutter to show badge
+            this.informFlutterDisable(teacherId);
             return true;
         }
         
-        try {
-            // 2. AJAX backend check
-            const apiUrl = `/teacher-eval/api/check-evaluated-teachers.php?teacher_id=${encodeURIComponent(teacherId)}`;
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            
-            if (data.alreadyEvaluated === true) {
-                console.log('🚫 Backend: already evaluated', teacherId);
-                localStorage.setItem(key, 'true');
-                this.showModal(teacherName);
-                this.informFlutterDisable(teacherId);
-                return true;
-            }
-        } catch (error) {
-            console.warn('⚠️ Check failed, allow:', error);
-        }
-        
-        console.log('✅ Not evaluated:', teacherId);
+        console.log(`✅ Not evaluated by this student: ${teacherId} | Key: ${key}`);
         return false;
+    }
+
+    /**
+     * Mark teacher as evaluated (per student on this device)
+     */
+    markTeacherAsEvaluated(teacherId) {
+        const key = this.getEvaluationKey(teacherId);
+        localStorage.setItem(key, 'true');
+        
+        console.log(`✅ Marked as evaluated: ${teacherId} | Key: ${key} | Student: ${this.getCurrentStudentNumber()}`);
+        
+        // Notify duplicate prevention manager
+        if (window.duplicatePreventionManager) {
+            window.duplicatePreventionManager.markTeacherAsEvaluated(teacherId, null, this.getCurrentStudentNumber());
+        }
     }
 
     /**

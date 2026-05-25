@@ -253,6 +253,17 @@ export default function Evaluation() {
 
       if (response.data.success) {
         clearDraft();
+        
+        // Mark teacher as evaluated with student number for proper duplicate prevention
+        // This ensures different students on the same device can evaluate the same teacher
+        if (window.duplicatePreventionManager) {
+          window.duplicatePreventionManager.markTeacherAsEvaluated(
+            teacherId,
+            `${teacher?.first_name} ${teacher?.last_name}`,
+            user?.student_number
+          );
+        }
+        
         createConfetti();
         addToast('Evaluation submitted successfully!', 'success');
         setSuccess(true);

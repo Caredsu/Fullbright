@@ -12,7 +12,7 @@ class DuplicatePreventionManager {
     }
     
     /**
-     * Get existing device ID or create new one
+     * Get or create device ID
      */
     getOrCreateDeviceId() {
         let deviceId = localStorage.getItem(this.storageKey);
@@ -25,6 +25,45 @@ class DuplicatePreventionManager {
         }
         
         return deviceId;
+    }
+
+    /**
+     * Get current student number from localStorage or form
+     */
+    getCurrentStudentNumber() {
+        // Try to get from localStorage (set during evaluation submission)
+        const storedUser = localStorage.getItem('user_data');
+        if (storedUser) {
+            try {
+                const userData = JSON.parse(storedUser);
+                return userData.student_number || userData.studentNumber || null;
+            } catch (e) {
+                console.warn('Could not parse stored user data');
+            }
+        }
+        
+        // Try to get from window object (set by React or other frameworks)
+        if (window.__userContext && window.__userContext.student_number) {
+            return window.__userContext.student_number;
+        }
+        
+        return null;
+    }
+
+    /**
+     * Create unique key using device ID + student number
+     * This allows different users on the same device to evaluate the same teacher
+     */
+    getEvaluationKey(teacherId, studentNumber = null) {
+        const student = studentNumber || this.getCurrentStudentNumber();
+        
+        if (student) {
+            // Track per student per device
+            return `${this.deviceId}|${student}|${teacherId}`;
+        } else {
+            // Fallback to device-only tracking if no student number
+            return `${this.deviceId}|${teacherId}`;
+        }
     }
     
     /**
@@ -52,23 +91,30 @@ class DuplicatePreventionManager {
     }
     
     /**
-     * Check if teacher was already evaluated from this device
+     * Check if teacher was already evaluated from this device/user
      */
-    isTeacherAlreadyEvaluated(teacherId) {
-        return !!this.submittedTeachers[teacherId];
+    isTeacherAlreadyEvaluated(teacherId, studentNumber = null) {
+        const key = this.getEvaluationKey(teacherId, studentNumber);
+        const result = !!this.submittedTeachers[key];
+        
+        console.log(`🔍 Checking if evaluated: ${teacherId} | Key: ${key} | Result: ${result}`);
+        return result;
     }
-    
+
     /**
      * Mark teacher as evaluated
      */
-    markTeacherAsEvaluated(teacherId, teacherName = null) {
-        this.submittedTeachers[teacherId] = {
+    markTeacherAsEvaluated(teacherId, teacherName = null, studentNumber = null) {
+        const key = this.getEvaluationKey(teacherId, studentNumber);
+        this.submittedTeachers[key] = {
             timestamp: new Date().toISOString(),
             deviceId: this.deviceId,
+            studentNumber: studentNumber || this.getCurrentStudentNumber(),
             name: teacherName || `Teacher ${teacherId}`
         };
         this.saveSubmittedTeachers();
         
+        console.log(`✅ Marked as evaluated: ${teacherId} | Key: ${key} | Student: ${studentNumber || this.getCurrentStudentNumber()}`);
         // Update modal handler to reflect new evaluated teacher
         if (window.alreadyEvaluatedModal) {
             window.alreadyEvaluatedModal.updateSubmittedTeachers();
