@@ -1,23 +1,25 @@
 services:
   - type: web
-    name: teacher-eval
-    runtime: docker
+    name: teacher-eval-backend
+    runtime: node
     region: singapore
     plan: starter
     numInstances: 1
     healthCheckPath: /
     envVars:
       - key: PORT
-        value: 8080
-      - key: DB_HOST
-        value: mongodb+srv://Fullbright:alhamer1@cluster0.d5w3hon.mongodb.net/teacher_eval?retryWrites=true&w=majority
-      - key: DB_NAME
-        value: teacher_eval
-      - key: APP_ENV
+        value: 3001
+      - key: NODE_ENV
         value: production
-      - key: APP_URL
-        value: https://fullbright-college-1.onrender.com
-      - key: APP_DEBUG
-        value: "false"
+      - key: MONGODB_URI
+        value: mongodb://Fullbright:alhamer1@ac-ung0dxw-shard-00-00.d5w3hon.mongodb.net:27017,ac-ung0dxw-shard-00-01.d5w3hon.mongodb.net:27017,ac-ung0dxw-shard-00-02.d5w3hon.mongodb.net:27017/teacher_eval?ssl=true&replicaSet=atlas-3lweps-shard-0&authSource=admin&appName=Cluster0
+      - key: SESSION_SECRET
+        value: teacher-eval-dev-secret-key-2026
       - key: JWT_SECRET
-        value: teacher_eval_secret_key_2024_april_secure
+        value: teacher-eval-jwt-secret-key-2026
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dysoy4ar5
+      - key: CLOUDINARY_API_KEY
+        value: 552166215479492
+      - key: CLOUDINARY_API_SECRET
+        value: WWf5a6sG3NeKUGdpZy9VP6p368Y
