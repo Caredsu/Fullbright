@@ -126,8 +126,10 @@ function Results() {
   };
 
   const calculateAverageRating = (evaluation) => {
-    if (!evaluation.answers || evaluation.answers.length === 0) return 0;
-    const ratings = evaluation.answers.map(a => a.rating || 0);
+    // Ensure answers is an array
+    const answers = Array.isArray(evaluation.answers) ? evaluation.answers : [];
+    if (answers.length === 0) return 0;
+    const ratings = answers.map(a => a.rating || 0);
     return Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10;
   };
 
