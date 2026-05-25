@@ -75,6 +75,7 @@ app.use(cors({
     'http://localhost:3004',
     'http://localhost:5173',
     'http://192.168.1.187:5173',
+    'https://fullbright.vercel.app',
     'https://evaluation-backend-kaah.onrender.com'
   ],
   credentials: true
