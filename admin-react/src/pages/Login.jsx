@@ -33,9 +33,6 @@ function Login({ onLogin }) {
       alignItems: 'center',
       height: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      backgroundImage: 'url(/fbc_logo2.png), linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      backgroundAttachment: 'fixed',
-      backgroundSize: 'cover',
       position: 'relative',
       overflow: 'hidden'
     }}>
@@ -43,7 +40,7 @@ function Login({ onLogin }) {
       <div style={{
         position: 'absolute',
         inset: 0,
-        background: 'rgba(0, 0, 0, 0.4)',
+        background: 'rgba(0, 0, 0, 0.1)',
         backdropFilter: 'blur(2px)'
       }} />
 
