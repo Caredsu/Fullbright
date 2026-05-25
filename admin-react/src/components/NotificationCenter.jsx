@@ -87,7 +87,14 @@ export default function NotificationCenter() {
   };
 
   const removeNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
+    // Decrement unreadCount only if the notification being removed was unread
+    setNotifications(prev => {
+      const notifToRemove = prev.find(n => n.id === id);
+      if (notifToRemove && !notifToRemove.read) {
+        setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+      }
+      return prev.filter(n => n.id !== id);
+    });
   };
 
   const markAsRead = (id) => {
@@ -98,8 +105,12 @@ export default function NotificationCenter() {
   };
 
   const clearAll = () => {
-    setNotifications([]);
-    setUnreadCount(0);
+    // Count unread notifications before clearing
+    setNotifications(prev => {
+      const unreadCount = prev.filter(n => !n.read).length;
+      setUnreadCount(prevCount => Math.max(0, prevCount - unreadCount));
+      return [];
+    });
   };
 
   return (
