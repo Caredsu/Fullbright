@@ -35,6 +35,9 @@ class AlreadyEvaluatedModalHandler {
             // Get device ID
             const deviceId = this.getOrCreateDeviceId();
             
+            // Get current student number (for per-student filtering)
+            const studentNumber = this.getCurrentStudentNumber();
+            
             // Get the base path from <base> tag (most reliable)
             let apiBase = '/teacher-eval';
             const baseTag = document.querySelector('base');
@@ -43,13 +46,16 @@ class AlreadyEvaluatedModalHandler {
                 apiBase = basePath.replace(/\/$/, ''); // Remove trailing slash
             }
             
-            // Build the URL - use relative path for simplicity
-            // If apiBase is /teacher-eval, the URL will be /teacher-eval/api/check-evaluated-teachers
-            const apiUrl = `${apiBase}/api/check-evaluated-teachers?device_id=${encodeURIComponent(deviceId)}`;
+            // Build the URL with both device_id AND student_number for per-student filtering
+            // If apiBase is /teacher-eval, the URL will be /teacher-eval/api/check-evaluated-teachers?device_id=...&student_number=...
+            let apiUrl = `${apiBase}/api/check-evaluated-teachers?device_id=${encodeURIComponent(deviceId)}`;
+            if (studentNumber) {
+                apiUrl += `&student_number=${encodeURIComponent(studentNumber)}`;
+            }
             
             console.log('📡 Fetching evaluated teachers from:', apiUrl);
             console.log('   Base tag:', baseTag ? baseTag.href : 'none');
-            console.log('   API base:', apiBase);
+            console.log('   Student Number:', studentNumber);
             
             // Use original fetch (not wrapped by api-redirect)
             const fetchToUse = window.fetch.__originalFetch__ || window.fetch;
@@ -75,7 +81,7 @@ class AlreadyEvaluatedModalHandler {
                     };
                 });
                 
-                console.log('📊 Evaluated teachers from DATABASE:', data.data.evaluated_teachers);
+                console.log('📊 Evaluated teachers from DATABASE (per-student):', data.data.evaluated_teachers);
                 console.log('📊 Count:', data.data.count);
                 
                 // Sync localStorage with server data
@@ -89,11 +95,25 @@ class AlreadyEvaluatedModalHandler {
 
     /**
      * Sync localStorage with server data
-     * Clears any stale entries that aren't in the database
+     * Stores each teacher evaluation with per-student key: evaluated_${deviceId}|${studentNumber}|${teacherId}
      */
     syncLocalStorageWithServer() {
-        localStorage.setItem('teacher_eval_submitted', JSON.stringify(this.submittedTeachers));
-        console.log('🔄 localStorage synchronized with server data');
+        const deviceId = this.getOrCreateDeviceId();
+        const studentNumber = this.getCurrentStudentNumber();
+        
+        if (!studentNumber) {
+            console.warn('⚠️ Cannot sync: no student number available');
+            return;
+        }
+        
+        // Store each evaluated teacher with per-student key
+        Object.keys(this.submittedTeachers).forEach(teacherId => {
+            const key = `evaluated_${deviceId}|${studentNumber}|${teacherId}`;
+            localStorage.setItem(key, 'true');
+            console.log(`💾 Synced to localStorage: ${key}`);
+        });
+        
+        console.log(`🔄 Synced ${Object.keys(this.submittedTeachers).length} evaluations to localStorage for student ${studentNumber}`);
     }
 
     /**
@@ -122,10 +142,46 @@ class AlreadyEvaluatedModalHandler {
 
     /**
      * Load list of teachers already evaluated from localStorage (FALLBACK ONLY)
+     * Reads from per-student evaluation keys: evaluated_${deviceId}|${studentNumber}|${teacherId}
      */
     loadSubmittedTeachersFromLocalStorage() {
-        const stored = localStorage.getItem('teacher_eval_submitted');
-        return stored ? JSON.parse(stored) : {};
+        const deviceId = this.getOrCreateDeviceId();
+        const studentNumber = this.getCurrentStudentNumber();
+        const submittedTeachers = {};
+        
+        try {
+            // Iterate through all localStorage keys
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                // Look for keys in format: evaluated_${deviceId}|${studentNumber}|${teacherId}
+                if (key && key.startsWith('evaluated_')) {
+                    const parts = key.substring('evaluated_'.length).split('|');
+                    
+                    if (parts.length >= 3) {
+                        const keyDeviceId = parts[0];
+                        const keyStudentNumber = parts[1];
+                        const keyTeacherId = parts[2];
+                        
+                        // Only include evaluations from CURRENT device AND CURRENT student
+                        if (keyDeviceId === deviceId && keyStudentNumber === studentNumber) {
+                            submittedTeachers[keyTeacherId] = {
+                                timestamp: new Date().toISOString(),
+                                source: 'localStorage'
+                            };
+                            
+                            console.log(`📦 Loaded evaluation from localStorage: student=${keyStudentNumber}, teacher=${keyTeacherId}`);
+                        }
+                    }
+                }
+            }
+            
+            console.log(`📊 Loaded ${Object.keys(submittedTeachers).length} evaluated teachers from localStorage for student ${studentNumber}`);
+            return submittedTeachers;
+        } catch (err) {
+            console.warn('Could not load from localStorage:', err);
+            return {};
+        }
     }
 
     /**

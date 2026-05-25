@@ -107,6 +107,57 @@ export const checkNewEvaluations = async (req, res, next) => {
   }
 };
 
+export const checkEvaluatedTeachers = async (req, res, next) => {
+  try {
+    const { device_id, student_number } = req.query;
+
+    // Validate required parameters
+    if (!student_number) {
+      return res.status(400).json({
+        success: false,
+        message: 'student_number is required'
+      });
+    }
+
+    const evaluationsCollection = getCollection('evaluations');
+
+    // Query evaluations for this specific student
+    const filter = { student_id: student_number };
+    console.log(`[DEBUG] checkEvaluatedTeachers - Querying with filter:`, filter);
+    
+    const evaluations = await evaluationsCollection
+      .find(filter)
+      .project({ teacher_id: 1, teacher_name: 1, created_at: 1, student_id: 1 })
+      .toArray();
+
+    console.log(`[DEBUG] Found ${evaluations.length} evaluations. Details:`, evaluations.map(e => ({student_id: e.student_id, teacher_id: e.teacher_id})));
+
+    // Extract unique teacher IDs
+    const evaluatedTeachers = {};
+    evaluations.forEach(evaluation => {
+      const teacherId = evaluation.teacher_id.toString ? evaluation.teacher_id.toString() : evaluation.teacher_id;
+      if (!evaluatedTeachers[teacherId]) {
+        evaluatedTeachers[teacherId] = {
+          id: teacherId,
+          name: evaluation.teacher_name,
+          evaluated_at: evaluation.created_at,
+          source: 'database'
+        };
+      }
+    });
+
+    console.log(`[DEBUG] checkEvaluatedTeachers - student_number: ${student_number}, device_id: ${device_id}, found: ${Object.keys(evaluatedTeachers).length} evaluations`);
+
+    res.json({
+      success: true,
+      data: evaluatedTeachers,
+      count: Object.keys(evaluatedTeachers).length
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const clearEvaluation = async (req, res, next) => {
   try {
     const { evaluation_id } = req.body;
