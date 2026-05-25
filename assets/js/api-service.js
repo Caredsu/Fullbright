@@ -1,26 +1,21 @@
 /**
  * API Service - Shared API client for all admin pages
+ * Updated to use Node.js backend at http://localhost:3001/api
  * Handles all API communication and error handling
  */
 
 class APIService {
-    constructor(baseUrl = '/teacher-eval') {
+    constructor(baseUrl = 'http://localhost:3001') {
         this.baseUrl = baseUrl;
-        // Request PHP files directly - no .htaccess rewrite needed
         this.apiPath = `${baseUrl}/api`;
     }
 
     /**
-     * Make API request - automatically adds .php extension
+     * Make API request to Node.js backend
      */
     async request(method, endpoint, data = null) {
         try {
-            // Add .php extension for direct access to API files
-            // Handle query strings properly - add .php before the query string
-            const hasQuery = endpoint.includes('?');
-            const baseEndpoint = hasQuery ? endpoint.split('?')[0] : endpoint;
-            const queryString = hasQuery ? '?' + endpoint.split('?')[1] : '';
-            const url = `${this.apiPath}${baseEndpoint}.php${queryString}`;
+            const url = `${this.apiPath}${endpoint}`;
             
             const options = {
                 method: method,
@@ -100,7 +95,7 @@ class APIService {
     }
 
     async getTeacher(id) {
-        return this.request('GET', `/teachers?id=${id}`);
+        return this.request('GET', `/teachers/${id}`);
     }
 
     async createTeacher(data) {
@@ -108,20 +103,20 @@ class APIService {
     }
 
     async updateTeacher(id, data) {
-        return this.request('PUT', `/teachers?id=${id}`, data);
+        return this.request('PUT', `/teachers/${id}`, data);
     }
 
     async deleteTeacher(id) {
-        return this.request('DELETE', `/teachers?id=${id}`);
+        return this.request('DELETE', `/teachers/${id}`);
     }
 
     // Question Management
     async getQuestions() {
-        return this.request('GET', '/questions');
+        return this.request('GET', '/questions?limit=1000&page=1');
     }
 
     async getQuestion(id) {
-        return this.request('GET', `/questions?id=${id}`);
+        return this.request('GET', `/questions/${id}`);
     }
 
     async createQuestion(data) {
@@ -129,11 +124,11 @@ class APIService {
     }
 
     async updateQuestion(id, data) {
-        return this.request('PUT', `/questions?id=${id}`, data);
+        return this.request('PUT', `/questions/${id}`, data);
     }
 
     async deleteQuestion(id) {
-        return this.request('DELETE', `/questions?id=${id}`);
+        return this.request('DELETE', `/questions/${id}`);
     }
 
     // Dashboard

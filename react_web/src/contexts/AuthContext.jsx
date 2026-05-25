@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
     
     // Admin login - authenticate with email/password
     try {
-      const response = await api.post('login.php', { 
+      const response = await api.post('auth/login', { 
         username: identifier,
         password: password
       });

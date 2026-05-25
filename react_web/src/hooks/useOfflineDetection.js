@@ -36,7 +36,7 @@ export const useOfflineDetection = () => {
   return { isOnline, backOnlineNotification, dismissNotification };
 };
 
-export const useLocalCache = (key, fetchFn, cacheDuration = 5 * 60 * 1000) => {
+export const useLocalCache = (key, fetchFn, cacheDuration = 1 * 60 * 1000) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -73,6 +73,17 @@ export const useLocalCache = (key, fetchFn, cacheDuration = 5 * 60 * 1000) => {
     };
 
     loadData();
+
+    // Listen for visibility changes - clear cache when tab comes back into focus
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        localStorage.removeItem(`cache_${key}_time`);
+        loadData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [key, fetchFn, cacheDuration]);
 
   const clearCache = () => {

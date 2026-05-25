@@ -19,8 +19,9 @@ function initializeUsersTable() {
     const usersTableElement = document.getElementById('usersTable');
     if (!usersTableElement || typeof $ === 'undefined') return;
     
-    // Don't reinitialize if already initialized
-    if (usersTable && $.fn.DataTable.isDataTable('#usersTable')) {
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable.isDataTable('#usersTable')) {
+        usersTable = $('#usersTable').DataTable();
         return;
     }
     
@@ -64,19 +65,21 @@ function applyUserFilters() {
 
 // Load Users Data
 function loadUsersData(filters = {}) {
-    // Call the API endpoint instead
-    fetch('/teacher-eval/api/users.php')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Users API Response:', data);
-            if (data.success && usersTable && data.data && Array.isArray(data.data.data)) {
+    // Call the API endpoint using APIService
+    api.getUsers(1, 1000)
+        .then(response => {
+            console.log('Users API Response:', response);
+            // Handle both response.data.data and response.data formats
+            const usersArray = (response.data && response.data.data) ? response.data.data : response.data;
+            
+            if (response.success && usersTable && usersArray && Array.isArray(usersArray)) {
                 usersTable.clear();
-                data.data.data.forEach(user => {
+                usersArray.forEach(user => {
                     const statusClass = user.status === 'active' ? 'user-status-active' : 'user-status-inactive';
                     const statusBadge = '<span class="' + statusClass + '">' + (user.status || 'active') + '</span>';
-                    const lastLogin = user.last_login || 'Never';
-                    const createdBy = user.created_by || 'System';
-                    const updatedBy = user.updated_by || 'N/A';
+                    const lastLogin = user.lastLogin || 'Never';
+                    const createdBy = user.createdBy || 'System';
+                    const updatedBy = user.lastUpdatedBy || 'N/A';
                     const userId = user.id || user._id || '';
                     
                     const actionsHtml = `
@@ -104,7 +107,7 @@ function loadUsersData(filters = {}) {
                 // Initialize event listeners for action buttons
                 setupUserActionListeners();
             } else {
-                console.warn('No users data received:', data);
+                console.warn('No users data received:', response);
             }
         })
         .catch(error => {

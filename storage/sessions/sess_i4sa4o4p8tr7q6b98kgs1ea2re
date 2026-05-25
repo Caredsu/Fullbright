@@ -1,0 +1,1 @@
+csrf_token|s:64:"ec435368a3e8d1a7435cfcab61a72d6ded48e9b0c6ff5993b5e25ee9ca9a232c";admin_id|s:24:"69e3126dc1dc24ff0e042813";admin_username|s:5:"Cared";admin_role|s:5:"admin";notifications_cleared_at|O:24:"MongoDB\BSON\UTCDateTime":1:{s:12:"milliseconds";s:13:"1779532640704";}

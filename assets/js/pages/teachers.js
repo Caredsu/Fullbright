@@ -1,38 +1,122 @@
 /**
  * Teachers Page JavaScript
- * Specific functionality for admin/teachers.php
+ * Uses new Node.js API backend at http://localhost:3001/api
  */
 
-// Teachers DataTable
 let teachersTable = null;
+const apiService = new APIService();
 
-// Initialize Teachers Page
+/**
+ * Initialize Teachers Page
+ */
 function initializeTeachersPage() {
     initializeTeachersTable();
     setupTeacherFilters();
 }
 
-// Initialize DataTable for Teachers
+/**
+ * Initialize DataTable for Teachers
+ */
 function initializeTeachersTable() {
     const teachersTableElement = document.getElementById('teachersTable');
     if (!teachersTableElement || typeof $ === 'undefined') return;
     
     teachersTable = $('#teachersTable').DataTable({
-        responsive: true,
-        paging: true,
-        pageLength: 10,
-        ordering: true,
-        searching: true,
-        language: {
-            search: 'Filter teachers:',
-            lengthMenu: 'Show _MENU_ teachers per page',
-            info: 'Showing _START_ to _END_ of _TOTAL_ teachers'
+        processing: true,
+        serverSide: true,
+        ajax: {
+            url: function(data) {
+                const page = Math.floor(data.start / data.length) + 1;
+                const limit = data.length;
+                return `http://localhost:3001/api/teachers?page=${page}&limit=${limit}`;
+            },
+            type: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include',
+            dataSrc: function(json) {
+                if (!json.success) {
+                    console.error('Teachers API Error:', json);
+                    return [];
+                }
+                if (json.data && json.data.pagination) {
+                    window.teachersPagination = json.data.pagination;
+                }
+                return json.data.data || [];
+            }
         },
-        dom: '<"row"<"col-md-6"l><"col-md-6"f>>t<"row"<"col-md-6"i><"col-md-6"p>>'
+        columns: [
+            { data: 'first_name', render: function(data, type, row) {
+                const initial = (data?.charAt(0) || '?').toUpperCase();
+                return `<span class="teacher-avatar">${initial}</span> ${$('<div>').text(data || '').html()}`;
+            }},
+            { data: 'email', render: function(data) {
+                return $('<div>').text(data || '').html();
+            }},
+            { data: 'department', render: function(data) {
+                return `<span class="badge bg-info">${$('<div>').text(data || 'N/A').html()}</span>`;
+            }},
+            { data: 'status', render: function(data) {
+                const badgeClass = data === 'active' ? 'bg-success' : 'bg-warning';
+                return `<span class="badge ${badgeClass}">${data || 'N/A'}</span>`;
+            }},
+            { data: 'id', orderable: false, searchable: false, render: function(data) {
+                return `
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary btn-edit-teacher" data-id="${data}" title="Edit">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-outline-danger btn-delete-teacher" data-id="${data}" title="Delete">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+            }}
+        ],
+        order: [[0, 'asc']],
+        pageLength: 10,
+        lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
+        responsive: true,
+        autoWidth: false,
+        language: {
+            emptyTable: 'No teachers found.',
+            loadingRecords: 'Loading teachers...',
+            processing: 'Processing...',
+            search: '_INPUT_',
+            searchPlaceholder: 'Search teachers...',
+            info: 'Showing _START_ to _END_ of _TOTAL_ teachers'
+        }
+    });
+
+    // Setup action button handlers on draw
+    teachersTable.on('draw', setupTeacherActionButtons);
+}
+
+/**
+ * Setup Teacher Action Buttons
+ */
+function setupTeacherActionButtons() {
+    // Edit buttons
+    document.querySelectorAll('.btn-edit-teacher').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const teacherId = this.getAttribute('data-id');
+            editTeacher(teacherId);
+        });
+    });
+
+    // Delete buttons
+    document.querySelectorAll('.btn-delete-teacher').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const teacherId = this.getAttribute('data-id');
+            deleteTeacher(teacherId);
+        });
     });
 }
 
-// Setup Teacher Filters
+/**
+ * Setup Teacher Filters
+ */
 function setupTeacherFilters() {
     const departmentFilter = document.getElementById('departmentFilter');
     if (departmentFilter) {
@@ -45,74 +129,42 @@ function setupTeacherFilters() {
     }
 }
 
-// Apply Teacher Filters
+/**
+ * Apply Teacher Filters
+ */
 function applyTeacherFilters() {
-    const department = document.getElementById('departmentFilter')?.value;
-    const status = document.getElementById('statusFilter')?.value;
-    
-    const filters = {
-        department: department || '',
-        status: status || ''
-    };
-    
-    loadTeachersData(filters);
+    if (teachersTable) {
+        teachersTable.ajax.reload();
+    }
 }
 
-// Load Teachers Data
-function loadTeachersData(filters = {}) {
-    const queryString = new URLSearchParams(filters).toString();
-    const url = `/teacher-eval/admin/teachers.php?load_data=1&${queryString}`;
-    
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && teachersTable) {
-                teachersTable.clear();
-                if (Array.isArray(data.teachers)) {
-                    data.teachers.forEach(teacher => {
-                        const initial = teacher.name?.charAt(0)?.toUpperCase() || '?';
-                        const avatar = `<span class="teacher-avatar">${initial}</span>`;
-                        const departmentBadge = `<span class="department-badge">${escapeHtml(teacher.department)}</span>`;
-                        const statusClass = teacher.status === 'active' ? 'teacher-status-active' : 'teacher-status-inactive';
-                        const statusBadge = `<span class="${statusClass}">${teacher.status}</span>`;
-                        
-                        teachersTable.row.add([
-                            avatar + ' ' + escapeHtml(teacher.name),
-                            escapeHtml(teacher.email),
-                            departmentBadge,
-                            statusBadge,
-                            `<button class="btn btn-sm btn-outline-primary" onclick="editTeacher(${teacher.id})">Edit</button>
-                             <button class="btn btn-sm btn-outline-danger" onclick="deleteTeacher(${teacher.id})">Delete</button>`
-                        ]);
-                    });
-                }
-                teachersTable.draw();
-            }
-        })
-        .catch(error => {
-            console.error('Error loading teachers:', error);
-        });
+/**
+ * Edit Teacher
+ */
+async function editTeacher(teacherId) {
+    try {
+        const result = await apiService.getTeacher(teacherId);
+        if (result.success && result.data) {
+            showEditTeacherModal(result.data);
+        } else {
+            Swal.fire('Error', result.message || 'Failed to load teacher', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while loading the teacher', 'error');
+    }
 }
 
-// Edit Teacher
-function editTeacher(teacherId) {
-    fetch(`/teacher-eval/api/teachers.php?id=${teacherId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showEditTeacherModal(data.teacher);
-            }
-        });
-}
-
-// Show Edit Teacher Modal
+/**
+ * Show Edit Teacher Modal
+ */
 function showEditTeacherModal(teacher) {
     const modal = document.getElementById('editTeacherModal');
     if (!modal) return;
     
     // Populate form fields
-    document.getElementById('teacherId').value = teacher.id;
-    document.getElementById('teacherName').value = teacher.name || '';
+    document.getElementById('teacherId').value = teacher.id || teacher._id || '';
+    document.getElementById('teacherName').value = teacher.first_name || '';
     document.getElementById('teacherEmail').value = teacher.email || '';
     document.getElementById('teacherDepartment').value = teacher.department || '';
     document.getElementById('teacherStatus').value = teacher.status || 'active';
@@ -124,48 +176,68 @@ function showEditTeacherModal(teacher) {
     }
 }
 
-// Delete Teacher
+/**
+ * Delete Teacher
+ */
 function deleteTeacher(teacherId) {
-    showConfirm('Delete Teacher', 'Are you sure you want to delete this teacher?', () => {
-        fetch(`/teacher-eval/api/teachers.php?id=${teacherId}`, {
-            method: 'DELETE'
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                showSuccess('Teacher Deleted', 'Teacher has been deleted successfully');
-                if (teachersTable) {
-                    teachersTable.ajax.reload();
+    Swal.fire({
+        title: 'Delete Teacher?',
+        text: 'This action cannot be undone.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#667eea',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const deleteResult = await apiService.deleteTeacher(teacherId);
+                if (deleteResult.success) {
+                    Swal.fire('Deleted', 'Teacher deleted successfully', 'success');
+                    if (teachersTable) {
+                        teachersTable.ajax.reload();
+                    }
+                } else {
+                    Swal.fire('Error', deleteResult.message || 'Failed to delete teacher', 'error');
                 }
-            } else {
-                showError('Error', data.message || 'Failed to delete teacher');
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred while deleting the teacher', 'error');
             }
-        });
+        }
     });
 }
 
-// Save Teacher Changes
-function saveTeacherChanges() {
-    const form = document.getElementById('editTeacherForm');
-    const formData = new FormData(form);
+/**
+ * Save Teacher Changes
+ */
+async function saveTeacherChanges() {
     const teacherId = document.getElementById('teacherId').value;
     
-    fetch(`/teacher-eval/api/teachers.php?id=${teacherId}`, {
-        method: 'PUT',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showSuccess('Teacher Updated', 'Teacher has been updated successfully');
-            bootstrap.Modal.getInstance(document.getElementById('editTeacherModal')).hide();
+    const teacherData = {
+        first_name: document.getElementById('teacherName').value,
+        email: document.getElementById('teacherEmail').value,
+        department: document.getElementById('teacherDepartment').value,
+        status: document.getElementById('teacherStatus').value
+    };
+    
+    try {
+        const result = await apiService.updateTeacher(teacherId, teacherData);
+        if (result.success) {
+            Swal.fire('Success', 'Teacher updated successfully', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editTeacherModal'));
+            if (modal) modal.hide();
             if (teachersTable) {
                 teachersTable.ajax.reload();
             }
         } else {
-            showError('Error', data.message || 'Failed to update teacher');
+            Swal.fire('Error', result.message || 'Failed to update teacher', 'error');
         }
-    });
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire('Error', 'An error occurred while updating the teacher', 'error');
+    }
 }
 
 // Initialize on DOM Ready

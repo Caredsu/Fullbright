@@ -1,0 +1,86 @@
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+
+// Pages
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Users from './pages/Users';
+import Teachers from './pages/Teachers';
+import Questions from './pages/Questions';
+import Results from './pages/Results';
+import Settings from './pages/Settings';
+
+// Components
+import { Sidebar } from './components/Sidebar';
+import { TopBar } from './components/TopBar';
+
+function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Login onLogin={onLogin} />;
+  }
+
+  return (
+    <div className="admin-layout">
+      <Sidebar user={user} onLogout={onLogout} />
+      <div className="main-content md:ml-64">
+        <TopBar user={user} onLogout={onLogout} />
+        <main className="page-container">
+          <div className="page-content">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/teachers" element={<Teachers />} />
+              <Route path="/questions" element={<Questions />} />
+              <Route path="/results" element={<Results />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const savedUser = localStorage.getItem('adminUser');
+    if (token && savedUser) {
+      setIsAuthenticated(true);
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogin = (userData, token) => {
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('adminUser', JSON.stringify(userData));
+    setIsAuthenticated(true);
+    setUser(userData);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+
+  return (
+    <Router>
+      <AppContent 
+        isAuthenticated={isAuthenticated} 
+        user={user} 
+        onLogin={handleLogin} 
+        onLogout={handleLogout} 
+      />
+    </Router>
+  );
+}
+
+export default App;

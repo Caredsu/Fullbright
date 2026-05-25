@@ -16,46 +16,79 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 /**
+ * Initialize Questions Page (called from PHP)
+ */
+function initializeQuestionsPage() {
+    initializeQuestionsTable();
+    setupFormHandlers();
+}
+
+/**
  * Initialize Questions DataTable
  */
 function initializeQuestionsTable() {
     questionsTable = $('#questionsTable').DataTable({
         processing: true,
+        serverSide: true,
         ajax: {
-            url: '/teacher-eval/admin/questions.php',
-            type: 'POST',
-            data: function(d) {
-                d = {
-                    ajax_action: 'get_questions',
-                    csrf_token: getCSRFToken()
-                };
-                return d;
+            url: function(data) {
+                // Build URL with pagination parameters for Node.js API
+                const page = Math.floor(data.start / data.length) + 1;
+                const limit = data.length;
+                return `http://localhost:3001/api/questions?page=${page}&limit=${limit}`;
             },
+            type: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include',
             dataSrc: function(json) {
-                // Return the data array from our custom response
-                return json.data || [];
+                if (!json.success) {
+                    console.error('Questions API Error:', json);
+                    return [];
+                }
+                // Store pagination info
+                if (json.data && json.data.pagination) {
+                    window.questionsPagination = json.data.pagination;
+                }
+                return json.data.data || [];
             }
         },
         columns: [
-            { data: 'question_order', name: 'question_order', width: '8%' },
-            { data: 'question_text', name: 'question_text', render: function(data) {
+            { data: 'text', name: 'text', width: '40%', render: function(data) {
                 return $('<div>').text(data).html(); // Escape HTML
             }},
-            { data: 'category', name: 'category', width: '12%' },
-            { data: 'status_badge', name: 'status', width: '10%', orderable: false, searchable: false, render: function(data) {
-                return data; // Render HTML
+            { data: 'category', name: 'category', width: '15%' },
+            { data: 'type', name: 'type', width: '12%' },
+            { data: 'created_at', name: 'created_at', width: '15%', render: function(data) {
+                return data ? new Date(data).toLocaleDateString() : '-';
             }},
-            { data: 'updated_at', name: 'updated_at', width: '12%' },
-            { data: 'updated_by', name: 'updated_by', width: '10%' },
-            { data: 'actions', name: 'actions', width: '15%', orderable: false, searchable: false, render: function(data) {
-                return data; // Render HTML
+            { data: 'id', name: 'id', width: '18%', orderable: false, searchable: false, render: function(data) {
+                return `
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button class="btn btn-outline-primary btn-edit-question" data-id="${data}" title="Edit">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button class="btn btn-outline-danger btn-delete-question" data-id="${data}" title="Delete">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
             }}
         ],
-        order: [[0, 'asc']],
+        order: [[3, 'desc']],
         pageLength: 10,
         lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]],
         responsive: true,
         autoWidth: false,
+        drawCallback: function() {
+            // Update DataTables recordsTotal with actual server count
+            if (window.questionsPagination) {
+                const info = this.api().page.info();
+                info.recordsTotal = window.questionsPagination.total;
+                info.recordsFiltered = window.questionsPagination.total;
+            }
+        },
         language: {
             emptyTable: 'No questions found. Click "Add New Question" to create one.',
             loadingRecords: 'Loading questions...',
@@ -107,53 +140,50 @@ function setupActionButtons() {
  */
 function openQuestionModal() {
     // Reset form
-    document.getElementById('questionForm').reset();
+    const questionForm = document.getElementById('questionForm');
+    if (questionForm) {
+        questionForm.reset();
+    }
     document.getElementById('questionIdInput').value = '';
-    document.getElementById('ajaxActionInput').value = 'add_question';
     document.getElementById('modalTitle').textContent = 'Add New Question';
-    document.getElementById('question_status').value = 'active';
+    document.getElementById('question_type').value = 'rating';
     
-    // Show modal
-    Modal.show('questionModal');
+    // Show modal using Bootstrap 5
+    const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+    modal.show();
 }
 
 /**
  * Edit existing question
  */
 function editQuestion(questionId) {
-    // Fetch question data
-    const formData = new FormData();
-    formData.append('ajax_action', 'get_question');
-    formData.append('question_id', questionId);
-    formData.append('csrf_token', getCSRFToken());
-
-    fetch('/teacher-eval/admin/questions.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.success && result.data) {
-            const question = result.data;
-            // Populate form
-            document.getElementById('questionIdInput').value = question._id || '';
-            document.getElementById('question_order').value = question.question_order || 0;
-            document.getElementById('question_text').value = question.question_text || '';
-            document.getElementById('question_category').value = question.category || 'General';
-            document.getElementById('question_status').value = question.status || 'active';
-            document.getElementById('ajaxActionInput').value = 'update_question';
-            document.getElementById('modalTitle').textContent = 'Edit Question';
-            
-            // Show modal
-            Modal.show('questionModal');
-        } else {
-            Toast.error(result.message || 'Failed to load question details');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Toast.error('An error occurred while loading the question');
-    });
+    // Create a global API service instance if not exists
+    window.apiService = window.apiService || new APIService();
+    
+    // Fetch question data from Node.js backend
+    window.apiService.getQuestion(questionId)
+        .then(result => {
+            if (result.success && result.data) {
+                const question = result.data;
+                // Populate form
+                document.getElementById('questionIdInput').value = question.id || '';
+                document.getElementById('question_text').value = question.text || '';
+                document.getElementById('question_category').value = question.category || 'General';
+                document.getElementById('question_type').value = question.type || 'rating';
+                document.getElementById('ajaxActionInput').value = 'update_question';
+                document.getElementById('modalTitle').textContent = 'Edit Question';
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+                modal.show();
+            } else {
+                Swal.fire('Error', result.message || 'Failed to load question details', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire('Error', 'An error occurred while loading the question', 'error');
+        });
 }
 
 /**
@@ -171,28 +201,21 @@ function deleteQuestion(questionId) {
         cancelButtonText: 'Cancel'
     }).then((result) => {
         if (result.isConfirmed) {
-            const formData = new FormData();
-            formData.append('ajax_action', 'delete_question');
-            formData.append('question_id', questionId);
-            formData.append('csrf_token', getCSRFToken());
-
-            fetch('/teacher-eval/admin/questions.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
-                if (result.success) {
-                    Toast.success('Question deleted successfully');
-                    questionsTable.ajax.reload();
-                } else {
-                    Toast.error(result.message || 'Failed to delete question');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Toast.error('An error occurred while deleting the question');
-            });
+            window.apiService = window.apiService || new APIService();
+            
+            window.apiService.deleteQuestion(questionId)
+                .then(result => {
+                    if (result.success) {
+                        Swal.fire('Deleted', 'Question deleted successfully', 'success');
+                        questionsTable.ajax.reload();
+                    } else {
+                        Swal.fire('Error', result.message || 'Failed to delete question', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Error', 'An error occurred while deleting the question', 'error');
+                });
         }
     });
 }
@@ -204,30 +227,42 @@ function setupFormHandlers() {
     const questionForm = document.getElementById('questionForm');
     
     if (questionForm) {
-        questionForm.addEventListener('submit', function(e) {
+        questionForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            const formData = new FormData(this);
+            window.apiService = window.apiService || new APIService();
             
-            fetch('/teacher-eval/admin/questions.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(result => {
+            const questionId = document.getElementById('questionIdInput').value;
+            const questionData = {
+                text: document.getElementById('question_text').value,
+                category: document.getElementById('question_category').value,
+                type: document.getElementById('question_type')?.value || 'rating',
+                options: []
+            };
+            
+            try {
+                let result;
+                if (questionId) {
+                    // Update existing question
+                    result = await window.apiService.updateQuestion(questionId, questionData);
+                } else {
+                    // Create new question
+                    result = await window.apiService.createQuestion(questionData);
+                }
+                
                 if (result.success) {
-                    Toast.success(result.message || 'Question saved successfully');
-                    Modal.hide('questionModal');
+                    Swal.fire('Success', result.message || 'Question saved successfully', 'success');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
+                    if (modal) modal.hide();
                     questionForm.reset();
                     questionsTable.ajax.reload();
                 } else {
-                    Toast.error(result.message || 'Failed to save question');
+                    Swal.fire('Error', result.message || 'Failed to save question', 'error');
                 }
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error:', error);
-                Toast.error('An error occurred while saving the question');
-            });
+                Swal.fire('Error', 'An error occurred while saving the question', 'error');
+            }
         });
     }
 }

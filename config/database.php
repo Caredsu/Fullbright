@@ -43,8 +43,8 @@ if ($__mongo_instance === null) {
         
         $options = [
             // Connection timeouts - optimized for Atlas
-            'connectTimeoutMS' => 10000,         // Faster initial connection
-            'serverSelectionTimeoutMS' => 5000,  // Quick server discovery
+            'connectTimeoutMS' => 15000,        // Initial connection timeout
+            'serverSelectionTimeoutMS' => 30000, // MongoDB Atlas needs 30s for server discovery
             'socketTimeoutMS' => 30000,          // Normal socket timeout
             'maxPoolSize' => 50,                 // INCREASED: More connections available
             'minPoolSize' => 10,                 // INCREASED: Keep warm connections

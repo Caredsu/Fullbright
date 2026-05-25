@@ -46,9 +46,9 @@ class NotificationPoller {
             params.append('lastId', this.lastEvaluationId);
         }
 
-        fetch('/teacher-eval/api/check-new-evaluations.php?' + params.toString(), {
+        fetch('http://localhost:3001/api/evaluations/check-new?' + params.toString(), {
             method: 'GET',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
                 'Cache-Control': 'no-cache'
@@ -102,9 +102,9 @@ class NotificationPoller {
         console.log('📱 showNotification() triggered');
         
         // Fetch the latest evaluation details
-        fetch('/teacher-eval/api/check-new-evaluations.php?includeDetails=1', {
+        fetch('http://localhost:3001/api/evaluations/check-new?includeDetails=1', {
             method: 'GET',
-            credentials: 'same-origin',
+            credentials: 'include',
             headers: {
                 'Accept': 'application/json',
                 'Cache-Control': 'no-cache'

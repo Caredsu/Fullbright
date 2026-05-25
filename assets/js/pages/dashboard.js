@@ -86,9 +86,8 @@ class DashboardPoller {
             return;
         }
         
-        // Use absolute path - more reliable than relative URL
-        const baseUrl = window.location.pathname.includes('/teacher-eval') ? '/teacher-eval' : '';
-        const url = `${baseUrl}/api/check-new-evaluations.php?lastId=${this.lastEvalId || ''}`;
+        // Use Node.js backend API
+        const url = `http://localhost:3001/api/evaluations/check-new?lastId=${this.lastEvalId || ''}`;
         
         fetch(url, { 
             method: 'GET',

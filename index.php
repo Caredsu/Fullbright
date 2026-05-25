@@ -45,56 +45,13 @@ if (strpos($request, 'pwa') === 0 || strpos($request, 'pwa/') === 0) {
     exit;
 }
 
-// Store the original request path globally for API files to access
-// This is needed because getIdFromPath() may be unreliable after .htaccess rewrite
+// Store the original request path globally
+// This is needed for real-time features and other server-side functionality
 global $ORIGINAL_REQUEST_PATH;
 $ORIGINAL_REQUEST_PATH = $request;
 
 // Route the request
-if (strpos($request, 'api/') === 0) {
-    $path = substr($request, 4); // Remove 'api/' prefix
-    
-    // Extract the endpoint - remove .php extension if present
-    $endpoint = explode('/', $path)[0];
-    $endpoint = str_replace('.php', '', $endpoint);  // Remove .php extension
-
-    // Route to appropriate API file
-    switch ($endpoint) {
-        case 'login':
-            require_once __DIR__ . '/api/login.php';
-            break;
-        case 'teachers':
-            require_once __DIR__ . '/api/teachers.php';
-            break;
-        case 'questions':
-            require_once __DIR__ . '/api/questions.php';
-            break;
-        case 'evaluations':
-            require_once __DIR__ . '/api/evaluations.php';
-            break;
-        case 'departments':
-            require_once __DIR__ . '/api/departments.php';
-            break;
-        case 'check-evaluated-teachers':
-            require_once __DIR__ . '/api/check-evaluated-teachers.php';
-            break;
-        case 'pwa-debug':
-            require_once __DIR__ . '/api/pwa-debug.php';
-            break;
-        case 'tam-survey':
-            require_once __DIR__ . '/api/tam-survey.php';
-            break;
-        default:
-            sendError('Endpoint not found', 404);
-    }
-} elseif ($request === 'api') {
-    // Handle base API path - return health check
-    sendSuccess([
-        'status' => 'ok',
-        'version' => '1.0.0',
-        'timestamp' => date('Y-m-d H:i:s')
-    ], 'API is running', 200);
-} elseif ($request === '' || $request === 'index.html') {
+if ($request === '' || $request === 'index.html') {
     // Serve Flutter app - index.html
     $indexFile = __DIR__ . '/index.html';
     if (file_exists($indexFile)) {

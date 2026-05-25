@@ -98,55 +98,35 @@ export default function Dashboard() {
 
   const fetchTeachersData = useCallback(async () => {
     try {
-      const response = await api.get('teachers.php');
-      if (response.data.success) {
-        const teachersData = response.data.teachers || response.data.data || [];
+      console.log('🔍 Fetching teachers...');
+      const response = await api.get('teachers');
+      console.log('✅ Teachers response:', response.data);
+      if (response.data.success || response.data.data) {
+        // Backend returns nested structure: data.data.data (array)
+        const teachersData = response.data.data?.data || response.data.teachers || response.data.data || [];
         return teachersData.map(t => ({
-          id: t.id,
+          id: t._id || t.id,
           name: [t.first_name, t.middle_name, t.last_name]
             .filter(Boolean)
             .join(' ') || 'Unnamed Teacher',
           email: t.email,
           department: t.department,
-          picture_url: t.picture,
+          picture_url: t.picture || t.profileImage,
           status: t.status
         }));
       }
       throw new Error(response.data.message || 'Failed to load teachers');
     } catch (err) {
+      console.error('❌ Teachers fetch error:', err.message, err.response?.status);
       throw err;
     }
   }, []);
 
   // Fetch evaluated teachers for current student
   const fetchEvaluatedTeachers = useCallback(async () => {
-    try {
-      const studentId = user?.student_number || localStorage.getItem('student_number');
-      const url = studentId 
-        ? `check-evaluated-teachers.php?student_id=${encodeURIComponent(studentId)}`
-        : 'check-evaluated-teachers.php';
-      
-      const response = await api.get(url);
-      console.log('📊 Evaluated Teachers Response:', response.data);
-      
-      if (response.data.success && response.data.data) {
-        const evaluatedList = response.data.data.evaluated_teachers || [];
-        console.log('📋 Evaluated List:', evaluatedList);
-        
-        const evaluatedIds = evaluatedList.map(t => {
-          const id = t._id || t.id;
-          console.log('ID extracted:', id, 'from:', t);
-          return id;
-        });
-        
-        console.log('✅ Evaluated IDs:', evaluatedIds);
-        setEvaluatedTeachers(evaluatedIds);
-      }
-    } catch (err) {
-      console.error('❌ Failed to fetch evaluated teachers:', err);
-      // Silently fail - don't block the dashboard
-    }
-  }, [user]);
+    // Skip for now - endpoint not available on new backend
+    console.log('⏭️ Evaluated teachers check skipped');
+  }, []);
 
   // Use local cache for teachers (5 minute cache)
   const { data: cachedTeachers, loading: cacheLoading, error: cacheError } = useLocalCache(
@@ -155,22 +135,30 @@ export default function Dashboard() {
     5 * 60 * 1000
   );
 
+  // Update state from cache - separate from side effects
   useEffect(() => {
     setTeachers(cachedTeachers || []);
     setLoading(cacheLoading);
     if (cacheError) {
       setError(cacheError);
     }
-    if (cachedTeachers && cachedTeachers.length > 0) {
+  }, [cachedTeachers, cacheLoading, cacheError]);
+
+  // Handle side effects after teachers are loaded
+  useEffect(() => {
+    if (teachers && teachers.length > 0) {
       loadDraftInfo();
       fetchEvaluatedTeachers();
     }
-  }, [cachedTeachers, cacheLoading, cacheError, loadDraftInfo, fetchEvaluatedTeachers]);
+  }, [teachers]);
 
   const fetchTeachers = async () => {
     setLoading(true);
     setError('');
     try {
+      // Clear cache to force fresh fetch
+      localStorage.removeItem('cache_teachers_list');
+      localStorage.removeItem('cache_teachers_list_time');
       const data = await fetchTeachersData();
       setTeachers(data);
       // Update cache
@@ -352,6 +340,15 @@ export default function Dashboard() {
       <div className="filter-section">
         <div className="filter-header">
           <span className="filter-label">Filter by Department:</span>
+          <button
+            onClick={fetchTeachers}
+            disabled={loading}
+            className="refresh-btn"
+            title="Refresh teacher list"
+            aria-label="Refresh teacher list"
+          >
+            <RotateCw size={18} className={loading ? 'spinning' : ''} />
+          </button>
         </div>
         <div className="department-filters" role="group" aria-label="Filter teachers by department">
           {DEPARTMENTS.map(dept => (

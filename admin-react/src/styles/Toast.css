@@ -1,0 +1,51 @@
+/* Toast Animations */
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.toast-notification {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.toast-notification.removing {
+  animation: slideOutToRight 0.3s ease-in;
+}
+
+.animate-in {
+  animation: slideInFromRight 0.3s ease-out;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+.slide-in-from-right-4 {
+  transform: translateX(0);
+}

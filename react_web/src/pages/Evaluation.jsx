@@ -49,9 +49,9 @@ export default function Evaluation() {
   const fetchData = async () => {
     try {
       const [teacherRes, questionsRes, evaluatedRes] = await Promise.all([
-        api.get(`teachers.php?id=${teacherId}`),
-        api.get('questions.php'),
-        api.get('check-evaluated-teachers.php')
+        api.get(`teachers/${teacherId}`),
+        api.get('questions'),
+        api.get('evaluations')
       ]);
 
       // Handle teacher response - data is directly the teacher object
@@ -61,9 +61,9 @@ export default function Evaluation() {
 
       // Check if this teacher is already evaluated
       if (evaluatedRes.data.success && evaluatedRes.data.data) {
-        const evaluatedTeachers = evaluatedRes.data.data.evaluated_teachers || [];
-        const isEvaluated = evaluatedTeachers.some(t => 
-          (t._id && t._id === teacherId) || (t.id && t.id === teacherId)
+        const evaluationsList = evaluatedRes.data.data.data || [];
+        const isEvaluated = evaluationsList.some(e => 
+          (e.teacher_id && e.teacher_id === teacherId) || (e.teacher_id && e.teacher_id.toString() === teacherId)
         );
         if (isEvaluated) {
           setIsAlreadyEvaluated(true);
@@ -74,7 +74,7 @@ export default function Evaluation() {
 
       // Handle questions response - data is an array of questions
       if (questionsRes.data.success) {
-        const questionsList = questionsRes.data.data || [];
+        const questionsList = questionsRes.data.data.data || [];
         console.log('📋 Questions fetched from API:', questionsList);
         console.log('🎯 First question rating_scale:', questionsList[0]?.rating_scale);
         setQuestions(questionsList);
@@ -249,7 +249,7 @@ export default function Evaluation() {
         payload.negative_feedback = negativeFeedback.trim();
       }
 
-      const response = await api.post('evaluations.php', payload);
+      const response = await api.post('evaluations', payload);
 
       if (response.data.success) {
         clearDraft();

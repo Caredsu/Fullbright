@@ -2,17 +2,21 @@ import axios from 'axios';
 
 // Determine API base URL based on environment
 const getAPIBaseURL = () => {
-  // For development (localhost)
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  // For development (localhost or local network)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.startsWith('192.168')) {
     if (window.location.port === '5173' || window.location.port === '5174') {
-      // Vite dev server
-      return `http://${window.location.hostname}:80/teacher-eval/api/`;
+      // Vite dev server - connect to Node.js backend
+      const url = `http://${window.location.hostname}:3001/api/`;
+      console.log('🚀 Using Node.js backend:', url);
+      return url;
     }
     // Apache/XAMPP
+    console.log('🚀 Using Apache/XAMPP backend: /teacher-eval/api/');
     return '/teacher-eval/api/';
   }
   
   // For production (Vercel) - use dedicated Render API service
+  console.log('🚀 Using Production backend: https://teacher-eval-api.onrender.com/api/');
   return 'https://teacher-eval-api.onrender.com/api/';
 };
 
