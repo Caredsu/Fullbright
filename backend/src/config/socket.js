@@ -12,7 +12,9 @@ export const initializeSocket = (httpServer) => {
         'http://localhost:3003',
         'http://localhost:3004', // Admin React app
         'http://localhost:5173', // Vite dev server
-        'http://localhost:3000'  // React web app
+        'http://localhost:3000',  // React web app
+        'https://fullbright.vercel.app',
+        'https://fullbright-bfpx.vercel.app'
       ],
       credentials: true
     }
