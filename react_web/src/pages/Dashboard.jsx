@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, RotateCw, ArrowLeft, Search, AlertCircle } from 'lucide-react';
+import { LogOut, RotateCw, ArrowLeft, Search, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api, { getErrorMessage } from '../services/api';
 import { useOfflineDetection, useLocalCache } from '../hooks/useOfflineDetection';
@@ -468,12 +468,15 @@ export default function Dashboard() {
       <nav className="bottom-nav" role="navigation" aria-label="Bottom navigation">
         <button 
           className="bottom-nav-btn" 
-          title="Home" 
-          onClick={() => window.location.reload()}
-          aria-label="Go to home page"
+          title="Logout" 
+          onClick={() => {
+            logout();
+            navigate('/');
+          }}
+          aria-label="Logout and go to home page"
         >
-          <Home size={24} className="nav-icon" aria-hidden="true" />
-          <span className="nav-label">Home</span>
+          <LogOut size={24} className="nav-icon" aria-hidden="true" />
+          <span className="nav-label">Logout</span>
         </button>
         <button 
           className="bottom-nav-btn" 
