@@ -4,11 +4,17 @@ import { requireLogin } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// Login
+// Login (admin/staff)
 router.post('/login', authController.login);
 
 // Logout
 router.post('/logout', authController.logout);
+
+// 🔄 Refresh access token (for both admin and student)
+router.post('/refresh', authController.refreshToken);
+
+// 🎓 Student direct access with JWT
+router.post('/student-login', authController.studentLogin);
 
 // Get current user
 router.get('/me', requireLogin, authController.getCurrentUser);

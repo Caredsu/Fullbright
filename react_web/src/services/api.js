@@ -33,6 +33,23 @@ const api = axios.create({
   }
 });
 
+// Track if we're currently refreshing token (prevent multiple refresh attempts)
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  isRefreshing = false;
+  failedQueue = [];
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   config => {
@@ -45,14 +62,69 @@ api.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling and token refresh
 api.interceptors.response.use(
   response => response,
   error => {
-    // Handle 401 Unauthorized
-    if (error.response?.status === 401) {
-      localStorage.clear();
-      window.location.href = '/';
+    const originalRequest = error.config;
+
+    // Handle 401 Unauthorized - try to refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      // Try to refresh the token
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        return api.post('/auth/refresh', { refreshToken })
+          .then(res => {
+            const { token: newAccessToken } = res.data;
+            localStorage.setItem('auth_token', newAccessToken);
+            
+            // Update original request with new token
+            originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
+            
+            // Process queued requests with new token
+            processQueue(null, newAccessToken);
+            
+            // Retry original request
+            return api(originalRequest);
+          })
+          .catch(err => {
+            console.log('🔴 Token refresh failed - logging out');
+            processQueue(err, null);
+            
+            // Clear auth data and redirect to login
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user_data');
+            localStorage.removeItem('student_number');
+            
+            window.location.href = '/';
+            return Promise.reject(err);
+          });
+      } else {
+        // No refresh token available - force logout
+        console.log('🔴 No refresh token available - logging out');
+        processQueue(new Error('No refresh token'), null);
+        
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('student_number');
+        
+        window.location.href = '/';
+        return Promise.reject(error);
+      }
     }
     
     // Enhance error object with user-friendly message

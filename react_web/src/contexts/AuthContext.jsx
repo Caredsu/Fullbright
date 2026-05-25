@@ -31,23 +31,34 @@ export const AuthProvider = ({ children }) => {
   const login = async (identifier, password = null) => {
     // Student access - if only one parameter or password is null, treat as student number
     if (password === null) {
-      // Direct student access - no authentication required
-      const studentData = {
-        student_number: identifier,
-        role: 'student'
-      };
-      
-      const studentToken = 'student_' + identifier + '_' + Date.now();
-      
-      setToken(studentToken);
-      setUser(studentData);
-      setIsAuthenticated(true);
-      
-      localStorage.setItem('auth_token', studentToken);
-      localStorage.setItem('user_data', JSON.stringify(studentData));
-      localStorage.setItem('student_number', identifier);
-      
-      return { success: true };
+      // Direct student access using JWT
+      try {
+        const response = await api.post('auth/student-login', { 
+          student_number: identifier
+        });
+
+        if (response.data.success) {
+          const { token: accessToken, refreshToken, user: userData } = response.data;
+          
+          setToken(accessToken);
+          setUser(userData || { student_number: identifier, role: 'student' });
+          setIsAuthenticated(true);
+          
+          localStorage.setItem('auth_token', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+          }
+          localStorage.setItem('user_data', JSON.stringify(userData || { student_number: identifier, role: 'student' }));
+          localStorage.setItem('student_number', identifier);
+          
+          return { success: true };
+        } else {
+          throw new Error(response.data.message || 'Access denied');
+        }
+      } catch (error) {
+        const message = error.response?.data?.message || error.message || 'Access failed';
+        return { success: false, error: message };
+      }
     }
     
     // Admin login - authenticate with email/password
@@ -57,14 +68,17 @@ export const AuthProvider = ({ children }) => {
         password: password
       });
       
-      if (response.data.success && response.data.token) {
-        const { token: newToken, user: userData } = response.data;
+      if (response.data.success) {
+        const { token: accessToken, refreshToken, user: userData } = response.data;
         
-        setToken(newToken);
+        setToken(accessToken);
         setUser(userData || { username: identifier });
         setIsAuthenticated(true);
         
-        localStorage.setItem('auth_token', newToken);
+        localStorage.setItem('auth_token', accessToken);
+        if (refreshToken) {
+          localStorage.setItem('refresh_token', refreshToken);
+        }
         localStorage.setItem('user_data', JSON.stringify(userData || { username: identifier }));
         
         return { success: true };
@@ -82,12 +96,32 @@ export const AuthProvider = ({ children }) => {
       sessionStorage.removeItem(`dashboard_welcome_shown_${user.student_number}`);
     }
     sessionStorage.removeItem('dashboard_welcome_shown');
+    
+    // 🔄 Notify other tabs of logout (multi-tab sync)
+    try {
+      localStorage.setItem('auth_session_event', JSON.stringify({
+        action: 'logout',
+        timestamp: Date.now(),
+        student_number: user?.student_number
+      }));
+    } catch (err) {
+      console.warn('Could not sync logout to other tabs:', err);
+    }
+
+    // Clear all sensitive authentication data
     setToken(null);
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('refresh_token'); // Clear JWT refresh token
     localStorage.removeItem('user_data');
     localStorage.removeItem('student_number');
+    localStorage.removeItem('evaluation_draft'); // Clear draft on logout
+    
+    // Clear any device ID if it's a logout (not just session expiry)
+    // Keep device ID for new login: localStorage.removeItem('teacher_eval_device_id');
+    
+    console.log('✅ Logout complete - all sensitive data cleared');
   };
 
   const value = {
