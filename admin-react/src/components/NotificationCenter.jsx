@@ -9,9 +9,12 @@ export default function NotificationCenter() {
   const [showPanel, setShowPanel] = useState(false);
 
   useEffect(() => {
-    // Connect to Socket.IO
+    // Connect to Socket.IO using environment variable or default to localhost
     const adminId = localStorage.getItem('adminId');
-    socketService.connect('http://localhost:3001', adminId);
+    const socketUrl = import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL 
+      : 'http://localhost:3001';
+    socketService.connect(socketUrl, adminId);
 
     // Listen for new evaluations
     socketService.onNewEvaluation((data) => {
