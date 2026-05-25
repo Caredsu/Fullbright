@@ -126,10 +126,15 @@ function Results() {
   };
 
   const calculateAverageRating = (evaluation) => {
-    // Ensure answers is an array
-    const answers = Array.isArray(evaluation.answers) ? evaluation.answers : [];
-    if (answers.length === 0) return 0;
-    const ratings = answers.map(a => a.rating || 0);
+    // Handle answers as object: { question_id: rating }
+    const answers = evaluation.answers;
+    if (!answers || typeof answers !== 'object') return 0;
+    
+    const ratings = Object.values(answers)
+      .filter(rating => rating !== null && rating !== undefined)
+      .map(rating => parseFloat(rating) || 0);
+    
+    if (ratings.length === 0) return 0;
     return Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10;
   };
 
@@ -387,18 +392,18 @@ function Results() {
                     </tr>
                   </TableHeader>
                   <TableBody>
-                    {selectedEval.answers && selectedEval.answers.length > 0 ? (
-                      selectedEval.answers.map((answer, idx) => (
+                    {selectedEval.answers && typeof selectedEval.answers === 'object' && Object.keys(selectedEval.answers).length > 0 ? (
+                      Object.entries(selectedEval.answers).map(([questionId, rating], idx) => (
                         <TableRow key={idx}>
                           <TableCell>
-                            {answer.question_text || getQuestionText(answer.question_id) || 'Unknown Question'}
+                            {getQuestionText(questionId) || 'Unknown Question'}
                           </TableCell>
                           <TableCell>
                             <Badge 
                               style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
                               className="text-white"
                             >
-                              {answer.rating || 'N/A'}/5
+                              {rating || 'N/A'}/5
                             </Badge>
                           </TableCell>
                         </TableRow>
