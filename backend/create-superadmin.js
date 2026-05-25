@@ -8,12 +8,12 @@ await connectDB().then(async (db) => {
     const password = 'superadmin123';
     const hash = await bcrypt.hash(password, 10);
     
-    // Check if superadmin exists
-    const existing = await db.collection('users').findOne({ username: 'superadmin' });
+    // Check if superadmin exists (in admins collection for auth endpoint)
+    const existing = await db.collection('admins').findOne({ username: 'superadmin' });
     
     if (existing) {
       console.log('Superadmin user exists, updating password...');
-      const result = await db.collection('users').updateOne(
+      const result = await db.collection('admins').updateOne(
         { username: 'superadmin' },
         { $set: { password: hash, updated_at: new Date() } }
       );
@@ -21,7 +21,7 @@ await connectDB().then(async (db) => {
       console.log('Updated records:', result.modifiedCount);
     } else {
       console.log('Creating new superadmin user...');
-      const result = await db.collection('users').insertOne({
+      const result = await db.collection('admins').insertOne({
         username: 'superadmin',
         password: hash,
         email: 'superadmin@system.local',
