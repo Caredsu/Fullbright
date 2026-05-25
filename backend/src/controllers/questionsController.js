@@ -5,6 +5,19 @@ const objectIdToString = (id) => {
   return id instanceof ObjectId ? id.toString() : id;
 };
 
+// Convert options array to rating_scale object for 1-5 rating system
+const optionsToRatingScale = (options) => {
+  if (!Array.isArray(options)) return {};
+  
+  const ratingScale = {};
+  options.forEach((option, index) => {
+    if (option) {
+      ratingScale[index + 1] = option;
+    }
+  });
+  return ratingScale;
+};
+
 export const getQuestions = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, category } = req.query;
@@ -41,6 +54,7 @@ export const getQuestions = async (req, res, next) => {
             question_type: q.type || 'rating',
             category: q.category || '',
             options: q.options || [],
+            rating_scale: optionsToRatingScale(q.options), // Convert options to rating_scale object
             criteria: q.options || [],
             status: q.status || 'active',
             required: q.required || false,
@@ -88,6 +102,7 @@ export const getQuestionById = async (req, res, next) => {
       question_type: question.type || 'rating',
       category: question.category || '',
       options: question.options || [],
+      rating_scale: optionsToRatingScale(question.options), // Convert options to rating_scale object
       criteria: question.options || [],
       status: question.status || 'active',
       required: question.required || false,

@@ -323,8 +323,11 @@ function Results() {
                 key: 'responses',
                 label: 'Responses',
                 render: (row) => {
-                  const answersArray = Array.isArray(row.answers) ? row.answers : [];
-                  return <Badge variant="secondary">{answersArray.length}</Badge>;
+                  // Handle answers as object: { question_id: rating }
+                  const answersCount = (row.answers && typeof row.answers === 'object') 
+                    ? Object.keys(row.answers).length 
+                    : 0;
+                  return <Badge variant="secondary">{answersCount}</Badge>;
                 },
               },
             ]}
