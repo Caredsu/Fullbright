@@ -1,5 +1,11 @@
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm ci --prefer-offline --no-audit"
+  "installCommand": "npm ci --prefer-offline --no-audit",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
 }
