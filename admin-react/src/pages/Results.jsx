@@ -317,9 +317,10 @@ function Results() {
               {
                 key: 'responses',
                 label: 'Responses',
-                render: (row) => (
-                  <Badge variant="secondary">{row.answers ? row.answers.length : 0}</Badge>
-                ),
+                render: (row) => {
+                  const answersArray = Array.isArray(row.answers) ? row.answers : [];
+                  return <Badge variant="secondary">{answersArray.length}</Badge>;
+                },
               },
             ]}
             data={evaluations}
