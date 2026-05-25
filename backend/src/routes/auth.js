@@ -16,6 +16,9 @@ router.post('/refresh', authController.refreshToken);
 // 🎓 Student direct access with JWT
 router.post('/student-login', authController.studentLogin);
 
+// 🔐 Change password (requires authentication)
+router.post('/change-password', requireLogin, authController.changePassword);
+
 // Get current user
 router.get('/me', requireLogin, authController.getCurrentUser);
 

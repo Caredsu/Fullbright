@@ -310,3 +310,84 @@ export const studentLogin = async (req, res, next) => {
     next(error);
   }
 };
+
+// 🔐 Change admin password
+export const changePassword = async (req, res, next) => {
+  try {
+    const { current_password, new_password, confirm_password } = req.body;
+    
+    // Validate input
+    if (!current_password || !new_password || !confirm_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password, new password, and confirmation are required'
+      });
+    }
+
+    if (new_password !== confirm_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'New passwords do not match'
+      });
+    }
+
+    if (new_password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    // Get user ID from session or JWT
+    const userId = req.session?.user_id;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    // Fetch admin user
+    const adminsCollection = getCollection('admins');
+    const admin = await adminsCollection.findOne({
+      _id: new ObjectId(userId)
+    });
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: 'Admin user not found'
+      });
+    }
+
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(current_password, admin.password);
+    if (!passwordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(new_password, 10);
+
+    // Update password
+    await adminsCollection.updateOne(
+      { _id: new ObjectId(userId) },
+      { 
+        $set: { 
+          password: hashedPassword,
+          updated_at: new Date()
+        }
+      }
+    );
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
