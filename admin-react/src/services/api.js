@@ -40,6 +40,12 @@ export const authAPI = {
   changePassword: (data) => api.post('/auth/change-password', data)
 };
 
+// Settings
+export const settingsAPI = {
+  get: () => api.get('/settings'),
+  update: (data) => api.put('/settings', data)
+};
+
 // Users
 export const usersAPI = {
   getAll: (page = 1, limit = 10) => api.get(`/users?page=${page}&limit=${limit}`),

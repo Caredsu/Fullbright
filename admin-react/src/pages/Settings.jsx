@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import { authAPI } from '../services/api';
+import axios from 'axios';
 
 function Settings() {
-  const [settings, setSettings] = useState({
-    eval_enabled: '1',
-    min_rating: '1',
-    max_rating: '5'
-  });
+  const [evalEnabled, setEvalEnabled] = useState('1');
+  const [isLoading, setIsLoading] = useState(true);
 
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -22,11 +20,45 @@ function Settings() {
   const [errorMsg, setErrorMsg] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  const handleChange = (field, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Load settings on mount
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const response = await axios.get(
+        import.meta.env.VITE_API_URL 
+          ? `${import.meta.env.VITE_API_URL}/api/settings`
+          : 'http://localhost:3001/api/settings'
+      );
+      if (response.data.data) {
+        setEvalEnabled(response.data.data.eval_enabled ? '1' : '0');
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEvalToggle = async (value) => {
+    setEvalEnabled(value);
+    try {
+      await axios.put(
+        import.meta.env.VITE_API_URL 
+          ? `${import.meta.env.VITE_API_URL}/api/settings`
+          : 'http://localhost:3001/api/settings',
+        { eval_enabled: value === '1' },
+        { withCredentials: true, headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` } }
+      );
+      setSuccessMsg('Evaluation status updated successfully');
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update settings';
+      setErrorMsg(errorMessage);
+      setTimeout(() => setErrorMsg(''), 3000);
+    }
   };
 
   const handlePasswordChange = (field, value) => {
@@ -75,7 +107,6 @@ function Settings() {
     }
   };
 
-
   return (
     <div>
       <div className="mb-6">
@@ -97,38 +128,16 @@ function Settings() {
             <select
               id="eval_enabled"
               className="w-full rounded-md border border-input px-3 py-2"
-              value={settings.eval_enabled}
-              onChange={(e) => handleChange('eval_enabled', e.target.value)}
+              value={evalEnabled}
+              onChange={(e) => handleEvalToggle(e.target.value)}
+              disabled={isLoading}
             >
               <option value="1">Enabled</option>
               <option value="0">Disabled</option>
             </select>
-          </div>
-
-          <div>
-            <Label htmlFor="min_rating">Minimum Rating Scale</Label>
-            <Input
-              id="min_rating"
-              type="number"
-              min="1"
-              max="10"
-              value={settings.min_rating}
-              onChange={(e) => handleChange('min_rating', e.target.value)}
-              placeholder="Enter minimum rating"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="max_rating">Maximum Rating Scale</Label>
-            <Input
-              id="max_rating"
-              type="number"
-              min="1"
-              max="10"
-              value={settings.max_rating}
-              onChange={(e) => handleChange('max_rating', e.target.value)}
-              placeholder="Enter maximum rating"
-            />
+            <p className="text-sm text-muted-foreground mt-2">
+              When disabled, evaluations will be blocked on all platforms (Flutter, React Web, etc.)
+            </p>
           </div>
         </CardContent>
       </Card>

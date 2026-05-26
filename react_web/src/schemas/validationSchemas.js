@@ -20,7 +20,7 @@ export const studentAccessSchema = z.object({
         const department = cleaned.substring(4, 6);
         
         const year = parseInt(schoolYear);
-        if (year < 20 || year > 29) return false;
+        if (year < 22 || year > 26) return false;
         if (semester !== '01' && semester !== '02') return false;
         if (department < '01' || department > '08') return false;
         

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import 'teacher_list_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -9,17 +10,36 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final AuthService _authService = AuthService();
+
   @override
   void initState() {
     super.initState();
-    _navigateToTeacherList();
+    _navigateBasedOnAuth();
   }
 
-  _navigateToTeacherList() async {
+  _navigateBasedOnAuth() async {
+    // Initialize AuthService first
+    await _authService.initialize();
+
     // Simulate loading time
     await Future.delayed(const Duration(seconds: 2), () {});
-    if (mounted) {
+
+    if (!mounted) return;
+
+    // Check auth state and navigate accordingly
+    if (_authService.isAuthenticated()) {
+      // User is already logged in, go to teacher list
+      print('✅ User already authenticated, navigating to teacher list');
       Navigator.of(context).pushReplacementNamed('/teacher-list');
+    } else if (_authService.isConsentGiven()) {
+      // User has accepted privacy, go to login
+      print('✅ Privacy consent given, navigating to student login');
+      Navigator.of(context).pushReplacementNamed('/login');
+    } else {
+      // First time user, go to privacy screen
+      print('🔄 First time user, navigating to data privacy screen');
+      Navigator.of(context).pushReplacementNamed('/privacy');
     }
   }
 

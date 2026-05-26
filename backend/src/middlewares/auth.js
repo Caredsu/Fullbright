@@ -1,3 +1,5 @@
+import jwt from 'jsonwebtoken';
+
 export const requireLogin = (req, res, next) => {
   // Check session first (for server-to-server requests)
   if (req.session && req.session.user_id) {
@@ -9,10 +11,24 @@ export const requireLogin = (req, res, next) => {
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
 
   if (token && token.length > 0) {
-    // Token exists, store it in session for permission checks
-    req.session = req.session || {};
-    req.session.user_id = token;
-    return next();
+    try {
+      // Decode JWT token to extract user ID
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      
+      // Store decoded user info in session for permission checks
+      req.session = req.session || {};
+      req.session.user_id = decoded.id;
+      req.session.username = decoded.username;
+      req.session.admin_role = decoded.role;
+      
+      return next();
+    } catch (error) {
+      console.error('Token verification failed:', error.message);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token'
+      });
+    }
   }
 
   return res.status(401).json({

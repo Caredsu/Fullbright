@@ -347,6 +347,14 @@ export const changePassword = async (req, res, next) => {
       });
     }
 
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format'
+      });
+    }
+
     // Fetch admin user
     const adminsCollection = getCollection('admins');
     const admin = await adminsCollection.findOne({

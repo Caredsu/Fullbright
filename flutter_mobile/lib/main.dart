@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
+import 'screens/data_privacy_screen.dart';
+import 'screens/student_login_screen.dart';
 import 'screens/teacher_list_screen.dart';
 
 void main() {
@@ -20,6 +22,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const SplashScreen(),
       routes: {
+        '/privacy': (context) => const DataPrivacyScreen(),
+        '/login': (context) => const StudentLoginScreen(),
         '/teacher-list': (context) => const TeacherListScreen(),
       },
     );

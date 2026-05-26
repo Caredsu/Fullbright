@@ -19,6 +19,7 @@ import analyticsRoutes from './src/routes/analytics.js';
 import departmentsRoutes from './src/routes/departments.js';
 import surveysRoutes from './src/routes/surveys.js';
 import uploadRoutes from './src/routes/upload.js';
+import settingsRoutes from './src/routes/settings.js';
 
 dotenv.config();
 
@@ -96,7 +97,7 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
   store: new MongoStore({
-    mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/teacher_eval',
+    mongoUrl: process.env.MONGODB_URI,
     touchAfter: 24 * 3600
   }),
   cookie: {
@@ -117,6 +118,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/surveys', surveysRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

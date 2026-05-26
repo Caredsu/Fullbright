@@ -8,14 +8,19 @@ let db;
 
 export const connectDB = async () => {
   try {
+    // Require MongoDB Atlas - no local fallback
+    if (!process.env.MONGODB_URI) {
+      throw new Error('❌ MONGODB_URI is required! Please set your MongoDB Atlas connection string in .env');
+    }
+
     const options = {
-      serverSelectionTimeoutMS: 30000,  // MongoDB Atlas needs more time
+      serverSelectionTimeoutMS: 30000,  // MongoDB Atlas optimization
       connectTimeoutMS: 15000,
       socketTimeoutMS: 45000,
       maxPoolSize: 50,
       minPoolSize: 10
     };
-    client = new MongoClient(process.env.MONGODB_URI || 'mongodb://localhost:27017/teacher_eval', options);
+    client = new MongoClient(process.env.MONGODB_URI, options);
     await client.connect();
     db = client.db('teacher_eval');
     console.log('✅ Connected to MongoDB');

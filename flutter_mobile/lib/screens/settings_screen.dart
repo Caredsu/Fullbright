@@ -93,31 +93,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: SelectableText(
-                ApiService.baseUrl,
-                style: const TextStyle(fontSize: 12, fontFamily: 'monospace'),
+              child: Text(
+                '••••••••••••••••',
+                style: const TextStyle(fontSize: 12, fontFamily: 'monospace', letterSpacing: 2),
               ),
             ),
             const SizedBox(height: 24),
             const Text(
-              'Available URLs:',
+              'Quick Options:',
               style: TextStyle(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
             _urlOption(
-              'Production (Render)',
+              'Production',
               'https://fullbright-college-1.onrender.com',
             ),
             _urlOption(
-              'Local Network (192.168.1.100)',
+              'Local Network (Option 1)',
               'http://192.168.1.100',
             ),
             _urlOption(
-              'Local Network (192.168.1.101)',
+              'Local Network (Option 2)',
               'http://192.168.1.101',
             ),
             _urlOption(
-              'Android Emulator',
+              'Emulator',
               'http://10.0.2.2',
             ),
             const SizedBox(height: 24),

@@ -15,8 +15,11 @@ export const getDashboard = async (req, res, next) => {
     // Count total evaluations
     const totalEvaluations = await evaluationsCollection.countDocuments();
 
-    // Calculate average rating
+    // Calculate average rating (only count non-null ratings)
     const ratingAggregation = await evaluationsCollection.aggregate([
+      {
+        $match: { rating: { $ne: null } }
+      },
       {
         $group: {
           _id: null,
@@ -64,10 +67,22 @@ export const getDashboard = async (req, res, next) => {
       },
       {
         $lookup: {
-          from: 'users',
-          localField: 'evaluator_id',
+          from: 'admins',
+          localField: 'evaluated_by',
           foreignField: '_id',
           as: 'evaluator'
+        }
+      },
+      // If not found in admins, try users collection
+      {
+        $addFields: {
+          evaluator: {
+            $cond: [
+              { $eq: [{ $size: '$evaluator' }, 0] },
+              [{ username: 'Unknown' }],
+              '$evaluator'
+            ]
+          }
         }
       },
       { $sort: { created_at: -1 } },
@@ -118,8 +133,11 @@ export const getDashboard = async (req, res, next) => {
       }
     });
 
-    // Get rating distribution
+    // Get rating distribution (only non-null ratings)
     const ratingDistribution = await evaluationsCollection.aggregate([
+      {
+        $match: { rating: { $ne: null } }
+      },
       {
         $group: {
           _id: '$rating',
@@ -131,7 +149,7 @@ export const getDashboard = async (req, res, next) => {
 
     const ratingBreakdown = {};
     ratingDistribution.forEach(item => {
-      if (item._id) {
+      if (item._id !== null && item._id !== undefined) {
         ratingBreakdown[`rating_${item._id}`] = item.count;
       }
     });

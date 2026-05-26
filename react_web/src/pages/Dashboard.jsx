@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [showBackOnlineToast, setShowBackOnlineToast] = useState(false);
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
   const [evaluatedTeachers, setEvaluatedTeachers] = useState([]);
+  const [evalEnabled, setEvalEnabled] = useState(true);
+  const [checkingSettings, setCheckingSettings] = useState(true);
   const navigate = useNavigate();
   const { isAuthenticated, logout, user } = useAuth();
   const { isOnline, backOnlineNotification, dismissNotification } = useOfflineDetection();
@@ -33,6 +35,28 @@ export default function Dashboard() {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
+
+  // Check evaluation enabled status
+  useEffect(() => {
+    const checkSettings = async () => {
+      try {
+        const response = await api.get('settings');
+        console.log('📋 Settings response:', response.data);
+        if (response.data.data) {
+          setEvalEnabled(response.data.data.eval_enabled !== false);
+          console.log('📋 Evaluations:', response.data.data.eval_enabled ? 'ENABLED' : 'DISABLED');
+        }
+      } catch (err) {
+        console.error('⚠️ Error checking evaluation status:', err);
+        // Default to enabled if error
+        setEvalEnabled(true);
+      } finally {
+        setCheckingSettings(false);
+      }
+    };
+
+    checkSettings();
+  }, []);
 
   // Show welcome toast on first load for the current authenticated user
   useEffect(() => {
@@ -367,9 +391,43 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Evaluations Disabled Message */}
+      {!checkingSettings && !evalEnabled && (
+        <div className="alert alert-warning" role="alert">
+          <AlertCircle size={20} className="alert-icon" />
+          <div className="alert-content">
+            <h3 className="alert-title">Evaluations Currently Disabled</h3>
+            <p className="alert-message">
+              The administrator has disabled evaluations at this time. Please try again later.
+            </p>
+          </div>
+          <button 
+            onClick={() => setCheckingSettings(true)}
+            className="alert-action"
+          >
+            <RotateCw size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Teachers List */}
       <div className="teachers-list">
-        {filteredTeachers.length > 0 ? (
+        {!checkingSettings && !evalEnabled ? (
+          <div className="no-teachers-message">
+            <AlertCircle size={48} className="no-teachers-icon" />
+            <h3>Evaluations are Disabled</h3>
+            <p>The administrator has disabled evaluations. Please try again later.</p>
+            <button 
+              onClick={() => {
+                setCheckingSettings(true);
+                setTimeout(() => window.location.reload(), 1000);
+              }}
+              className="btn-primary"
+            >
+              Refresh
+            </button>
+          </div>
+        ) : filteredTeachers.length > 0 ? (
           <div className="teachers-grid" role="region" aria-label="Teachers list">
             {filteredTeachers.map(teacher => {
               const isEvaluated = evaluatedTeachers.includes(teacher.id);
