@@ -276,9 +276,16 @@ export default function Evaluation() {
     setError('');
 
     try {
+      // Calculate average rating from responses
+      const ratings = Object.values(responses).filter(r => r > 0);
+      const averageRating = ratings.length > 0 
+        ? parseFloat((ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1))
+        : null;
+
       const payload = {
         teacher_id: teacherId,
         answers: responses,
+        rating: averageRating,
         // Always include valid student_id - never allow anonymous submissions
         student_id: user.student_number
       };
