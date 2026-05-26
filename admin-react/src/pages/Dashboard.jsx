@@ -12,7 +12,17 @@ import { Skeleton } from '../components/ui/Skeleton';
 import { BarChart3, TrendingUp, Users, CheckSquare } from 'lucide-react';
 
 function Dashboard() {
-  const [stats, setStats] = useState(null);
+  const [stats, setStats] = useState({
+    metrics: {
+      totalTeachers: 0,
+      totalEvaluations: 0,
+      averageRating: 0,
+      activeUsers: 0
+    },
+    ratingDistribution: {},
+    evaluationStatus: { completed: 0, in_progress: 0, pending: 0 },
+    recentEvaluations: []
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,17 +30,28 @@ function Dashboard() {
       try {
         const response = await analyticsAPI.getDashboard();
         // Response structure: { success, message, data: { metrics, ... } }
-        setStats(response.data?.data || response.data);
+        console.log('🔍 Analytics API Full Response:', response);
+        
+        // Extract data from response
+        const analyticsData = response.data?.data || response.data;
+        console.log('📊 Extracted analytics data:', analyticsData);
+        console.log('👥 Recent Evaluations:', analyticsData?.recentEvaluations);
+        
+        setStats(analyticsData);
       } catch (err) {
         // If API fails, use default stats
-        console.log('Analytics API not available, using default stats');
+        console.error('❌ Analytics API error:', err);
+        console.log('Using default stats');
         setStats({
           metrics: {
             totalTeachers: 0,
             totalEvaluations: 0,
             averageRating: 0,
             activeUsers: 0
-          }
+          },
+          ratingDistribution: {},
+          evaluationStatus: { completed: 0, in_progress: 0, pending: 0 },
+          recentEvaluations: []
         });
       } finally {
         setLoading(false);
@@ -102,14 +123,16 @@ function Dashboard() {
     
     return (
       <div className="flex items-end gap-4 h-48">
-        {Object.entries(data).map(([rating, count]) => {
-          const percentage = (count / maxCount) * 100;
+        {[1, 2, 3, 4, 5].map((rating) => {
+          const key = `rating_${rating}`;
+          const count = data[key] || 0;
+          const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
           return (
             <div key={rating} className="flex-1 flex flex-col items-center">
-              <div className="w-full bg-gradient-to-t from-blue-400 to-blue-600 rounded-t-lg" style={{ height: `${percentage}%`, minHeight: '20px' }}>
-                <span className="text-xs font-bold text-white mt-1">{count}</span>
+              <div className="w-full bg-gradient-to-t from-blue-400 to-blue-600 rounded-t-lg" style={{ height: `${Math.max(percentage, 5)}%`, minHeight: '20px' }}>
+                {count > 0 && <span className="text-xs font-bold text-white mt-1">{count}</span>}
               </div>
-              <span className="text-xs font-medium mt-2">{rating.replace('rating_', '')}/5</span>
+              <span className="text-xs font-medium mt-2">{rating}/5</span>
             </div>
           );
         })}
@@ -119,6 +142,10 @@ function Dashboard() {
 
   // Status breakdown chart
   const StatusChart = ({ data }) => {
+    if (!data || Object.keys(data).length === 0) {
+      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
+    }
+    
     const total = Object.values(data).reduce((a, b) => a + b, 0);
     if (total === 0) {
       return <p className="text-sm text-muted-foreground">No evaluation data</p>;
@@ -130,15 +157,18 @@ function Dashboard() {
       pending: 'bg-red-500'
     };
 
+    const statuses = ['completed', 'in_progress', 'pending'];
+
     return (
       <div className="space-y-3">
-        {Object.entries(data).map(([status, count]) => {
+        {statuses.map((status) => {
+          const count = data[status] || 0;
           const percentage = (count / total) * 100;
           return (
             <div key={status} className="flex items-center gap-3">
               <div className="flex-1">
                 <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium capitalize">{status.replace('_', ' ')}</span>
+                  <span className="text-sm font-medium capitalize">{status.replace(/_/g, ' ')}</span>
                   <span className="text-sm font-bold">{count}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -161,24 +191,24 @@ function Dashboard() {
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="border-b">
+          <thead className="border-b bg-gray-50">
             <tr>
-              <th className="text-left py-2 px-2">Teacher</th>
-              <th className="text-left py-2 px-2">Evaluator</th>
-              <th className="text-center py-2 px-2">Rating</th>
-              <th className="text-left py-2 px-2">Status</th>
+              <th className="text-left py-3 px-4 font-semibold">Teacher</th>
+              <th className="text-left py-3 px-4 font-semibold">Evaluator</th>
+              <th className="text-center py-3 px-4 font-semibold">Rating</th>
+              <th className="text-left py-3 px-4 font-semibold">Status</th>
             </tr>
           </thead>
           <tbody>
             {evaluations.map((evaluation) => (
-              <tr key={evaluation.id} className="border-b hover:bg-slate-50">
-                <td className="py-3 px-2">{evaluation.teacher_name}</td>
-                <td className="py-3 px-2">{evaluation.evaluator}</td>
-                <td className="py-3 px-2 text-center">
-                  <span className="font-bold text-lg">{evaluation.rating}</span>
-                  <span className="text-gray-500">/5</span>
+              <tr key={evaluation.id} className="border-b hover:bg-slate-50 transition-colors">
+                <td className="py-3 px-4 font-medium">{evaluation.teacher_name}</td>
+                <td className="py-3 px-4">{evaluation.evaluator}</td>
+                <td className="py-3 px-4 text-center">
+                  <span className="font-bold text-lg text-blue-600">{evaluation.rating}</span>
+                  <span className="text-gray-500 text-xs ml-1">/5</span>
                 </td>
-                <td className="py-3 px-2">
+                <td className="py-3 px-4">
                   <Badge 
                     variant="outline"
                     className={
@@ -187,7 +217,7 @@ function Dashboard() {
                       'bg-gray-50 text-gray-700 border-gray-200'
                     }
                   >
-                    {evaluation.status.replace('_', ' ')}
+                    {evaluation.status.replace(/_/g, ' ')}
                   </Badge>
                 </td>
               </tr>
