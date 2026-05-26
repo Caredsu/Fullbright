@@ -14,14 +14,41 @@ class Question {
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
+    // Safely parse category - handle both String and int types
+    int? parseCategory() {
+      final cat = json['category'];
+      if (cat is int) return cat;
+      if (cat is String) {
+        try {
+          return int.parse(cat);
+        } catch (e) {
+          print('⚠️ Failed to parse category "$cat" as int');
+          return null;
+        }
+      }
+      return null;
+    }
+
+    // Safely parse options - handle different formats
+    List<String>? parseOptions() {
+      final opts = json['options'];
+      if (opts is List) {
+        try {
+          return List<String>.from(opts.map((o) => o.toString()));
+        } catch (e) {
+          print('⚠️ Failed to parse options: $e');
+          return null;
+        }
+      }
+      return null;
+    }
+
     return Question(
       id: json['_id'] ?? json['id'] ?? '',
       text: json['question_text'] ?? json['text'] ?? '',
       type: json['question_type'] ?? json['type'] ?? 'rating',
-      options: json['options'] != null
-          ? List<String>.from(json['options'] as List)
-          : null,
-      category: json['category'] as int?,
+      options: parseOptions(),
+      category: parseCategory(),
     );
   }
 
