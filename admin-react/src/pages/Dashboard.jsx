@@ -169,6 +169,47 @@ function Dashboard() {
     );
   };
 
+  // Status breakdown chart - shows only completed and pending (excluding in_progress)
+  const StatusChart = ({ data }) => {
+    if (!data || Object.keys(data).length === 0) {
+      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
+    }
+    
+    const total = (data.completed || 0) + (data.pending || 0);
+    if (total === 0) {
+      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
+    }
+
+    const colors = {
+      completed: 'bg-green-500',
+      pending: 'bg-red-500'
+    };
+
+    const statuses = ['completed', 'pending'];
+
+    return (
+      <div className="space-y-3">
+        {statuses.map((status) => {
+          const count = data[status] || 0;
+          const percentage = (count / total) * 100;
+          return (
+            <div key={status} className="flex items-center gap-3">
+              <div className="flex-1">
+                <div className="flex justify-between mb-1">
+                  <span className="text-sm font-medium capitalize">{status.replace(/_/g, ' ')}</span>
+                  <span className="text-sm font-bold">{count}</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`h-2 rounded-full ${colors[status] || 'bg-blue-500'}`} style={{ width: `${percentage}%` }}></div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Recent evaluations table
   const RecentEvaluationsTable = ({ evaluations, navigate }) => {
     if (!evaluations || evaluations.length === 0) {
@@ -253,6 +294,16 @@ function Dashboard() {
           </CardHeader>
           <CardContent>
             <RatingChart data={stats?.ratingDistribution} />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Evaluation Status</CardTitle>
+            <CardDescription>Breakdown by completion status</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <StatusChart data={stats?.evaluationStatus} />
           </CardContent>
         </Card>
       </div>
