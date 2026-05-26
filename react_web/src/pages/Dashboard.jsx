@@ -329,7 +329,7 @@ export default function Dashboard() {
       </header>
 
       {/* Recent Evaluations Widget */}
-      {recentEvaluations.length > 0 && (
+      {evalEnabled && recentEvaluations.length > 0 && (
         <div className="recent-section">
           <h3 className="recent-title">In Progress</h3>
           <div className="recent-list">
@@ -349,6 +349,7 @@ export default function Dashboard() {
       )}
 
       {/* Search Bar */}
+      {evalEnabled && (
       <div className="search-section">
         <div className="search-bar">
           <input
@@ -366,8 +367,10 @@ export default function Dashboard() {
           </span>
         </div>
       </div>
+      )}
 
       {/* Department Filter with Sort Options */}
+      {evalEnabled && (
       <div className="filter-section">
         <div className="filter-header">
           <span className="filter-label">Filter by Department:</span>
@@ -398,6 +401,7 @@ export default function Dashboard() {
           Showing {filteredTeachers.length} of {teachers.length} teachers
         </p>
       </div>
+      )}
 
       {/* Evaluations Disabled Message */}
       {!checkingSettings && !evalEnabled && (
