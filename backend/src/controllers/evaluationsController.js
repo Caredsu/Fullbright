@@ -222,6 +222,17 @@ export const createEvaluation = async (req, res, next) => {
   try {
     const { teacher_id, questions_responses, rating, feedback, answers, student_id, positive_feedback, negative_feedback } = req.body;
 
+    // Check if evaluations are enabled
+    const settingsCollection = getCollection('settings');
+    const settings = await settingsCollection.findOne({ _id: 'system' });
+    
+    if (settings && settings.eval_enabled === false) {
+      return res.status(403).json({
+        success: false,
+        message: 'Evaluations are currently disabled by the administrator'
+      });
+    }
+
     // Validate student_id - must not be anonymous or empty
     if (!student_id || student_id === 'anonymous' || student_id.trim() === '') {
       return res.status(401).json({
