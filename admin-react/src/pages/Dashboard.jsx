@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { analyticsAPI } from '../services/api';
 import EvaluationsClosedModal from '../components/EvaluationsClosedModal';
 import axios from 'axios';
@@ -9,7 +10,6 @@ import {
   CardTitle,
   CardDescription,
 } from '../components/ui/Card';
-import { Badge } from '../components/ui/Badge';
 import { Skeleton } from '../components/ui/Skeleton';
 import { BarChart3, TrendingUp, Users, CheckSquare } from 'lucide-react';
 
@@ -27,6 +27,7 @@ function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [evalEnabled, setEvalEnabled] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -168,50 +169,8 @@ function Dashboard() {
     );
   };
 
-  // Status breakdown chart
-  const StatusChart = ({ data }) => {
-    if (!data || Object.keys(data).length === 0) {
-      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
-    }
-    
-    const total = Object.values(data).reduce((a, b) => a + b, 0);
-    if (total === 0) {
-      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
-    }
-
-    const colors = {
-      completed: 'bg-green-500',
-      in_progress: 'bg-yellow-500',
-      pending: 'bg-red-500'
-    };
-
-    const statuses = ['completed', 'in_progress', 'pending'];
-
-    return (
-      <div className="space-y-3">
-        {statuses.map((status) => {
-          const count = data[status] || 0;
-          const percentage = (count / total) * 100;
-          return (
-            <div key={status} className="flex items-center gap-3">
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium capitalize">{status.replace(/_/g, ' ')}</span>
-                  <span className="text-sm font-bold">{count}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full ${colors[status] || 'bg-blue-500'}`} style={{ width: `${percentage}%` }}></div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
   // Recent evaluations table
-  const RecentEvaluationsTable = ({ evaluations }) => {
+  const RecentEvaluationsTable = ({ evaluations, navigate }) => {
     if (!evaluations || evaluations.length === 0) {
       return <p className="text-sm text-muted-foreground">No recent evaluations</p>;
     }
@@ -224,7 +183,7 @@ function Dashboard() {
               <th className="text-left py-3 px-4 font-semibold">Teacher</th>
               <th className="text-left py-3 px-4 font-semibold">Evaluator</th>
               <th className="text-center py-3 px-4 font-semibold">Rating</th>
-              <th className="text-left py-3 px-4 font-semibold">Status</th>
+              <th className="text-center py-3 px-4 font-semibold">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -236,17 +195,13 @@ function Dashboard() {
                   <span className="font-bold text-lg text-blue-600">{evaluation.rating}</span>
                   <span className="text-gray-500 text-xs ml-1">/5</span>
                 </td>
-                <td className="py-3 px-4">
-                  <Badge 
-                    variant="outline"
-                    className={
-                      evaluation.status === 'completed' ? 'bg-green-50 text-green-700 border-green-200' :
-                      evaluation.status === 'in_progress' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                      'bg-gray-50 text-gray-700 border-gray-200'
-                    }
+                <td className="py-3 px-4 text-center">
+                  <button
+                    onClick={() => navigate('/results')}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                   >
-                    {evaluation.status.replace(/_/g, ' ')}
-                  </Badge>
+                    View
+                  </button>
                 </td>
               </tr>
             ))}
@@ -300,16 +255,6 @@ function Dashboard() {
             <RatingChart data={stats?.ratingDistribution} />
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Evaluation Status</CardTitle>
-            <CardDescription>Breakdown by completion status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StatusChart data={stats?.evaluationStatus} />
-          </CardContent>
-        </Card>
       </div>
 
       {/* Recent Evaluations */}
@@ -319,7 +264,7 @@ function Dashboard() {
           <CardDescription>Latest submission activity</CardDescription>
         </CardHeader>
         <CardContent>
-          <RecentEvaluationsTable evaluations={stats?.recentEvaluations} />
+          <RecentEvaluationsTable evaluations={stats?.recentEvaluations} navigate={navigate} />
         </CardContent>
       </Card>
     </div>
