@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
+import ToastContainer from '../components/ToastContainer';
 import { authAPI } from '../services/api';
 import axios from 'axios';
 
 function Settings() {
   const [evalEnabled, setEvalEnabled] = useState('1');
   const [isLoading, setIsLoading] = useState(true);
+  const [toasts, setToasts] = useState([]);
 
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -16,9 +18,22 @@ function Settings() {
     confirm_password: ''
   });
 
-  const [successMsg, setSuccessMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  // Toast notification management
+  const addToast = (message, type = 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+    
+    // Auto-remove toast after 4 seconds
+    setTimeout(() => {
+      removeToast(id);
+    }, 4000);
+  };
+
+  const removeToast = (id) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
   // Load settings on mount
   useEffect(() => {
@@ -52,12 +67,10 @@ function Settings() {
         { eval_enabled: value === '1' },
         { withCredentials: true, headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` } }
       );
-      setSuccessMsg('Evaluation status updated successfully');
-      setTimeout(() => setSuccessMsg(''), 3000);
+      addToast('Evaluation status updated successfully', 'success');
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Failed to update settings';
-      setErrorMsg(errorMessage);
-      setTimeout(() => setErrorMsg(''), 3000);
+      addToast(errorMessage, 'error');
     }
   };
 
@@ -71,20 +84,17 @@ function Settings() {
   const handleChangePassword = async () => {
     // Validate
     if (!passwordForm.current_password || !passwordForm.new_password || !passwordForm.confirm_password) {
-      setErrorMsg('All password fields are required');
-      setTimeout(() => setErrorMsg(''), 3000);
+      addToast('All password fields are required', 'error');
       return;
     }
 
     if (passwordForm.new_password !== passwordForm.confirm_password) {
-      setErrorMsg('New passwords do not match');
-      setTimeout(() => setErrorMsg(''), 3000);
+      addToast('New passwords do not match', 'error');
       return;
     }
 
     if (passwordForm.new_password.length < 6) {
-      setErrorMsg('New password must be at least 6 characters');
-      setTimeout(() => setErrorMsg(''), 3000);
+      addToast('New password must be at least 6 characters', 'error');
       return;
     }
 
@@ -95,13 +105,11 @@ function Settings() {
         new_password: passwordForm.new_password,
         confirm_password: passwordForm.confirm_password
       });
-      setSuccessMsg('Password changed successfully');
+      addToast('Password changed successfully', 'success');
       setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
-      setTimeout(() => setSuccessMsg(''), 3000);
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to change password';
-      setErrorMsg(errorMessage);
-      setTimeout(() => setErrorMsg(''), 3000);
+      addToast(errorMessage, 'error');
     } finally {
       setIsChangingPassword(false);
     }
@@ -109,13 +117,12 @@ function Settings() {
 
   return (
     <div>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">System Settings</h2>
         <p className="text-muted-foreground">Manage system configuration and evaluation settings</p>
       </div>
-
-      {successMsg && <div className="bg-green-50 text-green-800 p-3 rounded-lg mb-4">{successMsg}</div>}
-      {errorMsg && <div className="bg-red-50 text-red-800 p-3 rounded-lg mb-4">{errorMsg}</div>}
 
       {/* Evaluation Settings */}
       <Card className="mb-6">
