@@ -403,36 +403,6 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
                         );
                       }
 
-                      if (snapshot.hasError) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.red,
-                              ),
-                              const SizedBox(height: 16),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                child: Text(
-                                  'Error: ${snapshot.error}',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(color: Colors.red),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton.icon(
-                                onPressed: _loadTeachers,
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        );
-                      }
-
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
                         return const Center(
                           child: Text('No teachers found'),
@@ -474,8 +444,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
                       );
                     },
                   ),
-                ),
-          ),
+        ),
         ],
       ),
     );
