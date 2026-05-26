@@ -55,7 +55,13 @@ class ApiService {
             final dataField = responseBody['data'];
             if (dataField is Map<String, dynamic> && dataField.containsKey('data')) {
               // Nested format: data.data contains the array
-              data = dataField['data'] as List<dynamic>? ?? [];
+              final nestedData = dataField['data'];
+              if (nestedData is List) {
+                data = nestedData;
+              } else {
+                print('⚠️ Nested data is ${nestedData.runtimeType}, expected List');
+                data = [];
+              }
             } else if (dataField is List) {
               // Direct array in data field
               data = dataField;
@@ -137,8 +143,14 @@ class ApiService {
           
           if (dataField is Map<String, dynamic> && dataField.containsKey('data')) {
             // Nested format: data.data contains the array
-            data = dataField['data'] as List<dynamic>? ?? [];
-            print('✅ Parsed nested data: ${data.length} questions');
+            final nestedData = dataField['data'];
+            if (nestedData is List) {
+              data = nestedData;
+              print('✅ Parsed nested data: ${data.length} questions');
+            } else {
+              print('⚠️ Nested data is ${nestedData.runtimeType}, expected List');
+              data = [];
+            }
           } else if (dataField is List) {
             // Direct array in data field
             data = dataField;
