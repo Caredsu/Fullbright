@@ -1,11 +1,11 @@
-import { getDatabase } from '../config/database.js';
+import { getDB } from '../config/database.js';
 
 /**
  * Get system settings
  */
 export const getSettings = async (req, res) => {
   try {
-    const db = getDatabase();
+    const db = getDB();
     const settingsCollection = db.collection('settings');
     
     let settings = await settingsCollection.findOne({ _id: 'system' });
@@ -51,7 +51,7 @@ export const updateSettings = async (req, res) => {
       });
     }
     
-    const db = getDatabase();
+    const db = getDB();
     const settingsCollection = db.collection('settings');
     
     const result = await settingsCollection.updateOne(
