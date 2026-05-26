@@ -253,6 +253,7 @@ export const createEvaluation = async (req, res, next) => {
       student_id: student_id, // Always use valid student_id - never 'anonymous'
       rating: rating || null,
       feedback: feedback || positive_feedback || '',
+      positive_feedback: positive_feedback || '',
       negative_feedback: negative_feedback || '',
       created_at: new Date(),
       updated_at: new Date()

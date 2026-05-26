@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
-import { ChevronDown, Eye } from 'lucide-react';
+import { ChevronDown, Eye, PrinterIcon } from 'lucide-react';
 import DataTable from '../components/DataTable';
 import ToastContainer from '../components/ToastContainer';
 import useToast from '../hooks/useToast';
@@ -168,6 +168,284 @@ function Results() {
     return 'Unknown Teacher';
   };
 
+  const printOverallResults = () => {
+    if (!filterTeacher) {
+      alert('Please select a teacher to print results');
+      return;
+    }
+
+    const teacher = teachers.find(t => t.id === filterTeacher);
+    if (!teacher) return;
+
+    // Calculate statistics for the selected teacher
+    const teacherEvaluations = evaluations;
+    const totalEvaluations = teacherEvaluations.length;
+    
+    if (totalEvaluations === 0) {
+      alert('No evaluations found for this teacher');
+      return;
+    }
+
+    const ratings = teacherEvaluations.map(e => calculateAverageRating(e));
+    const averageRating = ratings.length > 0 
+      ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 
+      : 0;
+    const maxRating = Math.max(...ratings);
+    const minRating = Math.min(...ratings);
+
+    // Calculate rating distribution
+    const excellent = ratings.filter(r => r >= 4.5).length;
+    const veryGood = ratings.filter(r => r >= 4 && r < 4.5).length;
+    const good = ratings.filter(r => r >= 3 && r < 4).length;
+    const needsImprovement = ratings.filter(r => r >= 2 && r < 3).length;
+    const poor = ratings.filter(r => r < 2).length;
+
+    // Collect all feedback comments
+    const feedbackComments = teacherEvaluations
+      .filter(e => e.positive_feedback || e.negative_feedback)
+      .map(e => ({
+        positiveFeedback: e.positive_feedback,
+        negativeFeedback: e.negative_feedback
+      }));
+
+    const printWindow = window.open('', 'PrintResults', 'height=700,width=900');
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Evaluation Results - ${teacher.first_name} ${teacher.last_name}</title>
+          <style>
+            * { margin: 0; padding: 0; }
+            body { 
+              font-family: Arial, sans-serif;
+              padding: 20px;
+              background: white;
+            }
+            .header {
+              border-bottom: 3px solid #667eea;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+            .teacher-name {
+              font-size: 28px;
+              font-weight: bold;
+              color: #1e293b;
+              margin-bottom: 10px;
+            }
+            .print-date {
+              color: #64748b;
+              font-size: 12px;
+            }
+            .section {
+              margin-bottom: 30px;
+              page-break-inside: avoid;
+            }
+            .section-title {
+              font-size: 18px;
+              font-weight: bold;
+              color: #333;
+              border-left: 4px solid #667eea;
+              padding-left: 12px;
+              margin-bottom: 15px;
+            }
+            .stats-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+              margin-bottom: 20px;
+            }
+            .stat-box {
+              background: #f1f5f9;
+              padding: 15px;
+              border-radius: 8px;
+              border-left: 4px solid #667eea;
+            }
+            .stat-label {
+              color: #64748b;
+              font-size: 12px;
+              margin-bottom: 5px;
+            }
+            .stat-value {
+              font-size: 24px;
+              font-weight: bold;
+              color: #667eea;
+            }
+            .rating-distribution {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+              gap: 10px;
+              margin-top: 15px;
+            }
+            .rating-item {
+              text-align: center;
+              padding: 10px;
+              background: #f8fafc;
+              border-radius: 6px;
+            }
+            .rating-label {
+              font-size: 11px;
+              color: #64748b;
+              margin-bottom: 5px;
+            }
+            .rating-count {
+              font-size: 18px;
+              font-weight: bold;
+              color: #1e293b;
+            }
+            .feedback-container {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+            }
+            .feedback-item {
+              page-break-inside: avoid;
+              margin-bottom: 15px;
+            }
+            .positive-feedback {
+              background: #f0fdf4;
+              border-left: 4px solid #16a34a;
+              padding: 12px;
+              border-radius: 4px;
+            }
+            .negative-feedback {
+              background: #fef2f2;
+              border-left: 4px solid #ef4444;
+              padding: 12px;
+              border-radius: 4px;
+            }
+            .feedback-label {
+              font-weight: bold;
+              font-size: 12px;
+              margin-bottom: 8px;
+            }
+            .positive-feedback .feedback-label {
+              color: #16a34a;
+            }
+            .negative-feedback .feedback-label {
+              color: #ef4444;
+            }
+            .feedback-text {
+              font-size: 12px;
+              color: #333;
+              line-height: 1.4;
+            }
+            .footer {
+              margin-top: 40px;
+              border-top: 1px solid #e2e8f0;
+              padding-top: 15px;
+              text-align: center;
+              color: #64748b;
+              font-size: 11px;
+            }
+            @media print {
+              body { padding: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="teacher-name">📊 Overall Evaluation Results</div>
+            <div class="teacher-name" style="font-size: 24px; color: #667eea; margin-top: 10px;">
+              ${teacher.first_name} ${teacher.middle_name ? teacher.middle_name + ' ' : ''}${teacher.last_name}
+            </div>
+            <div class="print-date">Printed on: ${new Date().toLocaleString()}</div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">📈 Summary Statistics</div>
+            <div class="stats-grid">
+              <div class="stat-box">
+                <div class="stat-label">Total Evaluations</div>
+                <div class="stat-value">${totalEvaluations}</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Average Rating</div>
+                <div class="stat-value">⭐ ${averageRating}/5</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Highest Rating</div>
+                <div class="stat-value">⭐ ${maxRating}/5</div>
+              </div>
+              <div class="stat-box">
+                <div class="stat-label">Lowest Rating</div>
+                <div class="stat-value">⭐ ${minRating}/5</div>
+              </div>
+            </div>
+
+            <div class="section-title" style="margin-top: 20px;">📊 Rating Distribution</div>
+            <div class="rating-distribution">
+              <div class="rating-item">
+                <div class="rating-label">Excellent (4.5+)</div>
+                <div class="rating-count">${excellent}</div>
+              </div>
+              <div class="rating-item">
+                <div class="rating-label">Very Good (4+)</div>
+                <div class="rating-count">${veryGood}</div>
+              </div>
+              <div class="rating-item">
+                <div class="rating-label">Good (3+)</div>
+                <div class="rating-count">${good}</div>
+              </div>
+              <div class="rating-item">
+                <div class="rating-label">Needs Imp. (2+)</div>
+                <div class="rating-count">${needsImprovement}</div>
+              </div>
+              <div class="rating-item">
+                <div class="rating-label">Poor (&lt;2)</div>
+                <div class="rating-count">${poor}</div>
+              </div>
+            </div>
+          </div>
+
+          ${feedbackComments.length > 0 ? `
+            <div class="section">
+              <div class="section-title">💬 Student Feedback</div>
+              <div class="feedback-container">
+                ${feedbackComments.map((feedback, idx) => `
+                  <div style="page-break-inside: avoid;">
+                    ${feedback.positiveFeedback ? `
+                      <div class="feedback-item positive-feedback">
+                        <div class="feedback-label">✓ Positive Feedback ${idx + 1}</div>
+                        <div class="feedback-text">${feedback.positiveFeedback}</div>
+                      </div>
+                    ` : ''}
+                    ${feedback.negativeFeedback ? `
+                      <div class="feedback-item negative-feedback">
+                        <div class="feedback-label">✗ Areas for Improvement ${idx + 1}</div>
+                        <div class="feedback-text">${feedback.negativeFeedback}</div>
+                      </div>
+                    ` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="footer">
+            <p>This report was automatically generated from the Teacher Evaluation System.</p>
+            <p>For questions about these results, please contact the administration.</p>
+          </div>
+
+          <div class="no-print" style="margin-top: 30px; text-align: center;">
+            <button onclick="window.print()" style="
+              padding: 12px 30px;
+              background: #667eea;
+              color: white;
+              border: none;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 14px;
+              font-weight: bold;
+            ">🖨️ Print or Save as PDF</button>
+          </div>
+        </body>
+      </html>
+    `;
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   return (
     <div>
       <ToastContainer toasts={toasts} onClose={removeToast} />
@@ -268,14 +546,27 @@ function Results() {
                     <Badge variant="outline">⭐ {filterMinRating}+</Badge>
                   )}
                 </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={clearFilters}
-                  className="text-xs"
-                >
-                  Clear All
-                </Button>
+                <div className="flex gap-2">
+                  {filterTeacher && (
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={printOverallResults}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <PrinterIcon size={14} className="mr-2" />
+                      Print Overall Results
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-xs"
+                  >
+                    Clear All
+                  </Button>
+                </div>
               </div>
             )}
           </div>
