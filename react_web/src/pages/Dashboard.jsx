@@ -110,6 +110,10 @@ export default function Dashboard() {
   }, [teachers]);
 
   const handleRestoreDraft = () => {
+    if (!evalEnabled) {
+      setToasts([{ id: Date.now(), message: 'Evaluations are currently disabled', type: 'warning' }]);
+      return;
+    }
     if (draft?.teacherId) {
       navigate(`/evaluate/${draft.teacherId}`);
     }
@@ -243,6 +247,10 @@ export default function Dashboard() {
   };
 
   const handleEvaluate = (teacherId) => {
+    if (!evalEnabled) {
+      setToasts([{ id: Date.now(), message: 'Evaluations are currently disabled by the administrator', type: 'warning' }]);
+      return;
+    }
     navigate(`/evaluate/${teacherId}`);
   };
 

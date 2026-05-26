@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsAPI } from '../services/api';
+import EvaluationsClosedModal from '../components/EvaluationsClosedModal';
+import axios from 'axios';
 import {
   Card,
   CardHeader,
@@ -24,6 +26,7 @@ function Dashboard() {
     recentEvaluations: []
   });
   const [loading, setLoading] = useState(true);
+  const [evalEnabled, setEvalEnabled] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -59,6 +62,31 @@ function Dashboard() {
     };
 
     fetchStats();
+  }, []);
+
+  // Check if evaluations are enabled
+  useEffect(() => {
+    const checkSettings = async () => {
+      try {
+        const response = await axios.get(
+          import.meta.env.VITE_API_URL 
+            ? `${import.meta.env.VITE_API_URL}/api/settings`
+            : 'http://localhost:3001/api/settings'
+        );
+        if (response.data.data) {
+          setEvalEnabled(response.data.data.eval_enabled !== false);
+          console.log('📋 Evaluations:', response.data.data.eval_enabled ? 'ENABLED' : 'DISABLED');
+        }
+      } catch (err) {
+        console.error('Error checking evaluation status:', err);
+        setEvalEnabled(true);
+      }
+    };
+
+    checkSettings();
+    // Check every 5 seconds for setting changes
+    const interval = setInterval(checkSettings, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const analyticsMetrics = [
@@ -230,6 +258,9 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Show modal if evaluations are disabled */}
+      {!evalEnabled && <EvaluationsClosedModal />}
+
       <div>
         <h2 className="text-3xl font-bold">Welcome back!</h2>
         <p className="text-muted-foreground">Here's your system overview and analytics</p>

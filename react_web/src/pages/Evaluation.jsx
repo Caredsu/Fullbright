@@ -28,9 +28,32 @@ export default function Evaluation() {
   const [retrying, setRetrying] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAlreadyEvaluated, setIsAlreadyEvaluated] = useState(false);
+  const [evalEnabled, setEvalEnabled] = useState(true);
   const QUESTIONS_PER_PAGE = 5;
 
+  // Check if evaluations are enabled
   useEffect(() => {
+    const checkSettings = async () => {
+      try {
+        const response = await api.get('settings');
+        if (response.data.data) {
+          setEvalEnabled(response.data.data.eval_enabled !== false);
+        }
+      } catch (err) {
+        console.error('Error checking evaluation status:', err);
+        setEvalEnabled(true);
+      }
+    };
+    checkSettings();
+  }, []);
+
+  useEffect(() => {
+    // Prevent access if evaluations are disabled
+    if (!evalEnabled && !loading) {
+      setError('Evaluations are currently disabled by the administrator');
+      return;
+    }
+    
     fetchData();
     
     // Confirm before leaving with unsaved changes
@@ -44,7 +67,7 @@ export default function Evaluation() {
     
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [teacherId]);
+  }, [teacherId, evalEnabled]);
 
   const fetchData = async () => {
     try {
@@ -228,6 +251,13 @@ export default function Evaluation() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if evaluations are enabled
+    if (!evalEnabled) {
+      addToast('Evaluations are currently disabled by the administrator', 'error');
+      navigate('/dashboard');
+      return;
+    }
     
     // Validate student number before submission
     if (!user?.student_number || user.student_number === 'anonymous') {
