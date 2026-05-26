@@ -114,6 +114,7 @@ class ApiService {
   // Get questions for evaluation
   static Future<List<Question>> getQuestions() async {
     try {
+      print('🔄 Fetching questions from: $baseUrl/api/questions');
       final response = await http
           .get(
             Uri.parse('$baseUrl/api/questions'),
@@ -126,24 +127,42 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final dynamic responseBody = jsonDecode(response.body);
+        print('📥 Questions response type: ${responseBody.runtimeType}');
         
-        // Handle both wrapped response {success, message, data} and direct array formats
+        // Handle nested response {success, message, data: {data: [...], pagination: {...}}}
         List<dynamic> data;
         if (responseBody is Map<String, dynamic> && responseBody.containsKey('data')) {
-          // Wrapped API response format
-          data = responseBody['data'] as List<dynamic>? ?? [];
+          final dataField = responseBody['data'];
+          print('📦 Data field type: ${dataField.runtimeType}');
+          
+          if (dataField is Map<String, dynamic> && dataField.containsKey('data')) {
+            // Nested format: data.data contains the array
+            data = dataField['data'] as List<dynamic>? ?? [];
+            print('✅ Parsed nested data: ${data.length} questions');
+          } else if (dataField is List) {
+            // Direct array in data field
+            data = dataField;
+            print('✅ Parsed direct array: ${data.length} questions');
+          } else {
+            throw Exception('Unexpected data field format: ${dataField.runtimeType}');
+          }
         } else if (responseBody is List) {
           // Direct array format
           data = responseBody;
+          print('✅ Parsed direct response array: ${data.length} questions');
         } else {
-          throw Exception('Unexpected response format');
+          throw Exception('Unexpected response format: ${responseBody.runtimeType}');
         }
         
         return data.map((question) => Question.fromJson(question)).toList();
       } else {
         throw Exception('Failed to load questions: ${response.statusCode}');
       }
+    } on SocketException catch (e) {
+      print('❌ Network Error loading questions: ${e.message}');
+      throw Exception('Error loading questions: Network error - ${e.message}');
     } catch (e) {
+      print('❌ Error loading questions: $e');
       throw Exception('Error loading questions: $e');
     }
   }
