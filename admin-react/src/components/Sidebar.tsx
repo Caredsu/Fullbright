@@ -6,6 +6,7 @@ import {
   BookOpen,
   ClipboardList,
   TrendingUp,
+  Settings,
   Menu,
   X,
   LogOut,
@@ -17,9 +18,10 @@ interface NavItem {
   name: string;
   path: string;
   icon: React.ReactNode;
+  requiresRole?: string;
 }
 
-const navItems: NavItem[] = [
+const allNavItems: NavItem[] = [
   {
     name: 'Dashboard',
     path: '/',
@@ -29,6 +31,7 @@ const navItems: NavItem[] = [
     name: 'Users',
     path: '/users',
     icon: <Users className="h-5 w-5" />,
+    requiresRole: 'super_admin',
   },
   {
     name: 'Teachers',
@@ -45,10 +48,16 @@ const navItems: NavItem[] = [
     path: '/results',
     icon: <TrendingUp className="h-5 w-5" />,
   },
+  {
+    name: 'Settings',
+    path: '/settings',
+    icon: <Settings className="h-5 w-5" />,
+    requiresRole: 'super_admin',
+  },
 ];
 
 interface SidebarProps {
-  user?: { username: string };
+  user?: { username: string; role?: string };
   onLogout?: () => void;
 }
 
@@ -57,6 +66,14 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
+  
+  // Filter nav items based on user role
+  const navItems = allNavItems.filter(item => {
+    if (item.requiresRole && user?.role !== 'super_admin' && user?.role !== item.requiresRole) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -97,7 +114,7 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="flex flex-col gap-1 px-3 py-6">
-          {navItems.map((item) => (
+          {navItems && navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}

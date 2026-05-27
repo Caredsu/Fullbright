@@ -574,59 +574,59 @@ function Results() {
 
         {/* Table */}
         <CardContent className="p-4">
-          <DataTable
-            columns={[
-              {
-                key: 'teacher_id',
-                label: 'Teacher',
-                render: (row) => getTeacherName(row.teacher_id),
-              },
-              {
-                key: 'submitted_at',
-                label: 'Submitted Date',
-                render: (row) => new Date(row.submitted_at || row.created_at).toLocaleDateString(),
-              },
-              {
-                key: 'rating',
-                label: 'Avg Rating',
-                render: (row) => {
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <tr>
+                  <TableHead>Evaluation #</TableHead>
+                  <TableHead>Teacher</TableHead>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Rating</TableHead>
+                  <TableHead>Status</TableHead>
+                </tr>
+              </TableHeader>
+              <TableBody>
+                {evaluations.map((row, idx) => {
                   const avgRating = calculateAverageRating(row);
                   const qualitative = getQualitativeAssessment(avgRating);
                   return (
-                    <div className="flex flex-col gap-1">
-                      <div 
-                        className="inline-block px-2 py-1 rounded-full text-white text-xs font-bold text-center"
-                        style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)', width: 'fit-content' }}
-                      >
-                        ⭐ {avgRating}/5
-                      </div>
-                      <Badge 
-                        style={{ background: qualitative.color }}
-                        className="inline-block text-white text-xs"
-                      >
-                        {qualitative.text}
-                      </Badge>
-                    </div>
+                    <TableRow 
+                      key={row._id || row.id}
+                      onClick={() => handleViewDetails(row)}
+                      className="cursor-pointer hover:bg-slate-50 transition-colors"
+                    >
+                      <TableCell className="font-medium">#{idx + 1}</TableCell>
+                      <TableCell>{getTeacherName(row.teacher_id)}</TableCell>
+                      <TableCell>{row.student_id || 'N/A'}</TableCell>
+                      <TableCell>{new Date(row.submitted_at || row.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
+                          className="text-white"
+                        >
+                          ⭐ {avgRating}/5
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge 
+                          style={{ background: qualitative.color }}
+                          className="text-white"
+                        >
+                          {qualitative.text}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
                   );
-                },
-              },
-              {
-                key: 'responses',
-                label: 'Responses',
-                render: (row) => {
-                  // Handle answers as object: { question_id: rating }
-                  const answersCount = (row.answers && typeof row.answers === 'object') 
-                    ? Object.keys(row.answers).length 
-                    : 0;
-                  return <Badge variant="secondary">{answersCount}</Badge>;
-                },
-              },
-            ]}
-            data={evaluations}
-            loading={loading}
-            onView={handleViewDetails}
-            searchableFields={['teacher_id', 'submitted_at']}
-          />
+                })}
+              </TableBody>
+            </Table>
+          </div>
+          {evaluations.length === 0 && !loading && (
+            <div className="text-center py-8 text-muted-foreground">
+              No evaluations found. Try adjusting your filters.
+            </div>
+          )}
         </CardContent>
       </Card>
 

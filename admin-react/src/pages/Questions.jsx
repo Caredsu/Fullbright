@@ -18,6 +18,7 @@ import { Label } from '../components/ui/Label';
 import { Badge } from '../components/ui/Badge';
 import ToastContainer from '../components/ToastContainer';
 import useToast from '../hooks/useToast';
+import { useAuth } from '../hooks/useAuth';
 
 function Questions() {
   const [questions, setQuestions] = useState([]);
@@ -29,6 +30,7 @@ function Questions() {
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toasts, removeToast, success, error } = useToast();
+  const { canDelete } = useAuth();
 
   const [formData, setFormData] = useState({
     text: '',
@@ -80,13 +82,21 @@ function Questions() {
   };
 
   const handleDelete = async (id) => {
+    if (!canDelete()) {
+      error('You do not have permission to delete questions');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this question?')) {
       try {
         await questionsAPI.delete(id);
         success('Question deleted successfully');
         fetchQuestions();
       } catch (err) {
-        error(err.response?.data?.message || 'Failed to delete question');
+        if (err.response?.status === 403) {
+          error('You do not have permission to delete questions');
+        } else {
+          error(err.response?.data?.message || 'Failed to delete question');
+        }
       }
     }
   };
@@ -188,6 +198,7 @@ function Questions() {
               <tr>
                 <TableHead>Question</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Last Updated By</TableHead>
                 <TableHead>Actions</TableHead>
               </tr>
             </TableHeader>
@@ -196,9 +207,19 @@ function Questions() {
                 const displayText = (q.text || q.question_text || '').substring(0, 50);
                 const fullText = q.text || q.question_text || '';
                 return (
-                  <TableRow key={q.id}>
+                  <TableRow key={q._id || q.id}>
                     <TableCell>{displayText + (fullText.length > 50 ? '...' : '')}</TableCell>
                     <TableCell><Badge>{q.type || 'rating'}</Badge></TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        <div className="font-medium">{q.updated_by || 'system'}</div>
+                        {q.updated_at && (
+                          <div className="text-xs text-gray-500">
+                            {new Date(q.updated_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <button
@@ -208,13 +229,15 @@ function Questions() {
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-150"
-                          onClick={() => handleDelete(q.id)}
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canDelete() && (
+                          <button
+                            className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-150"
+                            onClick={() => handleDelete(q._id || q.id)}
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

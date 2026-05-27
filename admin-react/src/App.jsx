@@ -14,8 +14,27 @@ import Settings from './pages/Settings';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 
+// Hooks
+import { useAuth } from './hooks/useAuth';
+
+// Protected Route Component
+function ProtectedRoute({ element, requiredRole }) {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (requiredRole && user.role !== 'super_admin' && user.role !== requiredRole) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return element;
+}
+
 function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
   const location = useLocation();
+  const { canAccessUsers, canAccessSettings } = useAuth();
 
   if (!isAuthenticated) {
     return <Login onLogin={onLogin} />;
@@ -30,11 +49,17 @@ function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
           <div className="page-content">
             <Routes>
               <Route path="/" element={<Dashboard />} />
-              <Route path="/users" element={<Users />} />
+              <Route 
+                path="/users" 
+                element={<ProtectedRoute element={<Users />} requiredRole="super_admin" />} 
+              />
               <Route path="/teachers" element={<Teachers />} />
               <Route path="/questions" element={<Questions />} />
               <Route path="/results" element={<Results />} />
-              <Route path="/settings" element={<Settings />} />
+              <Route 
+                path="/settings" 
+                element={<ProtectedRoute element={<Settings />} requiredRole="super_admin" />} 
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>

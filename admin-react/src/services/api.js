@@ -26,8 +26,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Unauthorized - clear auth and redirect to login
       localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
       window.location.href = '/teacher-eval/admin-react/';
+    } else if (error.response?.status === 403) {
+      // Forbidden - user doesn't have permission (don't logout)
+      console.warn('Permission denied:', error.response.data?.message);
+      // Toast notification will be handled by component
     }
     return Promise.reject(error);
   }

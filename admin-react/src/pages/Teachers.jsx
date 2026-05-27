@@ -10,6 +10,7 @@ import DataTable from '../components/DataTable';
 import ToastContainer from '../components/ToastContainer';
 import ImageUpload from '../components/ImageUpload';
 import useToast from '../hooks/useToast';
+import { useAuth } from '../hooks/useAuth';
 
 function Teachers() {
   const [teachers, setTeachers] = useState([]);
@@ -18,6 +19,7 @@ function Teachers() {
   const [showModal, setShowModal] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const { toasts, removeToast, success, error } = useToast();
+  const { canDelete } = useAuth();
   const [formData, setFormData] = useState({
     first_name: '',
     middle_name: '',
@@ -85,22 +87,42 @@ function Teachers() {
   };
 
   const handleDelete = async (teacherId) => {
+    if (!canDelete()) {
+      error('You do not have permission to delete teachers');
+      return;
+    }
     if (window.confirm('Are you sure you want to delete this teacher?')) {
       try {
         await teachersAPI.delete(teacherId);
         success('Teacher deleted successfully');
         fetchTeachers();
       } catch (err) {
-        error(err.response?.data?.message || 'Failed to delete teacher');
+        if (err.response?.status === 403) {
+          error('You do not have permission to delete teachers');
+        } else {
+          error(err.response?.data?.message || 'Failed to delete teacher');
+        }
       }
     }
   };
 
   const handleSubmit = async () => {
+    // Client-side validation
+    const newErrors = {};
+    if (!formData.first_name?.trim()) newErrors.first_name = 'First name is required';
+    if (!formData.last_name?.trim()) newErrors.last_name = 'Last name is required';
+    if (!formData.department?.trim()) newErrors.department = 'Department is required';
+    
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrors(newErrors);
+      error('Please fill in all required fields');
+      return;
+    }
+    
     setFormErrors({});
     try {
       if (editingTeacher) {
-        await teachersAPI.update(editingTeacher.id, formData);
+        await teachersAPI.update(editingTeacher._id || editingTeacher.id, formData);
         success('Teacher updated successfully');
       } else {
         await teachersAPI.create(formData);
@@ -113,6 +135,9 @@ function Teachers() {
       const errors = err.response?.data?.errors || {};
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
+      }
+      if (err.response?.status === 403) {
+        error('You do not have permission to perform this action');
       } else {
         error(err.response?.data?.message || 'Failed to save teacher');
       }
@@ -178,11 +203,25 @@ function Teachers() {
                   </Badge>
                 ),
               },
+              {
+                key: 'updated_by',
+                label: 'Last Updated By',
+                render: (row) => (
+                  <div className="text-sm">
+                    <div className="font-medium">{row.updated_by || 'system'}</div>
+                    {row.updated_at && (
+                      <div className="text-xs text-gray-500">
+                        {new Date(row.updated_at).toLocaleDateString()}
+                      </div>
+                    )}
+                  </div>
+                ),
+              },
             ]}  
             data={teachers}
             loading={loading}
             onEdit={handleEdit}
-            onDelete={handleDelete}
+            onDelete={canDelete() ? handleDelete : null}
             searchableFields={['first_name', 'middle_name', 'last_name', 'department']}
           />
         </CardContent>
@@ -207,7 +246,9 @@ function Teachers() {
                 value={formData.first_name} 
                 onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                 placeholder="Enter first name"
+                className={formErrors.first_name ? 'border-red-500' : ''}
               />
+              {formErrors.first_name && <p className="text-red-500 text-sm mt-1">{formErrors.first_name}</p>}
             </div>
             <div>
               <Label>Middle Name</Label>
@@ -223,12 +264,14 @@ function Teachers() {
                 value={formData.last_name} 
                 onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                 placeholder="Enter last name"
+                className={formErrors.last_name ? 'border-red-500' : ''}
               />
+              {formErrors.last_name && <p className="text-red-500 text-sm mt-1">{formErrors.last_name}</p>}
             </div>
             <div>
               <Label>Department *</Label>
               <select 
-                className="w-full rounded-md border border-input px-3 py-2"
+                className={`w-full rounded-md border px-3 py-2 ${formErrors.department ? 'border-red-500' : 'border-input'}`}
                 value={formData.department} 
                 onChange={(e) => setFormData({ ...formData, department: e.target.value })}
               >
@@ -237,6 +280,7 @@ function Teachers() {
                   <option key={d} value={d}>{d}</option>
                 ))}
               </select>
+              {formErrors.department && <p className="text-red-500 text-sm mt-1">{formErrors.department}</p>}
             </div>
             <div>
               <Label>Email</Label>
