@@ -172,6 +172,7 @@ export const updateQuestion = async (req, res, next) => {
     if (type) updateData.type = type;
     if (options) updateData.options = options;
     updateData.updated_at = new Date();
+    updateData.updated_by = req.session?.username || 'system';
 
     const result = await questionsCollection.findOneAndUpdate(
       { _id: new ObjectId(id) },

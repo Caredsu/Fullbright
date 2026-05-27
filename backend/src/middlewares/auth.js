@@ -39,12 +39,6 @@ export const requireLogin = (req, res, next) => {
 
 export const requirePermission = (requiredRole) => {
   return (req, res, next) => {
-    // For Bearer token auth, skip permission check (allow all authenticated users)
-    // Since tokens are opaque identifiers without role info
-    if (req.headers.authorization?.startsWith('Bearer ')) {
-      return next();
-    }
-
     if (!req.session || !req.session.admin_role) {
       return res.status(401).json({
         success: false,

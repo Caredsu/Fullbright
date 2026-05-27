@@ -59,7 +59,8 @@ export const updateSettings = async (req, res) => {
       {
         $set: {
           eval_enabled: Boolean(eval_enabled),
-          updated_at: new Date()
+          updated_at: new Date(),
+          updated_by: req.session?.username || 'system'
         }
       },
       { upsert: true }

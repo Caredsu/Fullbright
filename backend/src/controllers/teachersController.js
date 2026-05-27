@@ -158,6 +158,7 @@ export const createTeacher = async (req, res, next) => {
       status: status || 'active',
       picture: profileImage || null,
       created_at: new Date(),
+      created_by: req.session?.username || 'system',
       updated_at: new Date(),
       updated_by: req.session?.username || 'system'
     };
