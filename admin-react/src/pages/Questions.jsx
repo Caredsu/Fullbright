@@ -422,7 +422,7 @@ function Questions() {
               <div>
                 <Label>Choice Descriptions (1-5 Scale) <span className="text-red-600">*</span></Label>
                 <div className="border p-4 rounded-lg bg-slate-50 space-y-3 max-h-96 overflow-y-auto">
-                  {[1, 2, 3, 4].map((num) => (
+                  {[1, 2, 3, 4, 5].map((num) => (
                     <div key={num} className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="w-8 font-semibold text-sm bg-blue-100 px-2 py-1 rounded text-center">{num}</span>

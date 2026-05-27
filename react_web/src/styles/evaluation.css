@@ -248,6 +248,7 @@
   border: 1px solid var(--gray-200);
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  text-align: left;
 }
 
 .question-item:hover {
@@ -262,6 +263,8 @@
   font-weight: 500;
   color: var(--gray-900);
   margin-bottom: 1rem;
+  text-align: left;
+  justify-content: flex-start;
 }
 
 .question-number {

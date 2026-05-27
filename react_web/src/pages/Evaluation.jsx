@@ -9,6 +9,15 @@ import '../styles/evaluation.css';
 import '../styles/pagination.css';
 import '../styles/Toast.css';
 
+// Set titles with professional descriptions
+const SET_TITLES = {
+  1: 'LESSON AND DELIVERY',
+  2: 'KNOWLEDGE OF SUBJECT MATTER',
+  3: 'MANAGEMENT OF LEARNING',
+  4: 'DEDICATION',
+  5: 'FEEDBACK'
+};
+
 export default function Evaluation() {
   const { teacherId } = useParams();
   const navigate = useNavigate();
@@ -35,6 +44,7 @@ export default function Evaluation() {
   const [retrying, setRetrying] = useState(false);
   const [isAlreadyEvaluated, setIsAlreadyEvaluated] = useState(false);
   const [evalEnabled, setEvalEnabled] = useState(true);
+  const [currentSet, setCurrentSet] = useState(1);
 
   // Check if evaluations are enabled
   useEffect(() => {
@@ -532,8 +542,8 @@ export default function Evaluation() {
         )}
 
         <div className="questions-container questions-section">
-          {/* Sets 1-4: Rating Questions with Sequential Unlocking */}
-          {[1, 2, 3, 4].map(setNum => {
+          {/* Sets 1-4: Rating Questions with Sequential Display */}
+          {currentSet <= 4 && [currentSet].map(setNum => {
             const isUnlocked = isSetUnlocked(setNum);
             const setProgress = getSetProgress(setNum);
             
@@ -543,7 +553,7 @@ export default function Evaluation() {
                   <div style={{ marginBottom: '2rem', opacity: isUnlocked ? 1 : 0.5 }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                       <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333', margin: 0 }}>
-                        Set {setNum}: Rating Questions
+                        Set {setNum}: {SET_TITLES[setNum]}
                       </h3>
                       <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>
                         {setProgress.answered}/{setProgress.total} answered
@@ -627,17 +637,51 @@ export default function Evaluation() {
           })}
         </div>
 
-        {/* Feedback Sections - Set 5: Positive and Negative Feedback */}
-        <div className="feedback-section" style={{ opacity: isComplete ? 1 : 0.6, pointerEvents: isComplete ? 'auto' : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 0, marginTop: '2rem', color: '#333' }}>
-              Set 5: Feedback (Optional)
-            </h3>
-            {!isComplete && (
-              <span style={{ fontSize: '0.85rem', color: '#d9534f', fontWeight: '500' }}>
-                📌 Unlock after completing all rating questions
-              </span>
+        {/* Navigation Buttons Between Sets */}
+        {currentSet <= 4 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '2rem 0' }}>
+            {currentSet > 1 && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setCurrentSet(currentSet - 1)}
+                disabled={submitting}
+              >
+                ← Back to Set {currentSet - 1}
+              </button>
             )}
+            {currentSet < 4 && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setCurrentSet(currentSet + 1)}
+                disabled={!getSetProgress(currentSet).isComplete || submitting}
+                style={{ marginLeft: 'auto' }}
+              >
+                Next: Set {currentSet + 1} →
+              </button>
+            )}
+            {currentSet === 4 && getSetProgress(4).isComplete && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setCurrentSet(5)}
+                disabled={submitting}
+                style={{ marginLeft: 'auto' }}
+              >
+                Next: Feedback →
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Feedback Sections - Set 5: Positive and Negative Feedback */}
+        {currentSet === 5 && (
+        <div className="feedback-section" style={{ opacity: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 0, marginTop: '0', color: '#333' }}>
+              Set 5: {SET_TITLES[5]}
+            </h3>
           </div>
 
           {/* Positive Feedback */}
@@ -694,6 +738,21 @@ export default function Evaluation() {
             </div>
           )}
         </div>
+        )}
+
+        {/* Navigation Buttons for Feedback Set */}
+        {currentSet === 5 && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', margin: '2rem 0' }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setCurrentSet(4)}
+              disabled={submitting}
+            >
+              ← Back to Set 4
+            </button>
+          </div>
+        )}
 
         <div className="form-actions">
           <button 
@@ -706,14 +765,16 @@ export default function Evaluation() {
           </button>
           <button 
             type="submit" 
-            className={`btn btn-primary btn-lg ${!isComplete ? 'btn-submit-disabled' : ''}`}
-            disabled={!isComplete || submitting}
+            className={`btn btn-primary btn-lg ${currentSet < 5 ? 'btn-submit-disabled' : ''}`}
+            disabled={currentSet < 5 || !isComplete || submitting}
           >
             {submitting ? (
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}>
                 <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite', width: '16px', height: '16px', borderRadius: '50%', borderTop: '2px solid white', borderRight: '2px solid transparent' }}></span>
                 Submitting...
               </span>
+            ) : currentSet < 5 ? (
+              `Complete Set ${currentSet} (${getSetProgress(currentSet).answered}/${getSetProgress(currentSet).total})`
             ) : isComplete ? (
               'Submit Evaluation ✓'
             ) : (
