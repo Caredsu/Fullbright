@@ -18,6 +18,9 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.method === 'post' && config.url.includes('/questions')) {
+    console.log(`📤 POST ${config.url} with data:`, config.data);
+  }
   return config;
 });
 
@@ -72,7 +75,14 @@ export const teachersAPI = {
 
 // Questions
 export const questionsAPI = {
-  getAll: (page = 1, limit = 50) => api.get(`/questions?page=${page}&limit=${limit}`),
+  getAll: (page = 1, limit = 50, params = {}) => {
+    const queryString = new URLSearchParams({
+      page,
+      limit,
+      ...params
+    }).toString();
+    return api.get(`/questions?${queryString}`);
+  },
   getById: (id) => api.get(`/questions/${id}`),
   create: (data) => api.post('/questions', data),
   update: (id, data) => api.put(`/questions/${id}`, data),

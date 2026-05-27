@@ -29,47 +29,74 @@ function Questions() {
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedSet, setSelectedSet] = useState(null);
   const { toasts, removeToast, success, error } = useToast();
   const { canDelete } = useAuth();
 
   const [formData, setFormData] = useState({
     text: '',
     type: 'rating',
-    options: ['', '', '', '', '']  // 5 options/criteria fields
+    set_number: null,
+    options: ['', '', '', '', ''],  // 5 options/criteria fields
+    choice_descriptions: { 1: '', 2: '', 3: '', 4: '', 5: '' }  // Descriptions for each choice
   });
 
   useEffect(() => {
     fetchQuestions();
-  }, [page]);
+  }, [page, selectedSet]);
 
   useEffect(() => {
     if (editingQuestion) {
       setFormData({
         text: editingQuestion.text || editingQuestion.question_text || '',
         type: editingQuestion.type || editingQuestion.question_type || 'rating',
-        options: editingQuestion.options || editingQuestion.criteria || ['', '', '', '', '']
+        set_number: editingQuestion.set_number || null,
+        options: editingQuestion.options || editingQuestion.criteria || ['', '', '', '', ''],
+        choice_descriptions: editingQuestion.choice_descriptions || { 1: '', 2: '', 3: '', 4: '', 5: '' }
       });
     } else {
       setFormData({
         text: '',
         type: 'rating',
-        options: ['', '', '', '', '']
+        set_number: null,
+        options: ['', '', '', '', ''],
+        choice_descriptions: { 1: '', 2: '', 3: '', 4: '', 5: '' }
       });
     }
   }, [editingQuestion, showModal]);
 
   const fetchQuestions = async () => {
     setLoading(true);
+    setQuestions([]); // Clear questions immediately to prevent old data from showing
     try {
-      const response = await questionsAPI.getAll(page, 20);
+      const params = selectedSet !== null ? { set_number: selectedSet } : {};
+      console.log('Fetching questions with params:', { page, selectedSet, params });
+      const response = await questionsAPI.getAll(page, 20, params);
       console.log('Questions API Response:', response);
       const questionData = response.data?.data?.data || response.data?.data || [];
-      console.log('Question Data:', questionData);
-      setQuestions(Array.isArray(questionData) ? questionData : []);
+      console.log('Question Data after fetch:', questionData, 'Length:', questionData.length, 'Filter set:', selectedSet);
+      
+      // Double-check that results match the filter
+      const processedQuestions = Array.isArray(questionData) ? questionData : [];
+      
+      // If filtering by a set, verify the results are actually from that set
+      if (selectedSet !== null) {
+        const filteredByClient = processedQuestions.filter(q => q.set_number === selectedSet);
+        if (filteredByClient.length < processedQuestions.length) {
+          console.warn(`⚠️ Backend returned ${processedQuestions.length} questions but only ${filteredByClient.length} match Set ${selectedSet}. Using client-side filtering as fallback.`);
+          setQuestions(filteredByClient);
+        } else {
+          setQuestions(processedQuestions);
+        }
+      } else {
+        setQuestions(processedQuestions);
+      }
+      
       setTotal(response.data?.data?.pagination?.total || 0);
     } catch (err) {
       console.error('Error fetching questions:', err);
       error(err.response?.data?.message || 'Failed to load questions');
+      setQuestions([]);
     } finally {
       setLoading(false);
     }
@@ -102,6 +129,7 @@ function Questions() {
   };
 
   const handleFormChange = (field, value) => {
+    console.log(`🔄 handleFormChange: ${field} = ${value} (was ${formData[field]})`);
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -112,6 +140,16 @@ function Questions() {
         [field]: ''
       }));
     }
+  };
+
+  const handleChoiceDescriptionChange = (choiceNum, value) => {
+    setFormData(prev => ({
+      ...prev,
+      choice_descriptions: {
+        ...prev.choice_descriptions,
+        [choiceNum]: value
+      }
+    }));
   };
 
   const handleOptionsChange = (index, value) => {
@@ -132,14 +170,36 @@ function Questions() {
       return;
     }
 
+    if (!formData.set_number) {
+      setFormErrors({ set_number: 'Question set is required' });
+      return;
+    }
+
+    // Validate choice_descriptions for rating questions (Sets 1-4)
+    if (formData.set_number <= 4) {
+      const hasAnyDescription = Object.values(formData.choice_descriptions || {})
+        .some(desc => desc && desc.trim());
+      
+      if (!hasAnyDescription) {
+        setFormErrors({ 
+          choice_descriptions: 'At least one rating description is required for rating questions'
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
       const dataToSubmit = {
         text: formData.text,
         type: formData.type,
-        options: formData.options.filter(o => o.trim())
+        set_number: formData.set_number,
+        options: formData.options.filter(o => o.trim()),
+        choice_descriptions: formData.choice_descriptions
       };
+      
+      console.log('📝 Submitting question with dataToSubmit:', dataToSubmit);
 
       if (editingQuestion) {
         await questionsAPI.update(editingQuestion.id, dataToSubmit);
@@ -154,8 +214,11 @@ function Questions() {
       setFormData({
         text: '',
         type: 'rating',
-        options: ['', '', '', '', '']
+        set_number: null,
+        options: ['', '', '', '', ''],
+        choice_descriptions: { 1: '', 2: '', 3: '', 4: '', 5: '' }
       });
+      setPage(1); // Reset to page 1 after creating/updating
       fetchQuestions();
     } catch (err) {
       const errors = err.response?.data?.errors || {};
@@ -181,7 +244,9 @@ function Questions() {
             setFormData({
               text: '',
               type: 'rating',
-              options: ['', '', '', '', '']
+              set_number: null,
+              options: ['', '', '', '', ''],
+              choice_descriptions: { 1: '', 2: '', 3: '', 4: '', 5: '' }
             });
             setFormErrors({});
             setShowModal(true);
@@ -191,11 +256,39 @@ function Questions() {
         </Button>
       </div>
 
+      {/* Set Filter Tabs */}
+      <div className="flex gap-2 mb-6 flex-wrap">
+        <Button
+          variant={selectedSet === null ? 'default' : 'outline'}
+          onClick={() => {
+            setSelectedSet(null);
+            setPage(1);
+          }}
+          size="sm"
+        >
+          All Sets
+        </Button>
+        {[1, 2, 3, 4, 5].map(setNum => (
+          <Button
+            key={setNum}
+            variant={selectedSet === setNum ? 'default' : 'outline'}
+            onClick={() => {
+              setSelectedSet(setNum);
+              setPage(1);
+            }}
+            size="sm"
+          >
+            Set {setNum}{setNum <= 4 ? ' (Rating)' : ' (Feedback)'}
+          </Button>
+        ))}
+      </div>
+
       <Card>
         <CardContent>
           <Table>
             <TableHeader>
               <tr>
+                <TableHead>Set</TableHead>
                 <TableHead>Question</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Last Updated By</TableHead>
@@ -208,6 +301,11 @@ function Questions() {
                 const fullText = q.text || q.question_text || '';
                 return (
                   <TableRow key={q._id || q.id}>
+                    <TableCell>
+                      <Badge variant={q.set_number <= 4 ? 'secondary' : 'default'}>
+                        Set {q.set_number}
+                      </Badge>
+                    </TableCell>
                     <TableCell>{displayText + (fullText.length > 50 ? '...' : '')}</TableCell>
                     <TableCell><Badge>{q.type || 'rating'}</Badge></TableCell>
                     <TableCell>
@@ -277,44 +375,88 @@ function Questions() {
       </div>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingQuestion ? 'Edit Question' : 'Add New Question'}</DialogTitle>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            {/* Question Set Selector */}
             <div>
-              <Label>Question Text *</Label>
-              <Textarea
-                value={formData.text}
-                onChange={(e) => handleFormChange('text', e.target.value)}
-                placeholder="Enter your question here..."
-                rows={3}
-              />
-              {formErrors.text && (
-                <div className="text-red-600 text-sm mt-1">{formErrors.text}</div>
+              <Label>Question Set *</Label>
+              <div className="grid grid-cols-5 gap-2 mt-2">
+                {[1, 2, 3, 4, 5].map(setNum => (
+                  <Button
+                    key={setNum}
+                    variant={formData.set_number === setNum ? 'default' : 'outline'}
+                    onClick={() => handleFormChange('set_number', setNum)}
+                    className="w-full"
+                  >
+                    Set {setNum}
+                  </Button>
+                ))}
+              </div>
+              {formErrors.set_number && (
+                <div className="text-red-600 text-sm mt-1">{formErrors.set_number}</div>
               )}
             </div>
 
-            <div>
-              <Label>Rating Scale (1-5) <span className="text-muted-foreground text-sm">(optional labels)</span></Label>
-              <div className="border p-3 rounded-lg bg-slate-50 space-y-2">
-                {[1, 2, 3, 4, 5].map((num) => (
-                  <div key={num} className="flex gap-2 items-center">
-                    <span className="w-10 font-semibold text-sm">{num}</span>
-                    <Input
-                      type="text"
-                      placeholder={`e.g., ${num === 1 ? 'Strongly Disagree' : num === 5 ? 'Strongly Agree' : 'Neutral'}`}
-                      value={formData.options[num - 1] || ''}
-                      onChange={(e) => handleOptionsChange(num - 1, e.target.value)}
-                    />
-                  </div>
-                ))}
+            {/* Question Text - only show after set is selected */}
+            {formData.set_number && (
+              <div>
+                <Label>Question Text *</Label>
+                <Textarea
+                  value={formData.text}
+                  onChange={(e) => handleFormChange('text', e.target.value)}
+                  placeholder="Enter your question here..."
+                  rows={3}
+                />
+                {formErrors.text && (
+                  <div className="text-red-600 text-sm mt-1">{formErrors.text}</div>
+                )}
               </div>
-              <small className="text-muted-foreground text-sm block mt-2">
-                Leave blank for default numeric scale (1, 2, 3, 4, 5)
-              </small>
-            </div>
+            )}
+
+            {/* Choice Descriptions (only for Sets 1-4) */}
+            {formData.set_number && formData.set_number <= 4 && (
+              <div>
+                <Label>Choice Descriptions (1-5 Scale) <span className="text-red-600">*</span></Label>
+                <div className="border p-4 rounded-lg bg-slate-50 space-y-3 max-h-96 overflow-y-auto">
+                  {[1, 2, 3, 4, 5].map((num) => (
+                    <div key={num} className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="w-8 font-semibold text-sm bg-blue-100 px-2 py-1 rounded text-center">{num}</span>
+                        <Label className="flex-1 text-sm">
+                          Description for rating {num}
+                        </Label>
+                      </div>
+                      <Input
+                        type="text"
+                        placeholder={`e.g., ${num === 1 ? 'Strongly Disagree' : num === 5 ? 'Strongly Agree' : 'Neutral'}`}
+                        value={formData.choice_descriptions[num] || ''}
+                        onChange={(e) => handleChoiceDescriptionChange(num, e.target.value)}
+                        className="ml-10"
+                      />
+                    </div>
+                  ))}
+                </div>
+                <small className="text-muted-foreground text-sm block mt-2">
+                  At least one description is required for rating questions
+                </small>
+                {formErrors.choice_descriptions && (
+                  <div className="text-red-600 text-sm mt-2">{formErrors.choice_descriptions}</div>
+                )}
+              </div>
+            )}
+
+            {/* Set 5 Info */}
+            {formData.set_number === 5 && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-700">
+                  <strong>Set 5:</strong> This is for positive and negative feedback. Students will provide text feedback instead of numeric ratings.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -328,7 +470,7 @@ function Questions() {
               </Button>
               <Button 
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={isSubmitting || !formData.set_number}
               >
                 {isSubmitting ? 'Saving...' : editingQuestion ? 'Update' : 'Create'}
               </Button>

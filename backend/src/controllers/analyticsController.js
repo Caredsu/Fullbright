@@ -111,27 +111,9 @@ export const getDashboard = async (req, res, next) => {
       date: evaluation.created_at?.toISOString?.() || new Date().toISOString()
     }));
 
-    // Get evaluation status breakdown
-    const evaluationStatus = await evaluationsCollection.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 }
-        }
-      }
-    ]).toArray();
-
-    const statusBreakdown = {
-      completed: 0,
-      in_progress: 0,
-      pending: 0
-    };
-
-    evaluationStatus.forEach(status => {
-      if (status._id in statusBreakdown) {
-        statusBreakdown[status._id] = status.count;
-      }
-    });
+    // Get evaluation status breakdown - REMOVED (no longer needed)
+    // const evaluationStatus = await evaluationsCollection.aggregate([ ... ]);
+    // const statusBreakdown = { ... };
 
     // Get rating distribution (only non-null ratings)
     const ratingDistribution = await evaluationsCollection.aggregate([
@@ -167,8 +149,8 @@ export const getDashboard = async (req, res, next) => {
         },
         departmentPerformance,
         recentEvaluations: formattedRecentEvaluations,
-        evaluationStatus: statusBreakdown,
-        ratingDistribution: ratingBreakdown,
+        // evaluationStatus: REMOVED - no longer part of dashboard
+        // ratingDistribution: REMOVED - no longer part of dashboard
         systemStatus: {
           database: 'connected',
           apiServer: 'running',

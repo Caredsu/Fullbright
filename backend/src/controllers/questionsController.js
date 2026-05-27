@@ -20,7 +20,7 @@ const optionsToRatingScale = (options) => {
 
 export const getQuestions = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, category } = req.query;
+    const { page = 1, limit = 10, category, set_number } = req.query;
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.max(1, parseInt(limit) || 10);
     const offset = (pageNum - 1) * limitNum;
@@ -30,6 +30,9 @@ export const getQuestions = async (req, res, next) => {
     let filter = {};
     if (category) {
       filter.category = category;
+    }
+    if (set_number) {
+      filter.set_number = parseInt(set_number);
     }
 
     const totalCount = await questionsCollection.countDocuments(filter);
@@ -53,6 +56,8 @@ export const getQuestions = async (req, res, next) => {
             type: q.type || 'rating',
             question_type: q.type || 'rating',
             category: q.category || '',
+            set_number: q.set_number || null,
+            choice_descriptions: q.choice_descriptions || {},
             options: q.options || [],
             rating_scale: optionsToRatingScale(q.options), // Convert options to rating_scale object
             criteria: q.options || [],
@@ -101,6 +106,8 @@ export const getQuestionById = async (req, res, next) => {
       type: question.type || 'rating',
       question_type: question.type || 'rating',
       category: question.category || '',
+      set_number: question.set_number || null,
+      choice_descriptions: question.choice_descriptions || {},
       options: question.options || [],
       rating_scale: optionsToRatingScale(question.options), // Convert options to rating_scale object
       criteria: question.options || [],
@@ -123,7 +130,16 @@ export const getQuestionById = async (req, res, next) => {
 
 export const createQuestion = async (req, res, next) => {
   try {
-    const { text, category, type, options } = req.body;
+    const { text, category, type, options, set_number, choice_descriptions } = req.body;
+    console.log('🎯 createQuestion FULL req.body:', JSON.stringify(req.body, null, 2));
+    console.log('🎯 createQuestion extracted:', { 
+      text: text?.substring(0, 30), 
+      set_number, 
+      set_number_type: typeof set_number,
+      type, 
+      optionsCount: options?.length,
+      choice_descriptions_keys: Object.keys(choice_descriptions || {})
+    });
 
     if (!text) {
       return res.status(400).json({
@@ -132,13 +148,35 @@ export const createQuestion = async (req, res, next) => {
       });
     }
 
+    // Validate set_number if provided (must be 1-5)
+    if (set_number !== undefined && (set_number < 1 || set_number > 5)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Set number must be between 1 and 5'
+      });
+    }
+
+    // Validate max questions per set (1-4 max 10 questions, set 5 is flexible)
+    if (set_number && set_number >= 1 && set_number <= 4) {
+      const questionsCollection = getCollection('questions');
+      const countInSet = await questionsCollection.countDocuments({ set_number });
+      if (countInSet >= 10) {
+        return res.status(400).json({
+          success: false,
+          message: `Set ${set_number} has reached the maximum of 10 questions`
+        });
+      }
+    }
+
     const questionsCollection = getCollection('questions');
 
     const newQuestion = {
       text: text,
       category: category || 'general',
-      type: type || 'rating', // rating, multiple_choice, text, etc.
+      type: type || 'rating', // rating, multiple_choice, text, feedback, etc.
       options: options || [],
+      set_number: set_number !== undefined ? set_number : null,
+      choice_descriptions: choice_descriptions || {}, // {1: "desc1", 2: "desc2", ...}
       created_at: new Date(),
       updated_at: new Date(),
       created_by: req.session?.username || 'system'
@@ -162,15 +200,25 @@ export const createQuestion = async (req, res, next) => {
 export const updateQuestion = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { text, category, type, options } = req.body;
+    const { text, category, type, options, set_number, choice_descriptions } = req.body;
 
     const questionsCollection = getCollection('questions');
+
+    // Validate set_number if provided (must be 1-5)
+    if (set_number !== undefined && (set_number < 1 || set_number > 5)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Set number must be between 1 and 5'
+      });
+    }
 
     const updateData = {};
     if (text) updateData.text = text;
     if (category) updateData.category = category;
     if (type) updateData.type = type;
     if (options) updateData.options = options;
+    if (set_number !== undefined) updateData.set_number = set_number;
+    if (choice_descriptions !== undefined) updateData.choice_descriptions = choice_descriptions;
     updateData.updated_at = new Date();
     updateData.updated_by = req.session?.username || 'system';
 

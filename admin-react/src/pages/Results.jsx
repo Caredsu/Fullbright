@@ -153,6 +153,31 @@ function Results() {
     setShowModal(true);
   };
 
+  const groupEvaluationsBySet = (evaluation) => {
+    const setGroups = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+    const setAverages = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    
+    if (evaluation.answers && typeof evaluation.answers === 'object') {
+      Object.entries(evaluation.answers).forEach(([questionId, rating]) => {
+        const question = questions.find(q => q.id === questionId);
+        const setNum = question?.set_number || 1;
+        if (setGroups[setNum]) {
+          setGroups[setNum].push({ questionId, rating, question });
+        }
+      });
+      
+      // Calculate averages for each set
+      Object.keys(setGroups).forEach(setNum => {
+        if (setGroups[setNum].length > 0) {
+          const sum = setGroups[setNum].reduce((acc, item) => acc + (item.rating || 0), 0);
+          setAverages[setNum] = Math.round((sum / setGroups[setNum].length) * 10) / 10;
+        }
+      });
+    }
+    
+    return { setGroups, setAverages };
+  };
+
   const clearFilters = () => {
     setFilterTeacher('');
     setFilterFromDate('');
@@ -727,68 +752,75 @@ function Results() {
 
               <hr />
 
-              <h4 className="font-semibold">Ratings by Question:</h4>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <tr>
-                      <TableHead>Question</TableHead>
-                      <TableHead>Rating</TableHead>
-                    </tr>
-                  </TableHeader>
-                  <TableBody>
-                    {selectedEval.answers && typeof selectedEval.answers === 'object' && Object.keys(selectedEval.answers).length > 0 ? (
-                      Object.entries(selectedEval.answers).map(([questionId, rating], idx) => (
-                        <TableRow key={idx}>
-                          <TableCell>
-                            {getQuestionText(questionId) || 'Unknown Question'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge 
-                              style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
-                              className="text-white"
-                            >
-                              {rating || 'N/A'}/5
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">
-                          No ratings found
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+              <h4 className="font-semibold text-lg mb-3">📊 Ratings Breakdown by Set</h4>
+              <div className="space-y-6">
+                {(() => {
+                  const { setGroups, setAverages } = groupEvaluationsBySet(selectedEval);
+                  
+                  // Display Sets 1-4 with ratings
+                  return (
+                    <>
+                      {[1, 2, 3, 4].map(setNum => (
+                        setGroups[setNum] && setGroups[setNum].length > 0 && (
+                          <div key={setNum} className="border-l-4 border-blue-500 pl-4 bg-blue-50 p-4 rounded-r-md">
+                            <h5 className="font-semibold text-lg mb-3 text-blue-900">
+                              Set {setNum}: Rating Questions
+                              <Badge className="ml-2 bg-blue-600 text-white font-bold">
+                                ⭐ {setAverages[setNum]}/5
+                              </Badge>
+                            </h5>
+                            <div className="space-y-2">
+                              {setGroups[setNum].map(({ questionId, rating }, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-md border border-blue-200">
+                                  <span className="text-sm flex-1">
+                                    {getQuestionText(questionId) || 'Unknown Question'}
+                                  </span>
+                                  <Badge 
+                                    style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #06b6d4 100%)' }}
+                                    className="text-white font-semibold ml-4"
+                                  >
+                                    {rating || 'N/A'} / 5
+                                  </Badge>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
 
-              <hr />
+              <hr className="my-6" />
 
-              <h4 className="font-semibold">Qualitative Feedback:</h4>
+              <h4 className="font-semibold text-lg mb-3">💬 Set 5: Student Feedback (Optional)</h4>
               {selectedEval.positive_feedback || selectedEval.negative_feedback ? (
-                <div className="space-y-3">
+                <div className="space-y-4 max-h-48 overflow-y-auto">
                   {selectedEval.positive_feedback && (
                     <div>
-                      <div className="font-semibold text-green-600">✓ Positive Feedback:</div>
-                      <div className="bg-green-50 text-slate-800 p-3 rounded-md border-l-4 border-green-600 mt-1">
+                      <div className="font-semibold text-green-700 mb-2 flex items-center">
+                        <span className="text-lg mr-2">✓</span> Positive Feedback
+                      </div>
+                      <div className="bg-green-50 text-slate-800 p-4 rounded-md border-l-4 border-green-600 whitespace-pre-wrap">
                         {selectedEval.positive_feedback}
                       </div>
                     </div>
                   )}
                   {selectedEval.negative_feedback && (
                     <div>
-                      <div className="font-semibold text-red-600">✗ Negative Feedback:</div>
-                      <div className="bg-red-50 text-slate-800 p-3 rounded-md border-l-4 border-red-600 mt-1">
+                      <div className="font-semibold text-red-700 mb-2 flex items-center">
+                        <span className="text-lg mr-2">✗</span> Areas for Improvement
+                      </div>
+                      <div className="bg-red-50 text-slate-800 p-4 rounded-md border-l-4 border-red-600 whitespace-pre-wrap">
                         {selectedEval.negative_feedback}
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="bg-slate-50 p-4 rounded-md border-l-4 border-purple-600">
-                  {selectedEval.feedback || 'No feedback provided'}
+                <div className="bg-slate-50 p-4 rounded-md border-l-4 border-slate-400 text-muted-foreground text-center">
+                  ℹ️ No feedback provided for this evaluation
                 </div>
               )}
             </div>

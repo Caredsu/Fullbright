@@ -145,7 +145,13 @@ function Dashboard() {
   // Simple bar chart component for rating distribution
   const RatingChart = ({ data }) => {
     if (!data || Object.keys(data).length === 0) {
-      return <p className="text-sm text-muted-foreground">No rating data available</p>;
+      return (
+        <div className="flex flex-col items-center justify-center h-48 text-center">
+          <div className="text-4xl mb-3">📊</div>
+          <p className="text-sm font-medium text-muted-foreground mb-2">No evaluation data yet</p>
+          <p className="text-xs text-gray-400 max-w-xs">Evaluations will appear here once teachers receive ratings. Get started by accessing the evaluation system.</p>
+        </div>
+      );
     }
 
     const maxCount = Math.max(...Object.values(data));
@@ -169,52 +175,29 @@ function Dashboard() {
     );
   };
 
-  // Status breakdown chart - shows all evaluation statuses
-  const StatusChart = ({ data }) => {
-    if (!data || Object.keys(data).length === 0) {
-      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
-    }
-    
-    const total = (data.completed || 0) + (data.in_progress || 0) + (data.pending || 0);
-    if (total === 0) {
-      return <p className="text-sm text-muted-foreground">No evaluation data</p>;
-    }
 
-    const colors = {
-      completed: 'bg-green-500',
-      in_progress: 'bg-yellow-500',
-      pending: 'bg-red-500'
-    };
-
-    const statuses = ['completed', 'in_progress', 'pending'];
-
-    return (
-      <div className="space-y-3">
-        {statuses.map((status) => {
-          const count = data[status] || 0;
-          const percentage = (count / total) * 100;
-          return (
-            <div key={status} className="flex items-center gap-3">
-              <div className="flex-1">
-                <div className="flex justify-between mb-1">
-                  <span className="text-sm font-medium capitalize">{status.replace(/_/g, ' ')}</span>
-                  <span className="text-sm font-bold">{count}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className={`h-2 rounded-full ${colors[status] || 'bg-blue-500'}`} style={{ width: `${percentage}%` }}></div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
 
   // Recent evaluations table
   const RecentEvaluationsTable = ({ evaluations, navigate }) => {
     if (!evaluations || evaluations.length === 0) {
-      return <p className="text-sm text-muted-foreground">No recent evaluations</p>;
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="text-5xl mb-4">📋</div>
+          <p className="text-base font-semibold text-gray-700 mb-2">No recent evaluations</p>
+          <p className="text-sm text-muted-foreground mb-6 max-w-md">
+            The latest evaluations from your admins will appear here. Start the evaluation process to see activity.
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left text-sm max-w-md">
+            <p className="font-medium text-blue-900 mb-2">💡 How to get started:</p>
+            <ol className="list-decimal list-inside space-y-1 text-blue-800">
+              <li>Ensure teachers are added to the system</li>
+              <li>Setup evaluation questions (if needed)</li>
+              <li>Enable evaluations in Settings</li>
+              <li>Admins can then evaluate teachers</li>
+            </ol>
+          </div>
+        </div>
+      );
     }
 
     return (
@@ -286,25 +269,15 @@ function Dashboard() {
         })}
       </div>
 
-      {/* Analytics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Analytics Charts - Removed Evaluation Status Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Evaluation Distribution</CardTitle>
+            <CardTitle>Rating Distribution</CardTitle>
             <CardDescription>Rating breakdown across all evaluations</CardDescription>
           </CardHeader>
           <CardContent>
             <RatingChart data={stats?.ratingDistribution} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Evaluation Status</CardTitle>
-            <CardDescription>Breakdown by completion status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <StatusChart data={stats?.evaluationStatus} />
           </CardContent>
         </Card>
       </div>

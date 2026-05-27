@@ -15,11 +15,17 @@ function Login({ onLogin }) {
     setLoading(true);
 
     try {
+      console.log('🔐 Attempting login with username:', username);
       const response = await authAPI.login(username, password);
+      console.log('✅ Login response:', response.data);
       const { user, token } = response.data;
+      console.log('📝 Storing token and user:', { user, token: token?.substring(0, 20) + '...' });
       onLogin(user, token);
       navigate('/admin');
     } catch (err) {
+      console.error('❌ Login error:', err);
+      console.error('Response data:', err.response?.data);
+      console.error('Response status:', err.response?.status);
       setError(err.response?.data?.message || 'Invalid credentials');
     } finally {
       setLoading(false);

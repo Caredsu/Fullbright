@@ -15,6 +15,13 @@ export default function Evaluation() {
   const { user } = useAuth();
   const [teacher, setTeacher] = useState(null);
   const [questions, setQuestions] = useState([]);
+  const [questionsBySet, setQuestionsBySet] = useState({
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+    5: []
+  });
   const [responses, setResponses] = useState({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -26,10 +33,8 @@ export default function Evaluation() {
   const [success, setSuccess] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [retrying, setRetrying] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [isAlreadyEvaluated, setIsAlreadyEvaluated] = useState(false);
   const [evalEnabled, setEvalEnabled] = useState(true);
-  const QUESTIONS_PER_PAGE = 5;
 
   // Check if evaluations are enabled
   useEffect(() => {
@@ -103,8 +108,26 @@ export default function Evaluation() {
       if (questionsRes.data.success) {
         const questionsList = questionsRes.data.data.data || [];
         console.log('📋 Questions fetched from API:', questionsList);
-        console.log('🎯 First question rating_scale:', questionsList[0]?.rating_scale);
         setQuestions(questionsList);
+        
+        // Group questions by set (1-5)
+        const grouped = {
+          1: [],
+          2: [],
+          3: [],
+          4: [],
+          5: []
+        };
+        
+        questionsList.forEach(q => {
+          const setNum = q.set_number || null;
+          if (setNum && setNum >= 1 && setNum <= 5) {
+            grouped[setNum].push(q);
+          }
+        });
+        
+        setQuestionsBySet(grouped);
+        console.log('📊 Questions grouped by set:', grouped);
         
         // Initialize responses
         const init = {};
@@ -197,43 +220,11 @@ export default function Evaluation() {
     }
   };
 
-  // Calculate progress
+  // Calculate progress based on all questions
   const answeredCount = Object.values(responses).filter(r => r !== 0).length;
-  const totalQuestions = questions.length;
+  const totalQuestions = questions.filter(q => q.set_number && q.set_number <= 4).length; // Only count rating questions (Sets 1-4)
   const progressPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   const isComplete = answeredCount === totalQuestions && totalQuestions > 0;
-
-  // Pagination logic
-  const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
-  const startIndex = (currentPage - 1) * QUESTIONS_PER_PAGE;
-  const endIndex = startIndex + QUESTIONS_PER_PAGE;
-  const paginatedQuestions = questions.slice(startIndex, endIndex);
-
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-      // Scroll to top of questions section
-      setTimeout(() => {
-        const questionsSection = document.querySelector('.questions-section');
-        if (questionsSection) {
-          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 0);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-      // Scroll to top of questions section
-      setTimeout(() => {
-        const questionsSection = document.querySelector('.questions-section');
-        if (questionsSection) {
-          questionsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 0);
-    }
-  };
 
   // Auto-save on response change
   useEffect(() => {
@@ -491,83 +482,73 @@ export default function Evaluation() {
         )}
 
         <div className="questions-container questions-section">
-          {paginatedQuestions.map((question, idx) => (
-            <div key={question.id} className="question-item">
-              <div className="question-text">
-                <span className="question-number">{startIndex + idx + 1}.</span>
-                <span>{question.question_text || question.text}</span>
-              </div>
-              
-              <div className="rating-options rating-vertical">
-                {[1, 2, 3, 4, 5].map(rating => {
-                  const ratingDescription = question.rating_scale?.[String(rating)] || 
-                    ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
-                  
-                  return (
-                    <label key={rating} className="rating-label-radio">
-                      <input
-                        type="radio"
-                        name={`question_${question.id}`}
-                        value={rating}
-                        checked={responses[question.id] === rating}
-                        onChange={() => handleRating(question.id, rating)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'ArrowRight' && rating < 5) {
-                            handleRating(question.id, rating + 1);
-                          } else if (e.key === 'ArrowLeft' && rating > 1) {
-                            handleRating(question.id, rating - 1);
-                          }
-                        }}
-                        required
-                      />
-                      <span className="radio-circle"></span>
-                      <span className="radio-text">
-                        <strong>{rating}</strong> - {ratingDescription}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              {responses[question.id] > 0 && (
-                <div className="validation-feedback validation-success">
-                  <span className="validation-icon">✓</span>
-                  <span>Answered</span>
+          {/* Sets 1-4: Rating Questions */}
+          {[1, 2, 3, 4].map(setNum => (
+            <div key={`set-${setNum}`}>
+              {questionsBySet[setNum] && questionsBySet[setNum].length > 0 && (
+                <div style={{ marginBottom: '2rem' }}>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#333' }}>
+                    Set {setNum}: Rating Questions
+                  </h3>
+                  {questionsBySet[setNum].map((question, idx) => (
+                    <div key={question.id} className="question-item">
+                      <div className="question-text">
+                        <span className="question-number">{idx + 1}.</span>
+                        <span>{question.question_text || question.text}</span>
+                      </div>
+                      
+                      <div className="rating-options rating-vertical">
+                        {[1, 2, 3, 4, 5].map(rating => {
+                          // Get choice description from choice_descriptions object
+                          const choiceDesc = question.choice_descriptions?.[String(rating)] || 
+                            question.rating_scale?.[String(rating)] || 
+                            ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
+                          
+                          return (
+                            <label key={rating} className="rating-label-radio">
+                              <input
+                                type="radio"
+                                name={`question_${question.id}`}
+                                value={rating}
+                                checked={responses[question.id] === rating}
+                                onChange={() => handleRating(question.id, rating)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'ArrowRight' && rating < 5) {
+                                    handleRating(question.id, rating + 1);
+                                  } else if (e.key === 'ArrowLeft' && rating > 1) {
+                                    handleRating(question.id, rating - 1);
+                                  }
+                                }}
+                                required
+                              />
+                              <span className="radio-circle"></span>
+                              <span className="radio-text">
+                                <strong>{rating}</strong> - {choiceDesc}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {responses[question.id] > 0 && (
+                        <div className="validation-feedback validation-success">
+                          <span className="validation-icon">✓</span>
+                          <span>Answered</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           ))}
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="pagination-controls">
-              <button
-                type="button"
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-                className="pagination-btn pagination-btn-prev"
-                aria-label="Previous page"
-              >
-                ← Previous
-              </button>
-              <span className="pagination-info" role="status" aria-live="polite">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                className="pagination-btn pagination-btn-next"
-                aria-label="Next page"
-              >
-                Next →
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Feedback Sections - Show only on last page */}
-        {(currentPage === totalPages && totalPages > 0) && (
+        {/* Feedback Sections - Set 5: Positive and Negative Feedback */}
         <div className="feedback-section">
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', marginTop: '2rem', color: '#333' }}>
+            Set 5: Feedback (Optional)
+          </h3>
+
           {/* Positive Feedback */}
           <div className="feedback-toggle" style={{ marginTop: '1.5rem' }}>
             <label className="toggle-label">
@@ -622,7 +603,6 @@ export default function Evaluation() {
             </div>
           )}
         </div>
-        )}
 
         <div className="form-actions">
           <button 

@@ -139,10 +139,11 @@ export const updateUser = async (req, res) => {
     }
 
     // Update password if provided (accept both user_password and password)
+    // IMPORTANT: Hash password before storing
     if (user_password !== undefined && user_password !== '') {
-      updateData.password = user_password;
+      updateData.password = await bcrypt.hash(user_password, 10);
     } else if (password !== undefined && password !== '') {
-      updateData.password = password;
+      updateData.password = await bcrypt.hash(password, 10);
     }
 
     const result = await adminsCollection.updateOne(
