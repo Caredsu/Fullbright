@@ -36,13 +36,12 @@ function Results() {
   const [filterTeacher, setFilterTeacher] = useState('');
   const [filterFromDate, setFilterFromDate] = useState('');
   const [filterToDate, setFilterToDate] = useState('');
-  const [filterMinRating, setFilterMinRating] = useState('');
 
   useEffect(() => {
     fetchQuestions();
     fetchEvaluations();
     fetchTeachers();
-  }, [filterTeacher, filterFromDate, filterToDate, filterMinRating]);
+  }, [filterTeacher, filterFromDate, filterToDate]);
 
   const fetchTeachers = async () => {
     try {
@@ -93,13 +92,6 @@ function Results() {
       // Apply filters
       if (filterTeacher) {
         filteredData = filteredData.filter(e => e.teacher_id === filterTeacher);
-      }
-
-      if (filterMinRating) {
-        filteredData = filteredData.filter(e => {
-          const avg = calculateAverageRating(e);
-          return avg >= parseFloat(filterMinRating);
-        });
       }
 
       if (filterFromDate || filterToDate) {
@@ -182,11 +174,10 @@ function Results() {
     setFilterTeacher('');
     setFilterFromDate('');
     setFilterToDate('');
-    setFilterMinRating('');
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = filterTeacher || filterFromDate || filterToDate || filterMinRating;
+  const hasActiveFilters = filterTeacher || filterFromDate || filterToDate;
 
   const getTeacherName = (teacherId) => {
     const teacher = teachers.find(t => t.id === teacherId);
@@ -556,22 +547,6 @@ function Results() {
                   className="text-sm"
                 />
               </div>
-
-              <div>
-                <Label className="mb-2">Minimum Rating</Label>
-                <select 
-                  value={filterMinRating}
-                  onChange={(e) => setFilterMinRating(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-md bg-white text-sm"
-                >
-                  <option value="">All</option>
-                  <option value="1">1+ ⭐</option>
-                  <option value="2">2+ ⭐</option>
-                  <option value="3">3+ ⭐</option>
-                  <option value="4">4+ ⭐</option>
-                  <option value="5">5 ⭐</option>
-                </select>
-              </div>
             </div>
 
             {hasActiveFilters && (
@@ -587,9 +562,6 @@ function Results() {
                   )}
                   {filterToDate && (
                     <Badge variant="secondary">📅 {filterToDate}</Badge>
-                  )}
-                  {filterMinRating && (
-                    <Badge variant="outline">⭐ {filterMinRating}+</Badge>
                   )}
                 </div>
                 <div className="flex gap-2">
