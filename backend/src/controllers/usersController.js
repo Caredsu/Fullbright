@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import { getCollection } from '../config/database.js';
 
 // Get all users (admins)
@@ -79,8 +80,8 @@ export const createUser = async (req, res) => {
       });
     }
 
-    // Hash password (would need bcryptjs in production)
-    const hashedPassword = passwordValue; // In production, use bcryptjs
+    // Hash password using bcryptjs
+    const hashedPassword = await bcrypt.hash(passwordValue, 10);
 
     const newUser = {
       username,
