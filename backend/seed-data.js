@@ -6,63 +6,100 @@ const seedData = async () => {
     
     const db = await connectDB();
 
-    // Sample Questions
+    // Sample Questions - Distributed across Sets 1-5
     const questions = [
+      // SET 1: Teaching Quality
       {
-        question_text: 'Ang guro ay nag-eexplain ng concepts ng malinaw at naiintindihan.',
-        question_type: 'rating',
-        question_order: 1,
+        text: 'Ang guro ay nag-eexplain ng concepts ng malinaw at naiintindihan.',
+        type: 'rating',
+        set_number: 1,
         category: 'teaching_quality',
         status: 'active',
         required: true,
+        options: [],
+        choice_descriptions: {
+          '1': 'Strongly Disagree',
+          '2': 'Disagree',
+          '3': 'Neutral',
+          '4': 'Agree',
+          '5': 'Strongly Agree'
+        },
         created_at: new Date(),
         updated_at: new Date(),
         created_by: 'system',
         updated_by: 'system'
       },
       {
-        question_text: 'Ang guro ay responsive sa mga tanong ng mga estudyante.',
-        question_type: 'rating',
-        question_order: 2,
+        text: 'Ang guro ay responsive sa mga tanong ng mga estudyante.',
+        type: 'rating',
+        set_number: 1,
         category: 'student_interaction',
         status: 'active',
         required: true,
+        options: [],
+        choice_descriptions: {
+          '1': 'Strongly Disagree',
+          '2': 'Disagree',
+          '3': 'Neutral',
+          '4': 'Agree',
+          '5': 'Strongly Agree'
+        },
         created_at: new Date(),
         updated_at: new Date(),
         created_by: 'system',
         updated_by: 'system'
       },
+      // SET 2: Assessment & Management
       {
-        question_text: 'Ang guro ay nag-aalok ng fair at objective na grading.',
-        question_type: 'rating',
-        question_order: 3,
+        text: 'Ang guro ay nag-aalok ng fair at objective na grading.',
+        type: 'rating',
+        set_number: 2,
         category: 'assessment',
         status: 'active',
         required: true,
+        options: [],
+        choice_descriptions: {
+          '1': 'Strongly Disagree',
+          '2': 'Disagree',
+          '3': 'Neutral',
+          '4': 'Agree',
+          '5': 'Strongly Agree'
+        },
         created_at: new Date(),
         updated_at: new Date(),
         created_by: 'system',
         updated_by: 'system'
       },
       {
-        question_text: 'Ang guro ay nag-conduct ng well-organized classes.',
-        question_type: 'rating',
-        question_order: 4,
+        text: 'Ang guro ay nag-conduct ng well-organized classes.',
+        type: 'rating',
+        set_number: 2,
         category: 'class_management',
         status: 'active',
         required: true,
+        options: [],
+        choice_descriptions: {
+          '1': 'Strongly Disagree',
+          '2': 'Disagree',
+          '3': 'Neutral',
+          '4': 'Agree',
+          '5': 'Strongly Agree'
+        },
         created_at: new Date(),
         updated_at: new Date(),
         created_by: 'system',
         updated_by: 'system'
       },
+      // SET 5: Feedback (Optional)
       {
-        question_text: 'Ang guro ay nag-eencourage ng class participation.',
-        question_type: 'rating',
-        question_order: 5,
-        category: 'student_engagement',
+        text: 'Please provide any additional feedback or comments about this teacher.',
+        type: 'feedback',
+        set_number: 5,
+        category: 'feedback',
         status: 'active',
-        required: true,
+        required: false,
+        options: [],
+        choice_descriptions: {},
         created_at: new Date(),
         updated_at: new Date(),
         created_by: 'system',

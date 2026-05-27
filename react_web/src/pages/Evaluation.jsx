@@ -226,6 +226,31 @@ export default function Evaluation() {
   const progressPercentage = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
   const isComplete = answeredCount === totalQuestions && totalQuestions > 0;
 
+  // Calculate per-set progress for sequential unlocking
+  const getSetProgress = (setNum) => {
+    const setQuestions = questionsBySet[setNum] || [];
+    const answeredInSet = setQuestions.filter(q => responses[q.id] > 0).length;
+    return {
+      total: setQuestions.length,
+      answered: answeredInSet,
+      isComplete: answeredInSet === setQuestions.length && setQuestions.length > 0
+    };
+  };
+
+  // Determine which sets are unlocked (sequential unlocking: must complete Set 1 to unlock Set 2, etc.)
+  const isSetUnlocked = (setNum) => {
+    if (setNum === 1) return true; // Set 1 always unlocked
+    if (setNum === 5) return true; // Set 5 (feedback) always unlocked
+    // For Sets 2-4: must complete all previous rating sets
+    for (let i = 1; i < setNum; i++) {
+      const prevProgress = getSetProgress(i);
+      if (!prevProgress.isComplete || prevProgress.total === 0) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Auto-save on response change
   useEffect(() => {
     if (questions.length > 0) {
@@ -259,7 +284,7 @@ export default function Evaluation() {
     }
 
     if (!isComplete) {
-      addToast('Please answer all questions before submitting', 'error');
+      addToast('Please answer all rating questions (Sets 1-4) before submitting', 'error');
       return;
     }
 
@@ -472,82 +497,148 @@ export default function Evaluation() {
         {questions.length > 0 && (
           <div className="progress-container">
             <div className="progress-info">
-              <span className="progress-label">Questions Answered</span>
+              <span className="progress-label">Overall Progress</span>
               <span className="progress-percentage">{answeredCount}/{totalQuestions} ({progressPercentage}%)</span>
             </div>
             <div className="progress-bar">
               <div className="progress-fill" style={{ width: `${progressPercentage}%` }}></div>
             </div>
+
+            {/* Per-Set Status */}
+            <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
+              {[1, 2, 3, 4].map(setNum => {
+                const progress = getSetProgress(setNum);
+                const unlocked = isSetUnlocked(setNum);
+                const statusColor = !unlocked ? '#999' : progress.isComplete ? '#28a745' : '#ffc107';
+                
+                return (
+                  <div key={`status-${setNum}`} style={{
+                    padding: '0.5rem',
+                    backgroundColor: '#f8f9fa',
+                    border: `2px solid ${statusColor}`,
+                    borderRadius: '4px',
+                    textAlign: 'center',
+                    fontSize: '0.85rem',
+                    color: statusColor,
+                    fontWeight: '600'
+                  }}>
+                    <div>Set {setNum}</div>
+                    <div>{progress.answered}/{progress.total}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
         <div className="questions-container questions-section">
-          {/* Sets 1-4: Rating Questions */}
-          {[1, 2, 3, 4].map(setNum => (
-            <div key={`set-${setNum}`}>
-              {questionsBySet[setNum] && questionsBySet[setNum].length > 0 && (
-                <div style={{ marginBottom: '2rem' }}>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#333' }}>
-                    Set {setNum}: Rating Questions
-                  </h3>
-                  {questionsBySet[setNum].map((question, idx) => (
-                    <div key={question.id} className="question-item">
-                      <div className="question-text">
-                        <span className="question-number">{idx + 1}.</span>
-                        <span>{question.question_text || question.text}</span>
-                      </div>
-                      
-                      <div className="rating-options rating-vertical">
-                        {[1, 2, 3, 4, 5].map(rating => {
-                          // Get choice description from choice_descriptions object
-                          const choiceDesc = question.choice_descriptions?.[String(rating)] || 
-                            question.rating_scale?.[String(rating)] || 
-                            ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
-                          
-                          return (
-                            <label key={rating} className="rating-label-radio">
-                              <input
-                                type="radio"
-                                name={`question_${question.id}`}
-                                value={rating}
-                                checked={responses[question.id] === rating}
-                                onChange={() => handleRating(question.id, rating)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'ArrowRight' && rating < 5) {
-                                    handleRating(question.id, rating + 1);
-                                  } else if (e.key === 'ArrowLeft' && rating > 1) {
-                                    handleRating(question.id, rating - 1);
-                                  }
-                                }}
-                                required
-                              />
-                              <span className="radio-circle"></span>
-                              <span className="radio-text">
-                                <strong>{rating}</strong> - {choiceDesc}
-                              </span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                      {responses[question.id] > 0 && (
-                        <div className="validation-feedback validation-success">
-                          <span className="validation-icon">✓</span>
-                          <span>Answered</span>
-                        </div>
-                      )}
+          {/* Sets 1-4: Rating Questions with Sequential Unlocking */}
+          {[1, 2, 3, 4].map(setNum => {
+            const isUnlocked = isSetUnlocked(setNum);
+            const setProgress = getSetProgress(setNum);
+            
+            return (
+              <div key={`set-${setNum}`}>
+                {questionsBySet[setNum] && questionsBySet[setNum].length > 0 && (
+                  <div style={{ marginBottom: '2rem', opacity: isUnlocked ? 1 : 0.5 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                      <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333', margin: 0 }}>
+                        Set {setNum}: Rating Questions
+                      </h3>
+                      <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>
+                        {setProgress.answered}/{setProgress.total} answered
+                      </span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+
+                    {/* Show lock status for locked sets */}
+                    {!isUnlocked && (
+                      <div style={{
+                        backgroundColor: '#fff3cd',
+                        border: '1px solid #ffc107',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        marginBottom: '1rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}>
+                        <span style={{ fontSize: '18px' }}>🔒</span>
+                        <span style={{ color: '#856404', fontSize: '0.95rem' }}>
+                          Complete Set {setNum - 1} to unlock this section
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Questions */}
+                    {questionsBySet[setNum].map((question, idx) => (
+                      <div key={question.id} className="question-item" style={{ opacity: isUnlocked ? 1 : 0.6, pointerEvents: isUnlocked ? 'auto' : 'none' }}>
+                        <div className="question-text">
+                          <span className="question-number">{idx + 1}.</span>
+                          <span>{question.question_text || question.text}</span>
+                        </div>
+                        
+                        <div className="rating-options rating-vertical">
+                          {[1, 2, 3, 4, 5].map(rating => {
+                            // Get choice description from choice_descriptions object
+                            const choiceDesc = question.choice_descriptions?.[String(rating)] || 
+                              question.rating_scale?.[String(rating)] || 
+                              ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
+                            
+                            return (
+                              <label key={rating} className="rating-label-radio">
+                                <input
+                                  type="radio"
+                                  name={`question_${question.id}`}
+                                  value={rating}
+                                  checked={responses[question.id] === rating}
+                                  onChange={() => isUnlocked && handleRating(question.id, rating)}
+                                  onKeyDown={(e) => {
+                                    if (isUnlocked) {
+                                      if (e.key === 'ArrowRight' && rating < 5) {
+                                        handleRating(question.id, rating + 1);
+                                      } else if (e.key === 'ArrowLeft' && rating > 1) {
+                                        handleRating(question.id, rating - 1);
+                                      }
+                                    }
+                                  }}
+                                  disabled={!isUnlocked}
+                                  required
+                                />
+                                <span className="radio-circle"></span>
+                                <span className="radio-text">
+                                  <strong>{rating}</strong> - {choiceDesc}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                        {responses[question.id] > 0 && (
+                          <div className="validation-feedback validation-success">
+                            <span className="validation-icon">✓</span>
+                            <span>Answered</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Feedback Sections - Set 5: Positive and Negative Feedback */}
-        <div className="feedback-section">
-          <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '1rem', marginTop: '2rem', color: '#333' }}>
-            Set 5: Feedback (Optional)
-          </h3>
+        <div className="feedback-section" style={{ opacity: isComplete ? 1 : 0.6, pointerEvents: isComplete ? 'auto' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 0, marginTop: '2rem', color: '#333' }}>
+              Set 5: Feedback (Optional)
+            </h3>
+            {!isComplete && (
+              <span style={{ fontSize: '0.85rem', color: '#d9534f', fontWeight: '500' }}>
+                📌 Unlock after completing all rating questions
+              </span>
+            )}
+          </div>
 
           {/* Positive Feedback */}
           <div className="feedback-toggle" style={{ marginTop: '1.5rem' }}>
