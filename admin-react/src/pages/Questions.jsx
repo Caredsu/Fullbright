@@ -268,7 +268,7 @@ function Questions() {
         >
           All Sets
         </Button>
-        {[1, 2, 3, 4, 5].map(setNum => (
+        {[1, 2, 3, 4].map(setNum => (
           <Button
             key={setNum}
             variant={selectedSet === setNum ? 'default' : 'outline'}
@@ -278,7 +278,7 @@ function Questions() {
             }}
             size="sm"
           >
-            Set {setNum}{setNum <= 4 ? ' (Rating)' : ' (Feedback)'}
+            Set {setNum} (Rating)
           </Button>
         ))}
       </div>
@@ -385,7 +385,7 @@ function Questions() {
             <div>
               <Label>Question Set *</Label>
               <div className="grid grid-cols-5 gap-2 mt-2">
-                {[1, 2, 3, 4, 5].map(setNum => (
+                {[1, 2, 3, 4].map(setNum => (
                   <Button
                     key={setNum}
                     variant={formData.set_number === setNum ? 'default' : 'outline'}
@@ -422,7 +422,7 @@ function Questions() {
               <div>
                 <Label>Choice Descriptions (1-5 Scale) <span className="text-red-600">*</span></Label>
                 <div className="border p-4 rounded-lg bg-slate-50 space-y-3 max-h-96 overflow-y-auto">
-                  {[1, 2, 3, 4, 5].map((num) => (
+                  {[1, 2, 3, 4].map((num) => (
                     <div key={num} className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="w-8 font-semibold text-sm bg-blue-100 px-2 py-1 rounded text-center">{num}</span>

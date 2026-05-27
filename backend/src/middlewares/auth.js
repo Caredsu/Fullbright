@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 export const requireLogin = (req, res, next) => {
   // Check session first (for server-to-server requests)
   if (req.session && req.session.user_id) {
+    console.log('✅ Auth via session:', { username: req.session.username, userId: req.session.user_id });
     return next();
   }
 
@@ -14,6 +15,7 @@ export const requireLogin = (req, res, next) => {
     try {
       // Decode JWT token to extract user ID
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      console.log('🔑 JWT decoded:', { id: decoded.id, username: decoded.username, role: decoded.role });
       
       // Store decoded user info in session for permission checks
       req.session = req.session || {};
@@ -21,9 +23,11 @@ export const requireLogin = (req, res, next) => {
       req.session.username = decoded.username;
       req.session.admin_role = decoded.role;
       
+      console.log('✅ Auth via JWT:', { username: req.session.username, userId: req.session.user_id });
+      
       return next();
     } catch (error) {
-      console.error('Token verification failed:', error.message);
+      console.error('❌ Token verification failed:', error.message);
       return res.status(401).json({
         success: false,
         message: 'Invalid or expired token'
@@ -31,6 +35,7 @@ export const requireLogin = (req, res, next) => {
     }
   }
 
+  console.error('❌ No auth credentials found');
   return res.status(401).json({
     success: false,
     message: 'Unauthorized - Please login first'
