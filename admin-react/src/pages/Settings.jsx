@@ -5,9 +5,11 @@ import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
 import ToastContainer from '../components/ToastContainer';
 import { authAPI } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import axios from 'axios';
 
 function Settings() {
+  const { user, isSuperAdmin } = useAuth();
   const [evalEnabled, setEvalEnabled] = useState('1');
   const [isLoading, setIsLoading] = useState(true);
   const [toasts, setToasts] = useState([]);
@@ -121,33 +123,35 @@ function Settings() {
       
       <div className="mb-6">
         <h2 className="text-2xl font-semibold">System Settings</h2>
-        <p className="text-muted-foreground">Manage system configuration and evaluation settings</p>
+        <p className="text-muted-foreground">{isSuperAdmin() ? 'Manage system configuration and evaluation settings' : 'Manage your account settings'}</p>
       </div>
 
-      {/* Evaluation Settings */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Evaluation Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="eval_enabled">Enable Evaluations</Label>
-            <select
-              id="eval_enabled"
-              className="w-full rounded-md border border-input px-3 py-2"
-              value={evalEnabled}
-              onChange={(e) => handleEvalToggle(e.target.value)}
-              disabled={isLoading}
-            >
-              <option value="1">Enabled</option>
-              <option value="0">Disabled</option>
-            </select>
-            <p className="text-sm text-muted-foreground mt-2">
-              When disabled, evaluations will be blocked on all platforms (Flutter, React Web, etc.)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Evaluation Settings - Only for Super Admin */}
+      {isSuperAdmin() && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Evaluation Settings</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="eval_enabled">Enable Evaluations</Label>
+              <select
+                id="eval_enabled"
+                className="w-full rounded-md border border-input px-3 py-2"
+                value={evalEnabled}
+                onChange={(e) => handleEvalToggle(e.target.value)}
+                disabled={isLoading}
+              >
+                <option value="1">Enabled</option>
+                <option value="0">Disabled</option>
+              </select>
+              <p className="text-sm text-muted-foreground mt-2">
+                When disabled, evaluations will be blocked on all platforms (Flutter, React Web, etc.)
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Change Password */}
       <Card className="mb-6">

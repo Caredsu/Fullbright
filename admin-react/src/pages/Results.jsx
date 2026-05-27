@@ -28,7 +28,9 @@ function Results() {
   const [showModal, setShowModal] = useState(false);
   const [selectedEval, setSelectedEval] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toasts, removeToast, error } = useToast();
+  const itemsPerPage = 10;
   
   // Filter states
   const [filterTeacher, setFilterTeacher] = useState('');
@@ -156,6 +158,7 @@ function Results() {
     setFilterFromDate('');
     setFilterToDate('');
     setFilterMinRating('');
+    setCurrentPage(1);
   };
 
   const hasActiveFilters = filterTeacher || filterFromDate || filterToDate || filterMinRating;
@@ -166,6 +169,24 @@ function Results() {
       return `${teacher.first_name} ${teacher.middle_name || ''} ${teacher.last_name}`.trim();
     }
     return 'Unknown Teacher';
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(evaluations.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedEvaluations = evaluations.slice(startIndex, endIndex);
+
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
   };
 
   const printOverallResults = () => {
@@ -587,7 +608,7 @@ function Results() {
                 </tr>
               </TableHeader>
               <TableBody>
-                {evaluations.map((row, idx) => {
+                {paginatedEvaluations.map((row, idx) => {
                   const avgRating = calculateAverageRating(row);
                   const qualitative = getQualitativeAssessment(avgRating);
                   return (
@@ -596,7 +617,7 @@ function Results() {
                       onClick={() => handleViewDetails(row)}
                       className="cursor-pointer hover:bg-slate-50 transition-colors"
                     >
-                      <TableCell className="font-medium">#{idx + 1}</TableCell>
+                      <TableCell className="font-medium">#{startIndex + idx + 1}</TableCell>
                       <TableCell>{getTeacherName(row.teacher_id)}</TableCell>
                       <TableCell>{row.student_id || 'N/A'}</TableCell>
                       <TableCell>{new Date(row.submitted_at || row.created_at).toLocaleDateString()}</TableCell>
@@ -625,6 +646,36 @@ function Results() {
           {evaluations.length === 0 && !loading && (
             <div className="text-center py-8 text-muted-foreground">
               No evaluations found. Try adjusting your filters.
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {evaluations.length > 0 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, evaluations.length)} of {evaluations.length} evaluations
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="text-sm font-medium px-4 py-2 bg-slate-100 rounded">
+                  Page {currentPage} of {totalPages}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

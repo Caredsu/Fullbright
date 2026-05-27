@@ -169,23 +169,24 @@ function Dashboard() {
     );
   };
 
-  // Status breakdown chart - shows only completed and pending (excluding in_progress)
+  // Status breakdown chart - shows all evaluation statuses
   const StatusChart = ({ data }) => {
     if (!data || Object.keys(data).length === 0) {
       return <p className="text-sm text-muted-foreground">No evaluation data</p>;
     }
     
-    const total = (data.completed || 0) + (data.pending || 0);
+    const total = (data.completed || 0) + (data.in_progress || 0) + (data.pending || 0);
     if (total === 0) {
       return <p className="text-sm text-muted-foreground">No evaluation data</p>;
     }
 
     const colors = {
       completed: 'bg-green-500',
+      in_progress: 'bg-yellow-500',
       pending: 'bg-red-500'
     };
 
-    const statuses = ['completed', 'pending'];
+    const statuses = ['completed', 'in_progress', 'pending'];
 
     return (
       <div className="space-y-3">

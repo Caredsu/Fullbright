@@ -58,7 +58,7 @@ function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
               <Route path="/results" element={<Results />} />
               <Route 
                 path="/settings" 
-                element={<ProtectedRoute element={<Settings />} requiredRole="super_admin" />} 
+                element={<ProtectedRoute element={<Settings />} />} 
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
