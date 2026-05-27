@@ -149,8 +149,7 @@ export const getDashboard = async (req, res, next) => {
         },
         departmentPerformance,
         recentEvaluations: formattedRecentEvaluations,
-        // evaluationStatus: REMOVED - no longer part of dashboard
-        // ratingDistribution: REMOVED - no longer part of dashboard
+        ratingDistribution: ratingBreakdown,
         systemStatus: {
           database: 'connected',
           apiServer: 'running',
