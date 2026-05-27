@@ -1,0 +1,329 @@
+/* Mobile Responsive - Comprehensive */
+@media (max-width: 640px) {
+  /* Set Container */
+  .set-container {
+    margin: 0 0.5rem 1rem 0.5rem;
+    border-radius: 10px;
+  }
+
+  /* Set Header Card - Stack vertically on mobile */
+  .set-header-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .set-header-content {
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .set-header-icon {
+    width: 24px;
+    height: 24px;
+    padding-top: 0;
+  }
+
+  .set-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+  }
+
+  .set-description {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--gray-600);
+    max-width: none;
+    word-break: break-word;
+  }
+
+  .set-header-badge {
+    align-self: flex-start;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
+    min-width: 45px;
+  }
+
+  /* Questions Grid */
+  .questions-grid {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  /* Question Card */
+  .question-card {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+
+  /* Question Header */
+  .question-header {
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .question-number {
+    width: 28px;
+    height: 28px;
+    font-size: 0.85rem;
+  }
+
+  .question-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .question-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.5rem;
+  }
+
+  /* Rating Scale - Single column */
+  .rating-scale {
+    gap: 0.6rem;
+    margin-top: 1rem;
+  }
+
+  /* Rating Button */
+  .rating-button {
+    padding: 0.75rem;
+    gap: 0.75rem;
+    border-radius: 8px;
+    flex-wrap: wrap;
+  }
+
+  .rating-button input {
+    width: 16px;
+    height: 16px;
+  }
+
+  .rating-content {
+    gap: 0.6rem;
+    flex: 1;
+    min-height: auto;
+    padding: 0;
+  }
+
+  .rating-number {
+    font-size: 0.95rem;
+    min-width: 1.8rem;
+  }
+
+  .rating-tooltip {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    color: var(--gray-700);
+  }
+
+  .rating-button:hover .rating-tooltip {
+    opacity: 1;
+    color: var(--gray-900);
+  }
+
+  /* Lock Notice */
+  .set-lock-notice {
+    padding: 0.75rem 1rem;
+    margin: 1rem 0.75rem 0 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+
+  .lock-icon {
+    font-size: 1.2rem;
+    min-width: 1.2rem;
+  }
+
+  .lock-text {
+    font-size: 0.85rem;
+  }
+
+  /* Feedback Cards Grid */
+  .feedback-cards {
+    padding: 1rem;
+    gap: 1rem;
+    grid-template-columns: 1fr;
+  }
+
+  /* Feedback Card */
+  .feedback-card {
+    padding: 1rem;
+    border-radius: 10px;
+    border-left-width: 3px;
+  }
+
+  .feedback-card-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+
+  .feedback-card-title {
+    font-size: 1rem;
+  }
+
+  /* Set Progress Grid */
+  .set-progress-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .set-progress-card {
+    padding: 0.6rem;
+    gap: 0.5rem;
+    border-radius: 8px;
+    border-width: 1.5px;
+  }
+
+  .set-progress-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .set-progress-title {
+    font-size: 0.8rem;
+  }
+
+  .set-progress-count {
+    font-size: 0.7rem;
+  }
+
+  /* Textarea */
+  .question-textarea {
+    font-size: 0.95rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+  }
+
+  /* Hide rating tooltips on hover for touch devices */
+  @media (hover: none) {
+    .rating-button:hover .rating-tooltip {
+      opacity: 1;
+    }
+  }
+}
+
+/* Extra Small Devices (< 380px) */
+@media (max-width: 380px) {
+  /* Container Spacing */
+  .set-container {
+    margin: 0 0.25rem 0.75rem 0.25rem;
+  }
+
+  /* Set Header */
+  .set-header-card {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .set-title {
+    font-size: 1rem;
+  }
+
+  .set-description {
+    font-size: 0.75rem;
+  }
+
+  /* Progress Grid */
+  .set-progress-grid {
+    gap: 0.25rem;
+  }
+
+  .set-progress-card {
+    padding: 0.5rem;
+  }
+
+  .set-progress-title {
+    font-size: 0.75rem;
+  }
+
+  .set-progress-count {
+    font-size: 0.65rem;
+  }
+
+  /* Question Card */
+  .question-card {
+    padding: 0.75rem;
+  }
+
+  .question-header {
+    gap: 0.6rem;
+  }
+
+  .question-number {
+    width: 26px;
+    height: 26px;
+    font-size: 0.8rem;
+  }
+
+  .question-text {
+    font-size: 0.9rem;
+  }
+
+  /* Rating Button */
+  .rating-button {
+    padding: 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .rating-button input {
+    width: 15px;
+    height: 15px;
+  }
+
+  .rating-number {
+    font-size: 0.9rem;
+    min-width: 1.6rem;
+  }
+
+  .rating-tooltip {
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+
+  /* Lock Notice */
+  .set-lock-notice {
+    padding: 0.6rem 0.8rem;
+    margin: 0.75rem 0.5rem 0 0.5rem;
+    gap: 0.4rem;
+  }
+
+  .lock-icon {
+    font-size: 1rem;
+  }
+
+  .lock-text {
+    font-size: 0.8rem;
+  }
+
+  /* Questions Grid */
+  .questions-grid {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  /* Feedback Cards */
+  .feedback-cards {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .feedback-card {
+    padding: 0.75rem;
+  }
+
+  .feedback-card-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.25rem;
+  }
+
+  .feedback-card-title {
+    font-size: 0.95rem;
+  }
+}
