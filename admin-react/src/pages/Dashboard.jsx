@@ -187,15 +187,6 @@ function Dashboard() {
           <p className="text-sm text-muted-foreground mb-6 max-w-md">
             The latest evaluations from your admins will appear here. Start the evaluation process to see activity.
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left text-sm max-w-md">
-            <p className="font-medium text-blue-900 mb-2">💡 How to get started:</p>
-            <ol className="list-decimal list-inside space-y-1 text-blue-800">
-              <li>Ensure teachers are added to the system</li>
-              <li>Setup evaluation questions (if needed)</li>
-              <li>Enable evaluations in Settings</li>
-              <li>Admins can then evaluate teachers</li>
-            </ol>
-          </div>
         </div>
       );
     }

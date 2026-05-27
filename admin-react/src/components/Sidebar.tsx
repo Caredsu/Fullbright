@@ -6,7 +6,6 @@ import {
   BookOpen,
   ClipboardList,
   TrendingUp,
-  Settings,
   Menu,
   X,
   LogOut,
@@ -47,12 +46,6 @@ const allNavItems: NavItem[] = [
     name: 'Results',
     path: '/results',
     icon: <TrendingUp className="h-5 w-5" />,
-  },
-  {
-    name: 'Settings',
-    path: '/settings',
-    icon: <Settings className="h-5 w-5" />,
-    requiresRole: 'super_admin',
   },
 ];
 

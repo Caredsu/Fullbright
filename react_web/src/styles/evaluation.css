@@ -406,6 +406,79 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+/* Vertical Radio Button Layout for Sets 1-4 */
+.rating-scale {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.rating-scale .rating-button {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.rating-scale .rating-button:hover {
+  background-color: var(--gray-50);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.rating-scale .rating-button input[type="radio"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--primary);
+  flex-shrink: 0;
+}
+
+.rating-scale .rating-button .rating-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.rating-scale .rating-button .rating-number {
+  font-size: 1.1rem;
+  font-weight: 700;
+  min-width: 2rem;
+  color: var(--primary);
+}
+
+.rating-scale .rating-button .rating-tooltip {
+  flex: 1;
+  font-size: 0.95rem;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+
+.rating-scale .rating-button input:checked ~ .rating-tooltip {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.rating-scale .rating-button input:checked ~ .rating-content .rating-number {
+  color: var(--primary);
+}
+
+.rating-scale .rating-button.selected {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(240, 147, 251, 0.1) 100%);
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
 /* Feedback Section */
 .feedback-section {
   background: white;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Trash2, BookOpen, Brain, Users, Heart } from 'lucide-react';
 import { questionsAPI } from '../services/api';
+import { SET_METADATA, getSetNumbers } from '../lib/sets-config';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import {
@@ -25,6 +26,7 @@ function Questions() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
   const [showModal, setShowModal] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [formErrors, setFormErrors] = useState({});
@@ -256,31 +258,58 @@ function Questions() {
         </Button>
       </div>
 
-      {/* Set Filter Tabs */}
-      <div className="flex gap-2 mb-6 flex-wrap">
-        <Button
-          variant={selectedSet === null ? 'default' : 'outline'}
-          onClick={() => {
-            setSelectedSet(null);
-            setPage(1);
-          }}
-          size="sm"
-        >
-          All Sets
-        </Button>
-        {[1, 2, 3, 4].map(setNum => (
-          <Button
-            key={setNum}
-            variant={selectedSet === setNum ? 'default' : 'outline'}
+      {/* Set Filter Cards - 2x2 Grid */}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-900">Filter by Question Set</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* All Sets Card */}
+          <button
             onClick={() => {
-              setSelectedSet(setNum);
+              setSelectedSet(null);
               setPage(1);
             }}
-            size="sm"
+            className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+              selectedSet === null
+                ? 'border-blue-500 bg-blue-50 shadow-md'
+                : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+            }`}
           >
-            Set {setNum} (Rating)
-          </Button>
-        ))}
+            <div className="font-semibold text-gray-900">All Sets</div>
+            <div className="text-sm text-gray-600 mt-1">View all questions</div>
+          </button>
+
+          {/* Individual Set Cards */}
+          {getSetNumbers().map(setNum => {
+            const icons = {
+              1: <BookOpen className="w-5 h-5 text-blue-600" />,
+              2: <Brain className="w-5 h-5 text-purple-600" />,
+              3: <Users className="w-5 h-5 text-green-600" />,
+              4: <Heart className="w-5 h-5 text-red-600" />
+            };
+
+            return (
+              <button
+                key={setNum}
+                onClick={() => {
+                  setSelectedSet(setNum);
+                  setPage(1);
+                }}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                  selectedSet === setNum
+                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                }`}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="font-semibold text-gray-900">Set {setNum}</div>
+                  {icons[setNum]}
+                </div>
+                <div className="font-medium text-sm text-blue-700">{SET_METADATA[setNum].label}</div>
+                <div className="text-xs text-gray-600 mt-2">{SET_METADATA[setNum].description}</div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <Card>
@@ -347,26 +376,34 @@ function Questions() {
       </Card>
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between gap-4 mt-6">
-        <div className="text-sm text-gray-600">
-          Page <span className="font-semibold text-gray-900">{page}</span> of <span className="font-semibold text-gray-900">{Math.ceil(total / 20) || 1}</span> ({total} total)
-        </div>
-
-        <div className="flex items-center gap-2">
+      <div className="mt-8 flex flex-col items-center gap-4">
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setPage(p => Math.max(p - 1, 1))}
             disabled={page === 1}
+            className="flex items-center gap-2"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
           </Button>
+
+          <div className="px-4 py-2 bg-gray-50 rounded-lg border border-gray-200 min-w-max">
+            <div className="text-sm text-gray-700">
+              <span className="font-semibold text-gray-900">{page}</span>
+              <span className="text-gray-500"> of </span>
+              <span className="font-semibold text-gray-900">{Math.ceil(total / 20) || 1}</span>
+            </div>
+            <div className="text-xs text-gray-600 text-center mt-1">{total} total questions</div>
+          </div>
+
           <Button
             variant="outline"
             size="sm"
             onClick={() => setPage(p => p + 1)}
             disabled={page >= Math.ceil(total / 20)}
+            className="flex items-center gap-2"
           >
             Next
             <ChevronRight className="w-4 h-4" />
@@ -384,15 +421,18 @@ function Questions() {
             {/* Question Set Selector */}
             <div>
               <Label>Question Set *</Label>
-              <div className="grid grid-cols-5 gap-2 mt-2">
-                {[1, 2, 3, 4].map(setNum => (
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {getSetNumbers().map(setNum => (
                   <Button
                     key={setNum}
                     variant={formData.set_number === setNum ? 'default' : 'outline'}
                     onClick={() => handleFormChange('set_number', setNum)}
-                    className="w-full"
+                    className="w-full h-auto whitespace-normal text-left py-3"
                   >
-                    Set {setNum}
+                    <div className="flex flex-col items-start">
+                      <div className="font-semibold text-sm">{SET_METADATA[setNum].label}</div>
+                      <div className="text-xs opacity-80">{SET_METADATA[setNum].description}</div>
+                    </div>
                   </Button>
                 ))}
               </div>

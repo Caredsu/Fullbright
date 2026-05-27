@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { evaluationsAPI, teachersAPI, questionsAPI } from '../services/api';
+import { SET_METADATA, getSetNumbers } from '../lib/sets-config';
 import { Card, CardContent } from '../components/ui/Card';
 import {
   Table,
@@ -729,18 +730,27 @@ function Results() {
                 {(() => {
                   const { setGroups, setAverages } = groupEvaluationsBySet(selectedEval);
                   
-                  // Display Sets 1-4 with ratings
+                  // Calculate overall total as average of Sets 1-4 means
+                  const validSetAverages = [1, 2, 3, 4]
+                    .map(setNum => setAverages[setNum])
+                    .filter(avg => avg > 0);
+                  
+                  const overallTotal = validSetAverages.length > 0
+                    ? Math.round((validSetAverages.reduce((a, b) => a + b, 0) / validSetAverages.length) * 10) / 10
+                    : 0;
+                  
                   return (
                     <>
-                      {[1, 2, 3, 4].map(setNum => (
+                      {getSetNumbers().map(setNum => (
                         setGroups[setNum] && setGroups[setNum].length > 0 && (
                           <div key={setNum} className="border-l-4 border-blue-500 pl-4 bg-blue-50 p-4 rounded-r-md">
                             <h5 className="font-semibold text-lg mb-3 text-blue-900">
-                              Set {setNum}: Rating Questions
+                              Set {setNum}: {SET_METADATA[setNum].label}
                               <Badge className="ml-2 bg-blue-600 text-white font-bold">
                                 ⭐ {setAverages[setNum]}/5
                               </Badge>
                             </h5>
+                            <p className="text-sm text-blue-700 mb-3 italic">{SET_METADATA[setNum].description}</p>
                             <div className="space-y-2">
                               {setGroups[setNum].map(({ questionId, rating }, idx) => (
                                 <div key={idx} className="flex items-center justify-between bg-white p-3 rounded-md border border-blue-200">
@@ -759,6 +769,20 @@ function Results() {
                           </div>
                         )
                       ))}
+                      
+                      {/* Overall Total */}
+                      <div className="border-l-4 border-purple-500 pl-4 bg-purple-50 p-4 rounded-r-md mt-6">
+                        <h5 className="font-semibold text-lg text-purple-900 mb-2">📈 Overall Total</h5>
+                        <div className="flex items-center justify-between">
+                          <span className="text-purple-700 font-medium">Average of 4 Set Means:</span>
+                          <Badge className="bg-purple-600 text-white font-bold text-lg px-4 py-2">
+                            ⭐ {overallTotal}/5
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-purple-600 mt-3 italic">
+                          Calculated as: ({setAverages[1]} + {setAverages[2]} + {setAverages[3]} + {setAverages[4]}) ÷ 4
+                        </p>
+                      </div>
                     </>
                   );
                 })()}

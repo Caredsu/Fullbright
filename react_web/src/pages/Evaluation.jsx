@@ -1,21 +1,38 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Home, RotateCw, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react';
+import { Home, RotateCw, ArrowLeft, CheckCircle, AlertTriangle, BookOpen, Brain, Users, Heart } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api, { getErrorMessage } from '../services/api';
 import Toast from '../components/Toast';
 import AlreadyEvaluatedModal from '../components/AlreadyEvaluatedModal';
 import '../styles/evaluation.css';
+import '../styles/evaluation-enhanced.css';
 import '../styles/pagination.css';
 import '../styles/Toast.css';
 
-// Set titles with professional descriptions
+// Set titles with professional descriptions and icons
 const SET_TITLES = {
   1: 'LESSON AND DELIVERY',
   2: 'KNOWLEDGE OF SUBJECT MATTER',
   3: 'MANAGEMENT OF LEARNING',
   4: 'DEDICATION',
   5: 'FEEDBACK'
+};
+
+const SET_DESCRIPTIONS = {
+  1: 'Evaluates the teacher\'s ability to plan, organize, and deliver lessons effectively to students.',
+  2: 'Assesses the teacher\'s depth of knowledge and mastery of their subject area.',
+  3: 'Measures how well the teacher manages the classroom and facilitates student learning.',
+  4: 'Evaluates the teacher\'s commitment, professionalism, and dedication to their role.',
+  5: 'Share your positive feedback and suggestions for improvement'
+};
+
+const SET_ICONS = {
+  1: <BookOpen className="set-icon" />,
+  2: <Brain className="set-icon" />,
+  3: <Users className="set-icon" />,
+  4: <Heart className="set-icon" />,
+  5: null
 };
 
 export default function Evaluation() {
@@ -88,7 +105,7 @@ export default function Evaluation() {
     try {
       const [teacherRes, questionsRes, evaluatedRes] = await Promise.all([
         api.get(`teachers/${teacherId}`),
-        api.get('questions'),
+        api.get('questions?limit=100'),
         // Call per-student endpoint to check ONLY this student's evaluations
         api.get(`evaluations/check-evaluated-teachers?student_number=${encodeURIComponent(user?.student_number || '')}`)
       ]);
@@ -514,26 +531,31 @@ export default function Evaluation() {
               <div className="progress-fill" style={{ width: `${progressPercentage}%` }}></div>
             </div>
 
-            {/* Per-Set Status */}
-            <div style={{ marginTop: '1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
+            {/* Per-Set Status Cards */}
+            <div className="set-progress-grid">
               {[1, 2, 3, 4].map(setNum => {
                 const progress = getSetProgress(setNum);
                 const unlocked = isSetUnlocked(setNum);
-                const statusColor = !unlocked ? '#999' : progress.isComplete ? '#28a745' : '#ffc107';
+                const isComplete = progress.isComplete;
                 
                 return (
-                  <div key={`status-${setNum}`} style={{
-                    padding: '0.5rem',
-                    backgroundColor: '#f8f9fa',
-                    border: `2px solid ${statusColor}`,
-                    borderRadius: '4px',
-                    textAlign: 'center',
-                    fontSize: '0.85rem',
-                    color: statusColor,
-                    fontWeight: '600'
-                  }}>
-                    <div>Set {setNum}</div>
-                    <div>{progress.answered}/{progress.total}</div>
+                  <div 
+                    key={`status-${setNum}`}
+                    className={`set-progress-card ${isComplete ? 'complete' : unlocked ? 'active' : 'locked'}`}
+                    onClick={() => isSetUnlocked(setNum) && setCurrentSet(setNum)}
+                    style={{ cursor: isSetUnlocked(setNum) ? 'pointer' : 'not-allowed' }}
+                  >
+                    <div className="set-progress-icon">
+                      {isComplete ? (
+                        <CheckCircle className="w-5 h-5" style={{ color: '#28a745' }} />
+                      ) : (
+                        SET_ICONS[setNum]
+                      )}
+                    </div>
+                    <div className="set-progress-text">
+                      <div className="set-progress-title">Set {setNum}</div>
+                      <div className="set-progress-count">{progress.answered}/{progress.total}</div>
+                    </div>
                   </div>
                 );
               })}
@@ -550,86 +572,83 @@ export default function Evaluation() {
             return (
               <div key={`set-${setNum}`}>
                 {questionsBySet[setNum] && questionsBySet[setNum].length > 0 && (
-                  <div style={{ marginBottom: '2rem', opacity: isUnlocked ? 1 : 0.5 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                      <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#333', margin: 0 }}>
-                        Set {setNum}: {SET_TITLES[setNum]}
-                      </h3>
-                      <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>
-                        {setProgress.answered}/{setProgress.total} answered
-                      </span>
+                  <div className={`set-container ${isUnlocked ? 'unlocked' : 'locked'}`}>
+                    {/* Set Header Card */}
+                    <div className="set-header-card">
+                      <div className="set-header-content">
+                        <div className="set-header-icon">
+                          {SET_ICONS[setNum]}
+                        </div>
+                        <div className="set-header-text">
+                          <h2 className="set-title">Set {setNum}: {SET_TITLES[setNum]}</h2>
+                          <p className="set-description">{SET_DESCRIPTIONS[setNum]}</p>
+                        </div>
+                      </div>
+                      <div className="set-header-badge">
+                        <span className="badge-text">{setProgress.answered}/{setProgress.total}</span>
+                      </div>
                     </div>
 
-                    {/* Show lock status for locked sets */}
+                    {/* Lock Status */}
                     {!isUnlocked && (
-                      <div style={{
-                        backgroundColor: '#fff3cd',
-                        border: '1px solid #ffc107',
-                        borderRadius: '6px',
-                        padding: '12px',
-                        marginBottom: '1rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                      }}>
-                        <span style={{ fontSize: '18px' }}>🔒</span>
-                        <span style={{ color: '#856404', fontSize: '0.95rem' }}>
-                          Complete Set {setNum - 1} to unlock this section
-                        </span>
+                      <div className="set-lock-notice">
+                        <span className="lock-icon">🔒</span>
+                        <span className="lock-text">Complete Set {setNum - 1} to unlock this section</span>
                       </div>
                     )}
 
-                    {/* Questions */}
-                    {questionsBySet[setNum].map((question, idx) => (
-                      <div key={question.id} className="question-item" style={{ opacity: isUnlocked ? 1 : 0.6, pointerEvents: isUnlocked ? 'auto' : 'none' }}>
-                        <div className="question-text">
-                          <span className="question-number">{idx + 1}.</span>
-                          <span>{question.question_text || question.text}</span>
-                        </div>
-                        
-                        <div className="rating-options rating-vertical">
-                          {[1, 2, 3, 4, 5].map(rating => {
-                            // Get choice description from choice_descriptions object
-                            const choiceDesc = question.choice_descriptions?.[String(rating)] || 
-                              question.rating_scale?.[String(rating)] || 
-                              ['', 'Does not meet expectations', 'Below average', 'Meets expectations', 'Exceeds expectations', 'Outstanding'][rating];
-                            
-                            return (
-                              <label key={rating} className="rating-label-radio">
-                                <input
-                                  type="radio"
-                                  name={`question_${question.id}`}
-                                  value={rating}
-                                  checked={responses[question.id] === rating}
-                                  onChange={() => isUnlocked && handleRating(question.id, rating)}
-                                  onKeyDown={(e) => {
-                                    if (isUnlocked) {
-                                      if (e.key === 'ArrowRight' && rating < 5) {
-                                        handleRating(question.id, rating + 1);
-                                      } else if (e.key === 'ArrowLeft' && rating > 1) {
-                                        handleRating(question.id, rating - 1);
-                                      }
-                                    }
-                                  }}
-                                  disabled={!isUnlocked}
-                                  required
-                                />
-                                <span className="radio-circle"></span>
-                                <span className="radio-text">
-                                  <strong>{rating}</strong> - {choiceDesc}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                        {responses[question.id] > 0 && (
-                          <div className="validation-feedback validation-success">
-                            <span className="validation-icon">✓</span>
-                            <span>Answered</span>
+                    {/* Questions Grid */}
+                    <div className="questions-grid">
+                      {questionsBySet[setNum].map((question, idx) => (
+                        <div key={question.id} className={`question-card ${responses[question.id] > 0 ? 'answered' : ''}`}>
+                          <div className="question-header">
+                            <span className="question-number">{idx + 1}</span>
+                            <h3 className="question-text">{question.question_text || question.text}</h3>
+                            {responses[question.id] > 0 && (
+                              <span className="question-badge">
+                                <CheckCircle className="w-4 h-4" />
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          
+                          <div className="rating-scale">
+                            {[1, 2, 3, 4, 5].map(rating => {
+                              const choiceDesc = question.choice_descriptions?.[String(rating)] || 
+                                question.rating_scale?.[String(rating)] || 
+                                ['', 'Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'][rating];
+                              
+                              const isSelected = responses[question.id] === rating;
+                              
+                              return (
+                                <label key={rating} className={`rating-button ${isSelected ? 'selected' : ''}`}>
+                                  <input
+                                    type="radio"
+                                    name={`question_${question.id}`}
+                                    value={rating}
+                                    checked={isSelected}
+                                    onChange={() => isUnlocked && handleRating(question.id, rating)}
+                                    onKeyDown={(e) => {
+                                      if (isUnlocked) {
+                                        if (e.key === 'ArrowRight' && rating < 5) {
+                                          handleRating(question.id, rating + 1);
+                                        } else if (e.key === 'ArrowLeft' && rating > 1) {
+                                          handleRating(question.id, rating - 1);
+                                        }
+                                      }
+                                    }}
+                                    disabled={!isUnlocked}
+                                  />
+                                  <div className="rating-content">
+                                    <span className="rating-number">{rating}</span>
+                                  </div>
+                                  <div className="rating-tooltip">{choiceDesc}</div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -677,66 +696,92 @@ export default function Evaluation() {
 
         {/* Feedback Sections - Set 5: Positive and Negative Feedback */}
         {currentSet === 5 && (
-        <div className="feedback-section" style={{ opacity: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: 0, marginTop: '0', color: '#333' }}>
-              Set 5: {SET_TITLES[5]}
-            </h3>
+        <div className="set-container feedback-set-container">
+          {/* Set 5 Header Card */}
+          <div className="set-header-card feedback-header">
+            <div className="set-header-content">
+              <div className="set-header-icon">
+                <Heart className="set-icon" style={{ color: '#e74c3c' }} />
+              </div>
+              <div className="set-header-text">
+                <h2 className="set-title">Set 5: {SET_TITLES[5]}</h2>
+                <p className="set-description">{SET_DESCRIPTIONS[5]}</p>
+              </div>
+            </div>
           </div>
 
-          {/* Positive Feedback */}
-          <div className="feedback-toggle" style={{ marginTop: '1.5rem' }}>
-            <label className="toggle-label">
-              <input
-                type="checkbox"
-                checked={hasPositiveFeedback}
-                onChange={(e) => setHasPositiveFeedback(e.target.checked)}
-                className="toggle-checkbox"
-              />
-              <span className="toggle-text">Would you like to provide positive feedback?</span>
-            </label>
-          </div>
-          
-          {hasPositiveFeedback && (
-            <div className="feedback-input-container">
-              <textarea
-                className="feedback-textarea"
-                placeholder="Highlight the strengths and positive qualities you observed (optional)..."
-                value={positiveFeedback}
-                onChange={(e) => setPositiveFeedback(e.target.value)}
-                rows="4"
-                maxLength={500}
-              />
-              <p className="feedback-hint">Max 500 characters</p>
+          {/* Feedback Cards */}
+          <div className="feedback-cards">
+            {/* Positive Feedback Card */}
+            <div className="feedback-card positive-card">
+              <div className="feedback-card-header">
+                <div className="feedback-card-icon positive">✨</div>
+                <h3 className="feedback-card-title">Positive Feedback</h3>
+              </div>
+              
+              <label className="feedback-toggle">
+                <input
+                  type="checkbox"
+                  checked={hasPositiveFeedback}
+                  onChange={(e) => setHasPositiveFeedback(e.target.checked)}
+                  className="feedback-checkbox"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-label-text">Include positive feedback</span>
+              </label>
+              
+              {hasPositiveFeedback && (
+                <div className="feedback-input-wrapper">
+                  <textarea
+                    className="feedback-textarea"
+                    placeholder="Highlight the strengths and positive qualities you observed..."
+                    value={positiveFeedback}
+                    onChange={(e) => setPositiveFeedback(e.target.value)}
+                    rows="5"
+                    maxLength={500}
+                  />
+                  <div className="feedback-counter">
+                    <span className="char-count">{positiveFeedback.length}/500</span>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Negative Feedback */}
-          <div className="feedback-toggle" style={{ marginTop: '1.5rem' }}>
-            <label className="toggle-label">
-              <input
-                type="checkbox"
-                checked={hasNegativeFeedback}
-                onChange={(e) => setHasNegativeFeedback(e.target.checked)}
-                className="toggle-checkbox"
-              />
-              <span className="toggle-text">Would you like to provide negative feedback?</span>
-            </label>
-          </div>
-          
-          {hasNegativeFeedback && (
-            <div className="feedback-input-container">
-              <textarea
-                className="feedback-textarea"
-                placeholder="Share areas for improvement and constructive criticism (optional)..."
-                value={negativeFeedback}
-                onChange={(e) => setNegativeFeedback(e.target.value)}
-                rows="4"
-                maxLength={500}
-              />
-              <p className="feedback-hint">Max 500 characters</p>
+            {/* Negative Feedback Card */}
+            <div className="feedback-card negative-card">
+              <div className="feedback-card-header">
+                <div className="feedback-card-icon negative">💡</div>
+                <h3 className="feedback-card-title">Areas for Improvement</h3>
+              </div>
+              
+              <label className="feedback-toggle">
+                <input
+                  type="checkbox"
+                  checked={hasNegativeFeedback}
+                  onChange={(e) => setHasNegativeFeedback(e.target.checked)}
+                  className="feedback-checkbox"
+                />
+                <span className="toggle-slider"></span>
+                <span className="toggle-label-text">Include suggestions for improvement</span>
+              </label>
+              
+              {hasNegativeFeedback && (
+                <div className="feedback-input-wrapper">
+                  <textarea
+                    className="feedback-textarea"
+                    placeholder="Share areas for improvement and constructive criticism..."
+                    value={negativeFeedback}
+                    onChange={(e) => setNegativeFeedback(e.target.value)}
+                    rows="5"
+                    maxLength={500}
+                  />
+                  <div className="feedback-counter">
+                    <span className="char-count">{negativeFeedback.length}/500</span>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
         )}
 
