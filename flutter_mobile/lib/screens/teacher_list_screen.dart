@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:async';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/evaluation_history_service.dart';
@@ -21,6 +22,7 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
   final AuthService _authService = AuthService();
   final EvaluationHistoryService _historyService = EvaluationHistoryService();
   bool _evalEnabled = true;
+  Timer? _settingsCheckTimer;
 
   @override
   void initState() {
@@ -28,6 +30,17 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
     _checkAuthentication();
     _checkEvaluationEnabled();
     _loadTeachers();
+    // Start polling for settings changes every 5 seconds
+    _settingsCheckTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _checkEvaluationEnabled(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _settingsCheckTimer?.cancel();
+    super.dispose();
   }
 
   void _checkAuthentication() {

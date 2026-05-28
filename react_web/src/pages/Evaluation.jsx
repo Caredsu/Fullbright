@@ -66,7 +66,11 @@ export default function Evaluation() {
   useEffect(() => {
     const checkSettings = async () => {
       try {
-        const response = await api.get('settings');
+        const response = await api.get(
+          import.meta.env.VITE_API_URL 
+            ? `${import.meta.env.VITE_API_URL}/api/settings`
+            : 'http://localhost:3001/api/settings'
+        );
         if (response.data.data) {
           setEvalEnabled(response.data.data.eval_enabled !== false);
         }
@@ -76,6 +80,12 @@ export default function Evaluation() {
       }
     };
     checkSettings();
+    // Check every 5 seconds for setting changes
+    const interval = setInterval(checkSettings, 5000);
+    return () => clearInterval(interval);
+    // Check every 5 seconds for setting changes
+    const interval = setInterval(checkSettings, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {

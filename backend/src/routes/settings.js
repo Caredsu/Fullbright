@@ -7,7 +7,7 @@ const router = express.Router();
 // Get settings (public)
 router.get('/', getSettings);
 
-// Update settings (super_admin only)
-router.put('/', requireLogin, requirePermission('super_admin'), updateSettings);
+// Update settings (admin or super_admin)
+router.put('/', requireLogin, requirePermission(['admin', 'super_admin']), updateSettings);
 
 export default router;

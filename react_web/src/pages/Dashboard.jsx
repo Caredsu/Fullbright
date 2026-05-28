@@ -56,6 +56,9 @@ export default function Dashboard() {
     };
 
     checkSettings();
+    // Check every 5 seconds for setting changes
+    const interval = setInterval(checkSettings, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Show welcome toast on first load for the current authenticated user
