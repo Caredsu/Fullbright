@@ -18,6 +18,7 @@ import { Textarea } from '../components/ui/Textarea';
 import { Label } from '../components/ui/Label';
 import { Badge } from '../components/ui/Badge';
 import ToastContainer from '../components/ToastContainer';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import useToast from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
 
@@ -28,6 +29,10 @@ function Questions() {
   const [total, setTotal] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deleteTargetText, setDeleteTargetText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,23 +115,37 @@ function Questions() {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id, questionText) => {
     if (!canDelete()) {
       error('You do not have permission to delete questions');
       return;
     }
-    if (window.confirm('Are you sure you want to delete this question?')) {
-      try {
-        await questionsAPI.delete(id);
-        success('Question deleted successfully');
-        fetchQuestions();
-      } catch (err) {
-        if (err.response?.status === 403) {
-          error('You do not have permission to delete questions');
-        } else {
-          error(err.response?.data?.message || 'Failed to delete question');
-        }
+    
+    const displayText = (questionText || '').substring(0, 50);
+    setDeleteTargetId(id);
+    setDeleteTargetText(displayText + (questionText.length > 50 ? '...' : ''));
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    
+    setIsDeleting(true);
+    try {
+      await questionsAPI.delete(deleteTargetId);
+      success('Question deleted successfully');
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+      setDeleteTargetText('');
+      fetchQuestions();
+    } catch (err) {
+      if (err.response?.status === 403) {
+        error('You do not have permission to delete questions');
+      } else {
+        error(err.response?.data?.message || 'Failed to delete question');
       }
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -359,7 +378,7 @@ function Questions() {
                         {canDelete() && (
                           <button
                             className="inline-flex items-center justify-center p-2 rounded-md text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-150"
-                            onClick={() => handleDelete(q._id || q.id)}
+                            onClick={() => handleDelete(q._id || q.id, q.text || q.question_text || '')}
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -410,6 +429,17 @@ function Questions() {
           </Button>
         </div>
       </div>
+
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="Delete Question"
+        itemName={deleteTargetText}
+        message="Are you sure you want to delete"
+        description="This question will be permanently removed from all evaluations. This action cannot be undone."
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+      />
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

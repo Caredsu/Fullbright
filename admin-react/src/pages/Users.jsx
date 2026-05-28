@@ -8,13 +8,18 @@ import { Label } from '../components/ui/Label';
 import { Badge } from '../components/ui/Badge';
 import DataTable from '../components/DataTable';
 import ToastContainer from '../components/ToastContainer';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import useToast from '../hooks/useToast';
 
 function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deleteTargetName, setDeleteTargetName] = useState('');
   const [editingUser, setEditingUser] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toasts, removeToast, success, error } = useToast();
 
   useEffect(() => {
@@ -39,15 +44,31 @@ function Users() {
     setShowModal(true);
   };
 
-  const handleDelete = async (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      try {
-        await usersAPI.delete(userId);
-        success('User deleted successfully');
-        fetchUsers();
-      } catch (err) {
-        error(err.response?.data?.message || 'Failed to delete user');
-      }
+  const handleDelete = (userId) => {
+    // Find user name for confirmation
+    const user = users.find(u => u.id === userId);
+    const userName = user ? user.username : 'this user';
+    
+    setDeleteTargetId(userId);
+    setDeleteTargetName(userName);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    
+    setIsDeleting(true);
+    try {
+      await usersAPI.delete(deleteTargetId);
+      success('User deleted successfully');
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+      setDeleteTargetName('');
+      fetchUsers();
+    } catch (err) {
+      error(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -148,6 +169,17 @@ function Users() {
           />
         </CardContent>
       </Card>
+
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="Delete User"
+        itemName={deleteTargetName}
+        message="Are you sure you want to delete"
+        description="This user will be permanently removed. This action cannot be undone."
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+      />
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent>

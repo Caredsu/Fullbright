@@ -8,6 +8,7 @@ import { Label } from '../components/ui/Label';
 import { Badge } from '../components/ui/Badge';
 import DataTable from '../components/DataTable';
 import ToastContainer from '../components/ToastContainer';
+import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 import ImageUpload from '../components/ImageUpload';
 import useToast from '../hooks/useToast';
 import { useAuth } from '../hooks/useAuth';
@@ -17,6 +18,9 @@ function Teachers() {
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+  const [deleteTargetName, setDeleteTargetName] = useState('');
   const [editingTeacher, setEditingTeacher] = useState(null);
   const { toasts, removeToast, success, error } = useToast();
   const { canDelete } = useAuth();
@@ -91,17 +95,31 @@ function Teachers() {
       error('You do not have permission to delete teachers');
       return;
     }
-    if (window.confirm('Are you sure you want to delete this teacher?')) {
-      try {
-        await teachersAPI.delete(teacherId);
-        success('Teacher deleted successfully');
-        fetchTeachers();
-      } catch (err) {
-        if (err.response?.status === 403) {
-          error('You do not have permission to delete teachers');
-        } else {
-          error(err.response?.data?.message || 'Failed to delete teacher');
-        }
+    
+    // Find teacher name for confirmation
+    const teacher = teachers.find(t => t._id === teacherId);
+    const teacherName = teacher ? `${teacher.first_name} ${teacher.last_name}` : 'this teacher';
+    
+    setDeleteTargetId(teacherId);
+    setDeleteTargetName(teacherName);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTargetId) return;
+    
+    try {
+      await teachersAPI.delete(deleteTargetId);
+      success('Teacher deleted successfully');
+      setShowDeleteModal(false);
+      setDeleteTargetId(null);
+      setDeleteTargetName('');
+      fetchTeachers();
+    } catch (err) {
+      if (err.response?.status === 403) {
+        error('You do not have permission to delete teachers');
+      } else {
+        error(err.response?.data?.message || 'Failed to delete teacher');
       }
     }
   };
@@ -344,6 +362,17 @@ function Teachers() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmationModal
+        open={showDeleteModal}
+        onOpenChange={setShowDeleteModal}
+        title="Delete Teacher"
+        itemName={deleteTargetName}
+        message="Are you sure you want to delete"
+        description="This action cannot be undone."
+        onConfirm={confirmDelete}
+        isLoading={loading}
+      />
     </div>
   );
 }
