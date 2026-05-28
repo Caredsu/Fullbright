@@ -118,6 +118,24 @@ function Teachers() {
       error('Please fill in all required fields');
       return;
     }
+
+    // Client-side duplicate check
+    const fullName = `${formData.first_name.trim()} ${formData.last_name.trim()}`;
+    const isDuplicate = teachers.some(teacher => {
+      // If editing, exclude the current teacher from duplicate check
+      if (editingTeacher && (teacher._id === editingTeacher._id || teacher.id === editingTeacher.id)) {
+        return false;
+      }
+      const teacherName = `${teacher.first_name.trim()} ${teacher.last_name.trim()}`;
+      return teacherName.toLowerCase() === fullName.toLowerCase() && 
+             teacher.department === formData.department;
+    });
+
+    if (isDuplicate) {
+      setFormErrors({ submit: `Teacher "${fullName}" in ${formData.department} department already exists` });
+      error(`Teacher "${fullName}" in ${formData.department} department already exists`);
+      return;
+    }
     
     setFormErrors({});
     try {
@@ -133,13 +151,21 @@ function Teachers() {
       fetchTeachers();
     } catch (err) {
       const errors = err.response?.data?.errors || {};
-      if (Object.keys(errors).length > 0) {
+      
+      // Handle duplicate teacher error from backend
+      if (err.response?.status === 409) {
+        const message = err.response?.data?.message || 'Teacher already exists';
+        setFormErrors({ submit: message });
+        error(message);
+      } else if (Object.keys(errors).length > 0) {
         setFormErrors(errors);
-      }
-      if (err.response?.status === 403) {
+        error('Please fix the errors and try again');
+      } else if (err.response?.status === 403) {
         error('You do not have permission to perform this action');
       } else {
-        error(err.response?.data?.message || 'Failed to save teacher');
+        const message = err.response?.data?.message || 'Failed to save teacher';
+        setFormErrors({ submit: message });
+        error(message);
       }
     }
   };
@@ -234,6 +260,12 @@ function Teachers() {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            {formErrors.submit && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {formErrors.submit}
+              </div>
+            )}
+            
             <ImageUpload 
               value={formData.profileImage}
               onChange={(url) => setFormData({ ...formData, profileImage: url })}

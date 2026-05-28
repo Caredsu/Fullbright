@@ -185,6 +185,33 @@ export const updateTeacher = async (req, res, next) => {
 
     const teachersCollection = getCollection('teachers');
 
+    // Check if teacher exists first
+    const existingTeacher = await teachersCollection.findOne({ _id: new ObjectId(id) });
+    if (!existingTeacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Check for duplicate teacher (same first_name, last_name, and department), excluding current teacher
+    if (first_name && last_name && department) {
+      const duplicateTeacher = await teachersCollection.findOne({
+        _id: { $ne: new ObjectId(id) },
+        first_name: first_name.trim(),
+        last_name: last_name.trim(),
+        department: department.trim()
+      });
+
+      if (duplicateTeacher) {
+        return res.status(409).json({
+          success: false,
+          message: `Teacher "${first_name} ${last_name}" in ${department} department already exists`,
+          code: 'DUPLICATE_TEACHER'
+        });
+      }
+    }
+
     const updateData = {};
     if (first_name) updateData.first_name = first_name;
     if (last_name) updateData.last_name = last_name;
@@ -201,13 +228,6 @@ export const updateTeacher = async (req, res, next) => {
       { $set: updateData },
       { returnDocument: 'after' }
     );
-
-    if (!result.value) {
-      return res.status(404).json({
-        success: false,
-        message: 'Teacher not found'
-      });
-    }
 
     res.json({
       success: true,
