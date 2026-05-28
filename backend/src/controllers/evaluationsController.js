@@ -226,7 +226,8 @@ export const createEvaluation = async (req, res, next) => {
     const settingsCollection = getCollection('settings');
     const settings = await settingsCollection.findOne({ _id: 'system' });
     
-    if (settings && settings.eval_enabled === false) {
+    // Block if eval_enabled is explicitly false or 0
+    if (settings && (settings.eval_enabled === false || settings.eval_enabled === 0)) {
       return res.status(403).json({
         success: false,
         message: 'Evaluations are currently disabled by the administrator'

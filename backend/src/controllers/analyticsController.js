@@ -3,17 +3,21 @@ import { getCollection } from '../config/database.js';
 
 export const getDashboard = async (req, res, next) => {
   try {
+    console.log('📊 [ANALYTICS] getDashboard called');
+    
     // Get collections
     const teachersCollection = getCollection('teachers');
     const evaluationsCollection = getCollection('evaluations');
-    const usersCollection = getCollection('users');
+    const adminsCollection = getCollection('admins');
     const questionsCollection = getCollection('questions');
 
     // Count total teachers
     const totalTeachers = await teachersCollection.countDocuments();
+    console.log('📊 [ANALYTICS] Total Teachers:', totalTeachers);
 
     // Count total evaluations
     const totalEvaluations = await evaluationsCollection.countDocuments();
+    console.log('📊 [ANALYTICS] Total Evaluations:', totalEvaluations);
 
     // Calculate average rating (only count non-null ratings)
     const ratingAggregation = await evaluationsCollection.aggregate([
@@ -33,10 +37,8 @@ export const getDashboard = async (req, res, next) => {
       ? parseFloat(ratingAggregation[0].averageRating.toFixed(1)) 
       : 0;
 
-    // Count active users
-    const activeUsers = await usersCollection.countDocuments({ 
-      status: { $in: ['active', 'available'] } 
-    });
+    // Count active users (total admin evaluators)
+    const activeUsers = await adminsCollection.countDocuments();
 
     // Get department breakdown
     const departmentStats = await teachersCollection.aggregate([
@@ -90,19 +92,21 @@ export const getDashboard = async (req, res, next) => {
       {
         $project: {
           _id: 1,
+          teacher_id: 1,
           rating: 1,
           status: 1,
           created_at: 1,
           'teacher.first_name': 1,
           'teacher.last_name': 1,
+          'teacher.department': 1,
           'evaluator.username': 1
         }
       }
     ]).toArray();
 
     const formattedRecentEvaluations = recentEvaluations.map(evaluation => ({
-      id: evaluation._id.toString(),
-      teacher_id: evaluation.teacher_id.toString(),
+      id: evaluation._id ? evaluation._id.toString() : 'unknown',
+      teacher_id: evaluation.teacher_id ? evaluation.teacher_id.toString() : 'unknown',
       teacher_name: evaluation.teacher?.[0] 
         ? `${evaluation.teacher[0].first_name} ${evaluation.teacher[0].last_name}`.trim() 
         : 'Unknown',
@@ -159,8 +163,9 @@ export const getDashboard = async (req, res, next) => {
         }
       }
     });
+    console.log('✅ [ANALYTICS] Dashboard response sent successfully');
   } catch (error) {
-    console.error('Analytics error:', error);
+    console.error('❌ [ANALYTICS] Analytics error:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch analytics data',

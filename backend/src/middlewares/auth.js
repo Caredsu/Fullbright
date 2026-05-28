@@ -59,21 +59,31 @@ export const requireLogin = (req, res, next) => {
 
 export const requirePermission = (requiredRole) => {
   return (req, res, next) => {
-    if (!req.session || !req.session.admin_role) {
+    // Get role from either session or req.user (for JWT auth)
+    const userRole = req.session?.admin_role || req.user?.role;
+    
+    console.log('🔐 [PERMISSION] Checking permission for role:', requiredRole);
+    console.log('🔐 [PERMISSION] User role from session:', req.session?.admin_role);
+    console.log('🔐 [PERMISSION] User role from JWT:', req.user?.role);
+    console.log('🔐 [PERMISSION] Final userRole:', userRole);
+    
+    if (!userRole) {
+      console.error('❌ [PERMISSION] No role found');
       return res.status(401).json({
         success: false,
         message: 'Unauthorized'
       });
     }
 
-    const userRole = req.session.admin_role;
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     
     // Allow super_admin for all admin roles
     if (userRole === 'super_admin' || allowedRoles.includes(userRole)) {
+      console.log('✅ [PERMISSION] Permission granted for role:', userRole);
       return next();
     }
 
+    console.error('❌ [PERMISSION] Permission denied - role not in allowed list:', { userRole, allowedRoles });
     return res.status(403).json({
       success: false,
       message: 'Forbidden - Insufficient permissions'

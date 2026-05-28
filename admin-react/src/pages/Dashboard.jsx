@@ -22,7 +22,6 @@ function Dashboard() {
       activeUsers: 0
     },
     ratingDistribution: {},
-    evaluationStatus: { completed: 0, in_progress: 0, pending: 0 },
     recentEvaluations: []
   });
   const [topTeachers, setTopTeachers] = useState([]);
@@ -34,19 +33,40 @@ function Dashboard() {
     const fetchStats = async () => {
       try {
         const response = await analyticsAPI.getDashboard();
-        // Response structure: { success, message, data: { metrics, ... } }
         console.log('🔍 Analytics API Full Response:', response);
         
-        // Extract data from response
-        const analyticsData = response.data?.data || response.data;
+        // Extract data from response - axios wraps response in .data
+        // Response structure: { success, message, data: { metrics, ... } }
+        let analyticsData = response?.data;
+        
+        if (analyticsData?.data) {
+          // If response is wrapped (has data.data), unwrap it
+          analyticsData = analyticsData.data;
+        }
+        
         console.log('📊 Extracted analytics data:', analyticsData);
+        console.log('📊 Metrics:', analyticsData?.metrics);
         console.log('👥 Recent Evaluations:', analyticsData?.recentEvaluations);
         
-        setStats(analyticsData);
+        // Ensure we have the right structure
+        if (analyticsData && analyticsData.metrics) {
+          setStats({
+            metrics: {
+              totalTeachers: analyticsData.metrics.totalTeachers || 0,
+              totalEvaluations: analyticsData.metrics.totalEvaluations || 0,
+              averageRating: analyticsData.metrics.averageRating || 0,
+              activeUsers: analyticsData.metrics.activeUsers || 0
+            },
+            ratingDistribution: analyticsData.ratingDistribution || {},
+            recentEvaluations: analyticsData.recentEvaluations || []
+          });
+        } else {
+          throw new Error('Invalid analytics data structure');
+        }
       } catch (err) {
         // If API fails, use default stats
         console.error('❌ Analytics API error:', err);
-        console.log('Using default stats');
+        console.error('Error details:', err.message);
         setStats({
           metrics: {
             totalTeachers: 0,
@@ -55,7 +75,6 @@ function Dashboard() {
             activeUsers: 0
           },
           ratingDistribution: {},
-          evaluationStatus: { completed: 0, in_progress: 0, pending: 0 },
           recentEvaluations: []
         });
       } finally {

@@ -7,6 +7,7 @@ import { useOfflineDetection, useLocalCache } from '../hooks/useOfflineDetection
 import LazyImage from '../components/LazyImage';
 import DraftRecovery from '../components/DraftRecovery';
 import Toast from '../components/Toast';
+import EvaluationsClosedModal from '../components/EvaluationsClosedModal';
 import fbcLogo from '../assets/images/fbc_logo2.png';
 import '../styles/dashboard.css';
 
@@ -406,42 +407,10 @@ export default function Dashboard() {
       </div>
       )}
 
-      {/* Evaluations Disabled Message */}
-      {!checkingSettings && !evalEnabled && (
-        <div className="alert alert-warning" role="alert">
-          <AlertCircle size={20} className="alert-icon" />
-          <div className="alert-content">
-            <h3 className="alert-title">Evaluations Currently Disabled</h3>
-            <p className="alert-message">
-              The administrator has disabled evaluations at this time. Please try again later.
-            </p>
-          </div>
-          <button 
-            onClick={() => setCheckingSettings(true)}
-            className="alert-action"
-          >
-            <RotateCw size={16} />
-          </button>
-        </div>
-      )}
-
       {/* Teachers List */}
       <div className="teachers-list">
         {!checkingSettings && !evalEnabled ? (
-          <div className="no-teachers-message">
-            <AlertCircle size={48} className="no-teachers-icon" />
-            <h3>Evaluations are Disabled</h3>
-            <p>The administrator has disabled evaluations. Please try again later.</p>
-            <button 
-              onClick={() => {
-                setCheckingSettings(true);
-                setTimeout(() => window.location.reload(), 1000);
-              }}
-              className="btn-primary"
-            >
-              Refresh
-            </button>
-          </div>
+          <EvaluationsClosedModal />
         ) : filteredTeachers.length > 0 ? (
           <div className="teachers-grid" role="region" aria-label="Teachers list">
             {filteredTeachers.map(teacher => {

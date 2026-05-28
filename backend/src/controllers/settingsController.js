@@ -43,6 +43,11 @@ export const updateSettings = async (req, res) => {
   try {
     const { eval_enabled } = req.body;
     
+    console.log('⚙️ [SETTINGS] updateSettings called');
+    console.log('⚙️ [SETTINGS] req.user:', { id: req.user?.id, username: req.user?.username, role: req.user?.role });
+    console.log('⚙️ [SETTINGS] req.session:', { user_id: req.session?.user_id, username: req.session?.username, admin_role: req.session?.admin_role });
+    console.log('⚙️ [SETTINGS] eval_enabled:', eval_enabled);
+    
     // Validate input
     if (eval_enabled === undefined || eval_enabled === null) {
       return res.status(400).json({
@@ -66,6 +71,8 @@ export const updateSettings = async (req, res) => {
       { upsert: true }
     );
     
+    console.log('⚙️ [SETTINGS] Update result:', { matchedCount: result.matchedCount, modifiedCount: result.modifiedCount, upsertedId: result.upsertedId });
+    
     res.json({
       success: true,
       message: 'Settings updated successfully',
@@ -73,8 +80,10 @@ export const updateSettings = async (req, res) => {
         eval_enabled: Boolean(eval_enabled)
       }
     });
+    
+    console.log('⚙️ [SETTINGS] Settings updated successfully:', { eval_enabled: Boolean(eval_enabled) });
   } catch (error) {
-    console.error('Error updating settings:', error);
+    console.error('❌ [SETTINGS] Error updating settings:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update settings'
