@@ -98,24 +98,24 @@ function Dashboard() {
       const teacherRatings = {};
       
       stats.recentEvaluations.forEach(evaluation => {
-        const teacherId = evaluation.teacher_id || evaluation.teacher?.id;
-        const teacherName = evaluation.teacher_name || evaluation.teacher?.name || `${evaluation.teacher?.first_name} ${evaluation.teacher?.last_name}`.trim();
+        const teacherId = evaluation.teacher_id?.toString?.() || evaluation.teacher_id;
+        const teacherName = evaluation.teacher_name || 'Unknown';
         const rating = parseFloat(evaluation.rating) || 0;
+        const department = evaluation.department || 'N/A';
         
         if (teacherId) {
           if (!teacherRatings[teacherId]) {
             teacherRatings[teacherId] = {
               id: teacherId,
               name: teacherName,
-              department: evaluation.teacher?.department || evaluation.department || 'N/A',
+              department: department,
               ratings: [],
               evaluationCount: 0
             };
           }
-          if (rating > 0) {
-            teacherRatings[teacherId].ratings.push(rating);
-            teacherRatings[teacherId].evaluationCount += 1;
-          }
+          // Count this evaluation even if rating is 0
+          teacherRatings[teacherId].ratings.push(rating);
+          teacherRatings[teacherId].evaluationCount += 1;
         }
       });
       
@@ -129,6 +129,7 @@ function Dashboard() {
         .sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating))
         .slice(0, 5);
       
+      console.log('🏆 Top Teachers Calculated:', topTeachersList);
       setTopTeachers(topTeachersList);
     }
   }, [stats?.recentEvaluations]);

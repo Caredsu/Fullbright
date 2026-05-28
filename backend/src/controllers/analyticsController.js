@@ -102,9 +102,11 @@ export const getDashboard = async (req, res, next) => {
 
     const formattedRecentEvaluations = recentEvaluations.map(evaluation => ({
       id: evaluation._id.toString(),
+      teacher_id: evaluation.teacher_id.toString(),
       teacher_name: evaluation.teacher?.[0] 
         ? `${evaluation.teacher[0].first_name} ${evaluation.teacher[0].last_name}`.trim() 
         : 'Unknown',
+      department: evaluation.teacher?.[0]?.department || 'N/A',
       evaluator: evaluation.evaluator?.[0]?.username || 'Unknown',
       rating: evaluation.rating || 0,
       status: evaluation.status || 'pending',
