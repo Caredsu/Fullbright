@@ -58,6 +58,14 @@ export const login = async (req, res, next) => {
       });
     }
 
+    // Check if user is active
+    if (user.status && user.status !== 'active') {
+      return res.status(403).json({
+        success: false,
+        message: 'User account is inactive. Contact administrator.'
+      });
+    }
+
     // Generate JWT tokens
     const { accessToken, refreshToken } = generateTokens(
       user._id.toString(),
