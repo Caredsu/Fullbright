@@ -8,23 +8,26 @@
   flex-shrink: 0;
 }
 
-/* Set Container - Improved shadows and breathing room */
+/* Set Container - Google Forms Style (Full Width Maximized) */
 .set-container {
   background: white;
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 0;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8eaed;
   overflow: hidden;
-  transition: all 0.3s ease;
-  margin: 0 0.75rem 1.5rem 0.75rem;
+  transition: all 0.2s ease;
+  margin: 0 0 2rem 0;
+  max-width: none;
+  width: 100%;
 }
 
 @media (min-width: 640px) {
   .set-container {
     margin-left: 0;
     margin-right: 0;
-    border-radius: 0;
+    width: 100%;
+    border-radius: 8px;
   }
 }
 
@@ -32,25 +35,26 @@
   .set-container {
     margin-left: 0;
     margin-right: 0;
-    border-radius: 14px;
+    width: 100%;
+    border-radius: 8px;
   }
 }
 
 .set-container.locked {
-  opacity: 0.65;
+  opacity: 0.6;
   pointer-events: none;
 }
 
 .set-container.unlocked:hover {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
-  border-color: rgba(102, 126, 234, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-color: #dadce0;
 }
 
-/* Set Header Card - Improved spacing and visual hierarchy */
+/* Set Header Card - Google Forms Style (Minimal) */
 .set-header-card {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.04) 0%, rgba(118, 75, 162, 0.04) 100%);
+  background: #ffffff;
   padding: 1.5rem;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+  border-bottom: 1px solid #e8eaed;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -83,41 +87,43 @@
 }
 
 .set-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--gray-900);
-  margin: 0 0 0.6rem 0;
-  letter-spacing: -0.5px;
-  line-height: 1.5;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 0.4rem 0;
+  letter-spacing: 0;
+  line-height: 1.4;
 }
 
 @media (min-width: 640px) {
   .set-title {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
+    font-weight: 500;
   }
 }
 
 .set-description {
-  font-size: 0.9rem;
-  color: var(--gray-600);
+  font-size: 0.95rem;
+  color: #5f6368;
   margin: 0;
-  line-height: 1.6;
-  max-width: 550px;
+  line-height: 1.5;
+  max-width: 100%;
+  font-weight: 400;
 }
 
 .set-header-badge {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.85rem;
+  background: #e8eaed;
+  color: #5f6368;
+  padding: 0.3rem 0.6rem;
+  border-radius: 16px;
+  font-weight: 500;
+  font-size: 0.8rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 50px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  min-width: 45px;
+  box-shadow: none;
 }
 
 .badge-text {
@@ -149,51 +155,53 @@
   font-size: 0.95rem;
 }
 
-/* Questions Grid */
+/* Questions Grid - Google Forms Style */
 .questions-grid {
   display: grid;
-  gap: 1.5rem;
-  padding: 1.5rem;
+  gap: 2rem;
+  padding: 2rem;
 }
 
 @media (min-width: 640px) {
   .questions-grid {
-    padding: 2rem 0;
-    gap: 2rem;
+    padding: 2rem;
+    gap: 2.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .questions-grid {
-    padding: 2rem 2rem;
+    padding: 2rem;
   }
 }
 
-/* Question Card - No card styling */
+/* Question Card - Google Forms Style (Separate Card per Question) */
 .question-card {
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  padding: 1.5rem 0;
+  background: white;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  padding: 1.5rem;
   transition: all 0.2s ease;
   position: relative;
-  box-shadow: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 @media (min-width: 640px) {
   .question-card {
-    padding: 1.75rem 0;
+    padding: 1.75rem;
   }
 }
 
 .question-card:hover {
-  border-color: transparent;
-  box-shadow: none;
+  border-color: #dadce0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background: white;
 }
 
 .question-card.answered {
-  background: transparent;
-  border-color: rgba(40, 167, 69, 0.2);
+  background: white;
+  border-color: #dadce0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Question Header - Better spacing and alignment */
@@ -222,10 +230,10 @@
 
 .question-text {
   flex: 1;
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--gray-900);
-  line-height: 1.6;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #202124;
+  line-height: 1.5;
   margin: 0;
 }
 
@@ -243,64 +251,66 @@
   animation: slideDown 0.2s ease-out;
 }
 
-/* Rating Scale - Vertical layout with full descriptions */
+/* Rating Scale - Google Forms Style (Simple Radio Options) */
 .rating-scale {
   display: flex;
   flex-direction: column;
   flex-wrap: nowrap;
-  gap: 0.8rem;
+  gap: 1rem;
   margin-top: 1.5rem;
   justify-content: flex-start;
 }
 
 @media (min-width: 640px) {
   .rating-scale {
-    gap: 0.8rem;
+    gap: 1rem;
     flex-wrap: nowrap;
   }
 }
 
-/* Rating Button - Simple option layout without card styling */
+/* Rating Button - Separate Card per Option */
 .rating-button {
   position: relative;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   justify-content: flex-start;
-  gap: 0.5rem;
-  padding: 0.8rem 1rem;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  transition: all 0.25s ease;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #e8eaed;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.15s ease;
   flex: 1;
   min-width: auto;
   max-width: none;
   box-sizing: border-box;
   width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .rating-button:hover {
-  border-color: transparent;
-  background-color: transparent;
-  box-shadow: none;
+  background-color: white;
+  border-color: #dadce0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   transform: none;
+  padding-left: 1rem;
 }
 
 .rating-button.selected {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+  background: #e8f0fe;
+  border-color: #1f71b8;
+  box-shadow: 0 1px 3px rgba(31, 113, 184, 0.15);
 }
 
 .rating-button input {
   display: inline-block;
   cursor: pointer;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   margin: 0;
-  accent-color: var(--primary);
+  accent-color: #5f6368;
   flex-shrink: 0;
 }
 
@@ -313,7 +323,7 @@
   align-items: flex-start;
   justify-content: flex-start;
   gap: 1rem;
-  flex-direction: row;
+  flex-direction: column;
   background: transparent;
   border: none;
   padding: 0;
@@ -329,16 +339,16 @@
 }
 
 .rating-number {
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   line-height: 1;
-  color: var(--primary);
-  font-weight: 700;
+  color: #5f6368;
+  font-weight: 500;
   min-width: auto;
 }
 
 @media (min-width: 640px) {
   .rating-number {
-    font-size: 1.2rem;
+    font-size: 0.95rem;
   }
 }
 
@@ -352,69 +362,47 @@
 .rating-button input:checked ~ .rating-content {
   background: transparent;
   border-color: transparent;
-  color: var(--primary);
+  color: #202124;
   transform: none;
   box-shadow: none;
 }
 
 .rating-button.selected {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.06) 100%);
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(102, 126, 234, 0.3);
-}
-
-/* Rating Tooltip - Compact Description for Horizontal Layout */
-.rating-tooltip {
-  position: static;
-  transform: none;
   background: transparent;
-  color: var(--gray-700);
-  padding: 0;
-  border-radius: 0;
-  font-size: 0.7rem;
-  font-weight: normal;
-  white-space: normal;
-  word-break: break-word;
-  pointer-events: auto;
-  opacity: 0.7;
-  transition: opacity 0.2s ease, color 0.2s ease;
-  z-index: auto;
-  margin-bottom: 0;
-  line-height: 1.2;
-  text-align: center;
-  max-width: 85px;
-  display: none;
+  border-color: transparent;
+  box-shadow: none;
 }
 
-/* Rating Description - Full text display */
+/* Rating Description - Google Forms Style */
 .rating-description {
   display: block;
-  font-size: 0.95rem;
-  line-height: 1.5;
-  color: var(--gray-700);
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #5f6368;
   text-align: left;
   white-space: normal;
   max-width: none;
   word-wrap: break-word;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   margin-top: 0;
   flex: 1;
+  font-weight: 400;
 }
 
 @media (min-width: 768px) {
   .rating-description {
-    font-size: 0.95rem;
+    font-size: 1rem;
   }
 }
 
 .rating-button:hover .rating-description {
-  color: var(--primary);
-  font-weight: 500;
+  color: #202124;
+  font-weight: 400;
 }
 
 .rating-button input:checked ~ .rating-description {
-  color: var(--primary);
-  font-weight: 600;
+  color: #202124;
+  font-weight: 500;
 }
 
 /* Feedback Set Container */
@@ -427,24 +415,27 @@
   border-bottom-color: rgba(231, 76, 60, 0.1);
 }
 
-/* Feedback Cards Grid - Better spacing for mobile */
+/* Feedback Cards Grid - Google Forms Style */
 .feedback-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: 1fr;
   gap: 2rem;
-  padding: 2rem 1.5rem;
+  padding: 2rem;
 }
 
 @media (min-width: 640px) {
   .feedback-cards {
-    padding: 2rem 0;
-    gap: 2.25rem;
+    padding: 2rem;
+    gap: 2rem;
+    grid-template-columns: 1fr;
   }
 }
 
 @media (min-width: 1024px) {
   .feedback-cards {
-    padding: 2rem 2rem;
+    padding: 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
   }
 }
 
@@ -456,78 +447,77 @@
   }
 }
 
-/* Individual Feedback Card - Modern design with better spacing */
+/* Individual Feedback Card - Google Forms Style */
 .feedback-card {
   background: white;
-  border: 1.5px solid var(--gray-200);
-  border-left: 4px solid var(--gray-300);
-  border-radius: 12px;
+  border: 1px solid #e8eaed;
+  border-left: 4px solid #dadce0;
+  border-radius: 4px;
   padding: 1.5rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .feedback-card:hover {
-  border-color: rgba(102, 126, 234, 0.25);
-  border-left-color: rgba(102, 126, 234, 0.6);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
+  border-color: #dadce0;
+  border-left-color: #dadce0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transform: none;
 }
 
 .positive-card {
-  border-left-color: #28a745;
+  border-left-color: #34a853;
 }
 
 .positive-card:hover {
-  border-left-color: #20c997;
+  border-left-color: #34a853;
 }
 
 .negative-card {
-  border-left-color: #ffc107;
+  border-left-color: #fbbc04;
 }
 
 .negative-card:hover {
-  border-left-color: #ff9800;
+  border-left-color: #fbbc04;
 }
 
-/* Feedback Card Header - Better spacing and alignment */
+/* Feedback Card Header - Google Forms Style */
 .feedback-card-header {
   display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  margin-bottom: 1.25rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0;
 }
 
 .feedback-card-icon {
-  font-size: 1.8rem;
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 0;
+  width: 0;
+  height: 0;
+  display: none;
   flex-shrink: 0;
-  border-radius: 10px;
 }
 
 .feedback-card-icon.positive {
-  background: rgba(40, 167, 69, 0.12);
-  color: #28a745;
+  background: transparent;
+  color: transparent;
 }
 
 .feedback-card-icon.negative {
-  background: rgba(255, 193, 7, 0.12);
-  color: #ffc107;
+  background: transparent;
+  color: transparent;
 }
 
 .feedback-card-title {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--gray-900);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #5f6368;
   margin: 0;
   line-height: 1.5;
+  text-transform: capitalize;
 }
 
-/* Feedback Toggle */
+/* Feedback Toggle - Google Forms Style */
 .feedback-toggle {
   display: flex;
   align-items: center;
@@ -535,21 +525,21 @@
   cursor: pointer;
   user-select: none;
   margin-bottom: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  background: var(--gray-50);
-  transition: background-color 0.2s ease;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  transition: background-color 0.15s ease;
 }
 
 .feedback-toggle:hover {
-  background: var(--gray-100);
+  background: transparent;
 }
 
 .feedback-checkbox {
   width: 20px;
   height: 20px;
   cursor: pointer;
-  accent-color: var(--primary);
+  accent-color: #5f6368;
   flex-shrink: 0;
 }
 
@@ -599,29 +589,35 @@
 
 .feedback-textarea {
   width: 100%;
-  padding: 1.1rem;
-  border: 1.5px solid var(--gray-300);
-  border-radius: 10px;
-  background: var(--gray-50);
-  color: var(--gray-900);
+  padding: 1rem;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  background: white;
+  color: #202124;
   font-family: inherit;
   font-size: 0.95rem;
   resize: vertical;
   min-height: 140px;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   line-height: 1.6;
+  box-sizing: border-box;
+}
+
+.feedback-textarea:hover {
+  border-color: #dadce0;
+  background: white;
 }
 
 .feedback-textarea:focus {
   outline: none;
-  border-color: var(--primary);
+  border-color: #dadce0;
   background: white;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .feedback-textarea::placeholder {
-  color: var(--gray-500);
-  font-style: italic;
+  color: #9aa0a6;
+  font-style: normal;
 }
 
 /* Feedback Counter */
@@ -637,7 +633,7 @@
   font-weight: 500;
 }
 
-/* Set Progress Cards Grid - Better spacing for mobile */
+/* Set Progress Cards Grid - Google Forms Style */
 .set-progress-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -648,46 +644,57 @@
 @media (min-width: 768px) {
   .set-progress-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
+    gap: 1rem;
   }
 }
 
-/* Set Progress Card - Improved design and spacing */
+/* Set Progress Card - Google Forms Minimal */
 .set-progress-card {
   background: white;
-  border: 1.5px solid var(--gray-300);
-  border-radius: 10px;
-  padding: 1.1rem 1rem;
+  border: 1px solid #e8eaed;
+  border-radius: 4px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.85rem;
-  transition: all 0.2s ease;
+  gap: 0.75rem;
+  transition: all 0.15s ease;
   cursor: pointer;
   text-align: center;
 }
 
+.set-progress-card:hover {
+  border-color: #dadce0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 .set-progress-card.complete {
-  background: linear-gradient(135deg, rgba(40, 167, 69, 0.06), rgba(16, 185, 129, 0.06));
-  border-color: #28a745;
-  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.12);
+  background: white;
+  border-color: #34a853;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.set-progress-card.complete:hover {
+  border-color: #34a853;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .set-progress-card.active {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.06), rgba(118, 75, 162, 0.06));
-  border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  background: white;
+  border-color: #1f71b8;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .set-progress-card.active:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.25);
+  border-color: #1f71b8;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transform: none;
 }
 
 .set-progress-card.locked {
-  background: var(--gray-50);
-  border-color: var(--gray-300);
-  color: var(--gray-500);
+  background: #f8f9fa;
+  border-color: #e8eaed;
+  color: #9aa0a6;
   cursor: not-allowed;
 }
 
@@ -695,28 +702,29 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
+  font-size: 1.1rem;
 }
 
 .set-progress-text {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
+  gap: 0.25rem;
 }
 
 .set-progress-title {
-  font-weight: 700;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.9rem;
   color: inherit;
   line-height: 1.3;
 }
 
 .set-progress-count {
   font-size: 0.8rem;
-  opacity: 0.75;
-  font-weight: 600;
+  opacity: 0.7;
+  font-weight: 400;
 }
 
 /* Animations */
@@ -828,16 +836,30 @@
 
   /* Rating Scale - Single column */
   .rating-scale {
-    gap: 0.6rem;
+    gap: 0.8rem;
     margin-top: 1rem;
   }
 
   /* Rating Button */
   .rating-button {
-    padding: 0.65rem;
+    padding: 1rem;
     gap: 0.75rem;
     border-radius: 8px;
     flex-wrap: wrap;
+    border: 1px solid #e8eaed;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .rating-button:hover {
+    border-color: #dadce0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .rating-button.selected {
+    background: #e8f0fe;
+    border-color: #1f71b8;
+    box-shadow: 0 1px 3px rgba(31, 113, 184, 0.15);
   }
 
   .rating-button input {
@@ -1011,8 +1033,22 @@
 
   /* Rating Button */
   .rating-button {
-    padding: 0.6rem;
+    padding: 1rem;
     gap: 0.5rem;
+    border: 1px solid #e8eaed;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+
+  .rating-button:hover {
+    border-color: #dadce0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .rating-button.selected {
+    background: #e8f0fe;
+    border-color: #1f71b8;
+    box-shadow: 0 1px 3px rgba(31, 113, 184, 0.15);
   }
 
   .rating-button input {
@@ -1238,27 +1274,36 @@
   }
 }
 
-/* Evaluation Form - Responsive */
+/* Evaluation Form - Responsive & Full Width */
 .evaluation-form {
   flex: 1;
   max-width: 100%;
   margin: 0 auto;
   width: 100%;
-  padding: 1rem;
+  padding: 1rem 0.75rem;
   padding-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 640px) {
   .evaluation-form {
     max-width: 100%;
-    padding: 1.5rem 0;
-    padding-top: 2rem;
+    padding: 1.5rem 1rem;
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
   }
 }
 
 @media (min-width: 1024px) {
   .evaluation-form {
-    padding: 2rem 0;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -1302,6 +1347,8 @@
   gap: 1.5rem;
   margin-bottom: 2rem;
   padding: 0 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
@@ -1312,7 +1359,9 @@
 
 @media (min-width: 1024px) {
   .questions-container {
-    padding: 0 2.5rem;
+    padding: 0 2rem;
+    margin: 0 auto 2rem auto;
+    max-width: 100%;
   }
 }
 
@@ -1635,55 +1684,88 @@
   text-align: right;
 }
 
-/* Form Actions */
+/* Form Actions - Google Forms Style */
 .form-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
-  padding-top: 2rem;
-  padding-bottom: 2rem;
-  border-top: 1px solid var(--gray-200);
+  margin-top: auto;
+  margin-bottom: 0;
+  padding: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e8eaed;
+  box-sizing: border-box;
+  width: 100%;
+  flex-shrink: 0;
+  background: white;
+  justify-content: flex-end;
+}
+
+@media (min-width: 640px) {
+  .form-actions {
+    padding: 1.5rem 2rem;
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form-actions {
+    padding: 1.5rem 2rem;
+    justify-content: flex-end;
+  }
 }
 
 .btn {
   padding: 0.75rem 2rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-weight: 500;
   font-size: 1rem;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.15s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  background: white;
+  color: #202124;
+}
+
+.btn:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: #1f71b8;
   color: white;
   flex: 1;
+  border-color: #1f71b8;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  background: #1a5a96;
+  border-color: #1a5a96;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transform: none;
 }
 
 .btn-primary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  background: #dadce0;
+  border-color: #dadce0;
+  color: #9aa0a6;
 }
 
 .btn-secondary {
-  background: var(--gray-200);
-  color: var(--gray-900);
+  background: white;
+  color: #1f71b8;
+  border-color: #dadce0;
 }
 
 .btn-secondary:hover {
-  background: var(--gray-300);
+  background: #f8f9fa;
+  border-color: #dadce0;
 }
 
 .btn-lg {
@@ -1859,16 +1941,37 @@
   }
 }
 
+/* Main Evaluation Container - Google Forms Style */
+.evaluation-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8f9fa;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
+}
+
+.evaluation-container.success-wrapper {
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .evaluation-container {
-    padding-bottom: 120px;
+    min-height: 100vh;
+    padding-bottom: 80px;
     width: 100%;
     overflow-x: hidden;
+    flex: 1;
   }
 
   .evaluation-header {
     padding: 1.5rem 1rem;
+    flex-shrink: 0;
   }
 
   .teacher-header {
@@ -1885,8 +1988,16 @@
   }
 
   .evaluation-form {
-    padding: 0 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 0 1rem 2rem 1rem;
     padding-top: 1.5rem;
+    max-width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    overflow-y: auto;
   }
 
   .rating-options {
@@ -1902,8 +2013,11 @@
 
   .form-actions {
     flex-direction: column-reverse;
-    margin-bottom: 3rem;
-    padding-bottom: 3rem;
+    margin-top: auto;
+    margin-bottom: 1rem;
+    padding-bottom: 0;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gray-200);
   }
 
   .btn {
@@ -1917,6 +2031,16 @@
 
   .question-text {
     font-size: 0.95rem;
+  }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    z-index: 100;
+    background: white;
   }
 }
 
@@ -2009,49 +2133,68 @@
   flex: 1;
 }
 
-/* Progress Indicator Styles */
+/* Progress Indicator Styles - Google Forms */
 .progress-container {
   background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  margin-bottom: 1.5rem;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e8eaed;
+  margin: 0 0.75rem 1.5rem 0.75rem;
+  width: calc(100% - 1.5rem);
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .progress-container {
+    padding: 1.5rem;
+    margin: 0 1.5rem 1.5rem 1.5rem;
+    width: calc(100% - 3rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .progress-container {
+    padding: 1.5rem 2rem;
+    margin: 0 2rem 1.5rem 2rem;
+    width: calc(100% - 4rem);
+  }
 }
 
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 .progress-label {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--gray-700);
+  color: #5f6368;
 }
 
 .progress-percentage {
-  font-size: 0.9rem;
-  color: var(--gray-500);
-  font-weight: 500;
+  font-size: 0.95rem;
+  color: #5f6368;
+  font-weight: 600;
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 999px;
+  height: 6px;
+  background: #dadce0;
+  border-radius: 3px;
   overflow: hidden;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-  border-radius: 999px;
+  background: #1f71b8;
+  border-radius: 3px;
   transition: width 0.4s ease;
-  box-shadow: 0 0 10px rgba(102, 126, 234, 0.4);
+  box-shadow: none;
 }
 
 /* Validation Feedback */
@@ -2123,6 +2266,8 @@
 @media (max-width: 600px) {
   .progress-container {
     padding: 0.75rem;
+    margin: 0 0.5rem 1rem 0.5rem;
+    width: calc(100% - 1rem);
   }
 
   .progress-label {
@@ -2161,6 +2306,7 @@
   .form-actions {
     flex-direction: column;
     gap: 0.5rem;
+    padding: 1rem 0.5rem;
   }
 
   .form-actions .btn {
@@ -2173,7 +2319,11 @@
 /* Responsive */
 @media (max-width: 768px) {
   .evaluation-container {
-    padding: 1rem;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    width: 100%;
+    overflow-x: hidden;
+    flex: 1;
   }
 
   .teacher-header {
@@ -2217,14 +2367,78 @@
   }
 }
 
+/* Tablet Responsive */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .evaluation-container {
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .evaluation-form {
+    padding: 1.5rem 2rem;
+  }
+
+  .progress-container {
+    margin: 0 auto 1.5rem auto;
+    max-width: 100%;
+  }
+
+  .questions-container {
+    margin: 0 auto;
+    max-width: 100%;
+  }
+
+  .form-actions {
+    margin: 0 auto;
+    max-width: 100%;
+  }
+}
+
+/* Desktop Responsive */
+@media (min-width: 1025px) {
+  .evaluation-container {
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+
+  .evaluation-form {
+    padding: 2rem 3rem;
+    max-width: 100%;
+  }
+
+  .progress-container {
+    max-width: 900px;
+    margin: 0 auto 1.5rem auto;
+  }
+
+  .questions-container {
+    max-width: 900px;
+    margin: 0 auto 2rem auto;
+  }
+
+  .form-actions {
+    max-width: 900px;
+    margin: auto;
+    padding: 2rem 0;
+  }
+
+  .btn {
+    flex: 1;
+  }
+}
+
 /* Improved Success UI */
 .success-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  width: 100%;
   padding: 1rem;
   background: linear-gradient(180deg, rgba(118,75,162,0.06), rgba(103,110,234,0.03));
+  box-sizing: border-box;
 }
 
 .success-card {
@@ -2237,6 +2451,7 @@
   box-shadow: 0 30px 80px rgba(102,126,234,0.18);
   text-align: center;
   animation: slideUp 0.5s ease-out;
+  box-sizing: border-box;
 }
 
 .success-icon {
@@ -2290,7 +2505,10 @@
   transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
-.btn-success:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(59,130,246,0.2); }
+.btn-success:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 10px 30px rgba(59,130,246,0.2); 
+}
 
 .btn-success-ghost {
   background: transparent;
@@ -2307,9 +2525,15 @@
 }
 
 @media (max-width: 600px) {
-  .success-card { padding: 1.5rem; }
-  .success-actions { flex-direction: column; }
-  .btn-success, .btn-success-ghost { width: 100%; }
+  .success-card { 
+    padding: 1.5rem; 
+  }
+  .success-actions { 
+    flex-direction: column; 
+  }
+  .btn-success, .btn-success-ghost { 
+    width: 100%; 
+  }
 }
 
 @media (max-width: 480px) {

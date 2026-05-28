@@ -6,7 +6,6 @@ import api, { getErrorMessage } from '../services/api';
 import Toast from '../components/Toast';
 import AlreadyEvaluatedModal from '../components/AlreadyEvaluatedModal';
 import '../styles/evaluation.css';
-import '../styles/evaluation-enhanced.css';
 import '../styles/pagination.css';
 import '../styles/Toast.css';
 

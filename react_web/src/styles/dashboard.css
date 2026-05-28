@@ -334,7 +334,7 @@
 
 @media (min-width: 1024px) {
   .teacher-card {
-    padding: 1.5rem;
+    padding: 1.2rem 1rem;
     min-height: 320px;
   }
 }
@@ -377,7 +377,10 @@
 
 @media (min-width: 1024px) {
   .teacher-avatar {
-    width: 80px;
+    width: 70px;
+    height: 70px;
+  }
+}
     height: 80px;
   }
 }
@@ -417,7 +420,8 @@
 
 @media (min-width: 1024px) {
   .teacher-name {
-    font-size: 1.1rem;
+    font-size: 1rem;
+    font-weight: 600;
   }
 }
 
@@ -439,7 +443,7 @@
 
 @media (min-width: 1024px) {
   .teacher-email {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
   }
 }
 
@@ -495,8 +499,9 @@
 
 @media (min-width: 1024px) {
   .btn-evaluate {
-    padding: 0.8rem 1.25rem;
-    font-size: 0.95rem;
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    min-height: 40px;
   }
 }
 
@@ -697,6 +702,7 @@
   bottom: 0;
   left: 0;
   right: 0;
+  width: 100%;
   background: white;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   display: flex;
@@ -705,6 +711,9 @@
   height: 70px;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
   z-index: 100;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 .bottom-nav-btn {
@@ -755,7 +764,7 @@
 @media (max-width: 768px) {
   .dashboard-container {
     min-height: 100vh;
-    padding-bottom: 120px;
+    padding-bottom: 80px;
     width: 100%;
     overflow-x: hidden;
   }
@@ -797,6 +806,26 @@
   .department-filters {
     width: 100%;
   }
+
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 70px;
+    z-index: 100;
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+}
 
   .teacher-details {
     width: 100%;
@@ -1135,6 +1164,13 @@
   font-weight: 600;
 }
 
+@media (min-width: 1024px) {
+  .dept-badge {
+    font-size: 0.85rem;
+    padding: 0.3rem 0.9rem;
+  }
+}
+
 /* Teachers Grid */
 .teachers-grid {
   display: grid;
@@ -1180,6 +1216,8 @@
 
 @media (min-width: 1024px) {
   .teachers-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1.5rem;
+    padding: 0 2rem;
   }
 }
