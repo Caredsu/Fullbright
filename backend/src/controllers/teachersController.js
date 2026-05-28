@@ -194,7 +194,7 @@ export const updateTeacher = async (req, res, next) => {
     if (status) updateData.status = status;
     if (profileImage !== undefined) updateData.picture = profileImage;
     updateData.updated_at = new Date();
-    updateData.updated_by = req.session?.username || 'system';
+    updateData.updated_by = req.user?.username || req.session?.username || 'system';
 
     const result = await teachersCollection.findOneAndUpdate(
       { _id: new ObjectId(id) },

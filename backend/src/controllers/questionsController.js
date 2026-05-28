@@ -220,15 +220,16 @@ export const updateQuestion = async (req, res, next) => {
     if (set_number !== undefined) updateData.set_number = set_number;
     if (choice_descriptions !== undefined) updateData.choice_descriptions = choice_descriptions;
     updateData.updated_at = new Date();
-    updateData.updated_by = req.session?.username || 'system';
+    updateData.updated_by = req.user?.username || req.session?.username || 'system';
     
     // Debug logging to trace updated_by issue
     console.log('🔍 updateQuestion Debug:', {
+      userUsername: req.user?.username,
+      userId: req.user?.id,
+      userRole: req.user?.role,
       sessionUsername: req.session?.username,
       sessionUserId: req.session?.user_id,
-      adminRole: req.session?.admin_role,
-      finalUpdatedBy: updateData.updated_by,
-      sessionKeys: req.session ? Object.keys(req.session) : 'no session'
+      finalUpdatedBy: updateData.updated_by
     });
 
     const result = await questionsCollection.findOneAndUpdate(

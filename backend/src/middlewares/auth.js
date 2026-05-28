@@ -3,6 +3,14 @@ import jwt from 'jsonwebtoken';
 export const requireLogin = (req, res, next) => {
   // Check session first (for server-to-server requests)
   if (req.session && req.session.user_id) {
+    // Also set req.user from session for consistency
+    if (!req.user) {
+      req.user = {
+        id: req.session.user_id,
+        username: req.session.username,
+        role: req.session.admin_role
+      };
+    }
     console.log('✅ Auth via session:', { username: req.session.username, userId: req.session.user_id });
     return next();
   }
@@ -17,13 +25,20 @@ export const requireLogin = (req, res, next) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
       console.log('🔑 JWT decoded:', { id: decoded.id, username: decoded.username, role: decoded.role });
       
-      // Store decoded user info in session for permission checks
+      // Store decoded user info in req.user for controller access
+      req.user = {
+        id: decoded.id,
+        username: decoded.username,
+        role: decoded.role
+      };
+      
+      // Also store in session for backward compatibility with session-based auth
       req.session = req.session || {};
       req.session.user_id = decoded.id;
       req.session.username = decoded.username;
       req.session.admin_role = decoded.role;
       
-      console.log('✅ Auth via JWT:', { username: req.session.username, userId: req.session.user_id });
+      console.log('✅ Auth via JWT:', { username: req.user.username, userId: req.user.id });
       
       return next();
     } catch (error) {
