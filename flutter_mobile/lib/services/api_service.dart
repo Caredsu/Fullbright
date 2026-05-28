@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import '../models/teacher.dart';
 import '../models/question.dart';
 import '../models/evaluation.dart';
@@ -19,6 +20,16 @@ class ApiService {
   }
   
   static const Duration timeout = Duration(seconds: 30);
+  
+  // Check if device has internet connectivity
+  static Future<bool> hasInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('8.8.8.8');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
   
   // Debug: Log connection attempts
   static void _logError(String endpoint, dynamic error) {
@@ -120,10 +131,10 @@ class ApiService {
   // Get questions for evaluation
   static Future<List<Question>> getQuestions() async {
     try {
-      print('🔄 Fetching questions from: $baseUrl/api/questions');
+      print('🔄 Fetching questions from: $baseUrl/api/questions?limit=1000');
       final response = await http
           .get(
-            Uri.parse('$baseUrl/api/questions'),
+            Uri.parse('$baseUrl/api/questions?limit=1000'),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -180,67 +191,117 @@ class ApiService {
   }
 
   // Submit evaluation with better error handling
-  static Future<bool> submitEvaluation(Evaluation evaluation) async {
-    try {
-      print('📤 Submitting evaluation for teacher: ${evaluation.teacherId}');
-      print('📝 Feedback: ${evaluation.feedbackComments ?? "(no feedback)"}');
-      
-      final response = await http
-          .post(
-            Uri.parse('$baseUrl/api/evaluations'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-            },
-            body: jsonEncode(evaluation.toJson()),
-          )
-          .timeout(timeout);
-
-      print('📥 Response status: ${response.statusCode}');
-      print('📄 Response body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        try {
-          final dynamic responseBody = jsonDecode(response.body);
-          
-          // Handle both wrapped response {success, message, data} and direct formats
-          if (responseBody is Map<String, dynamic>) {
-            if (responseBody['success'] == true) {
-              print('✅ Evaluation submitted successfully');
-              return true;
-            } else {
-              final errorMsg = responseBody['message'] ?? 'Unknown error';
-              print('❌ Server returned error: $errorMsg');
-              throw Exception('Server error: $errorMsg');
-            }
-          } else {
-            print('✅ Evaluation submitted successfully (direct response)');
-            return true;
-          }
-        } catch (parseError) {
-          print('⚠️ Could not parse response, but status was successful: $parseError');
-          return true; // Status was successful, treat as success
-        }
-      } else {
-        // Try to parse error response for better error message
-        String errorMsg = 'Failed to submit evaluation: ${response.statusCode}';
-        try {
-          final dynamic responseBody = jsonDecode(response.body);
-          if (responseBody is Map<String, dynamic>) {
-            errorMsg = responseBody['message'] ?? responseBody['error'] ?? errorMsg;
-          }
-        } catch (e) {
-          // Could not parse, use status code
-        }
+  // Submit evaluation with enhanced error handling and retry logic (Phase 6)
+  static Future<bool> submitEvaluation(Evaluation evaluation, {int maxRetries = 2}) async {
+    int retryCount = 0;
+    
+    while (retryCount <= maxRetries) {
+      try {
+        print('📤 Submitting evaluation for teacher: ${evaluation.teacherId} (Attempt ${retryCount + 1}/${maxRetries + 1})');
         
-        print('❌ $errorMsg');
-        print('📄 Full response: ${response.body}');
-        throw Exception(errorMsg);
+        final response = await http
+            .post(
+              Uri.parse('$baseUrl/api/evaluations'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+              },
+              body: jsonEncode(evaluation.toJson()),
+            )
+            .timeout(timeout);
+
+        print('📥 Response status: ${response.statusCode}');
+        print('📄 Response body: ${response.body}');
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          try {
+            final dynamic responseBody = jsonDecode(response.body);
+            
+            // Handle both wrapped response {success, message, data} and direct formats
+            if (responseBody is Map<String, dynamic>) {
+              if (responseBody['success'] == true) {
+                print('✅ Evaluation submitted successfully');
+                return true;
+              } else {
+                final errorMsg = responseBody['message'] ?? 'Unknown error';
+                print('❌ Server returned error: $errorMsg');
+                throw Exception('Server error: $errorMsg');
+              }
+            } else {
+              print('✅ Evaluation submitted successfully (direct response)');
+              return true;
+            }
+          } catch (parseError) {
+            print('⚠️ Could not parse response, but status was successful: $parseError');
+            return true; // Status was successful, treat as success
+          }
+        } else if (response.statusCode == 403) {
+          // Evaluations disabled - don't retry
+          print('❌ Evaluations disabled by admin (403)');
+          throw Exception('Evaluations are currently disabled. Please try again later.');
+        } else if (response.statusCode == 401) {
+          // Student validation failed - don't retry
+          print('❌ Student validation failed (401)');
+          throw Exception('Invalid student information. Please log in again.');
+        } else if (response.statusCode >= 500) {
+          // Server error - might be temporary, can retry
+          if (retryCount < maxRetries) {
+            print('⏳ Server error (${response.statusCode}), retrying in 2 seconds...');
+            await Future.delayed(Duration(seconds: 2));
+            retryCount++;
+            continue;
+          }
+          throw Exception('Server error: ${response.statusCode}. Please try again later.');
+        } else {
+          // Try to parse error response for better error message
+          String errorMsg = 'Failed to submit evaluation: ${response.statusCode}';
+          try {
+            final dynamic responseBody = jsonDecode(response.body);
+            if (responseBody is Map<String, dynamic>) {
+              errorMsg = responseBody['message'] ?? responseBody['error'] ?? errorMsg;
+            }
+          } catch (e) {
+            // Could not parse, use status code
+          }
+          
+          print('❌ $errorMsg');
+          print('📄 Full response: ${response.body}');
+          throw Exception(errorMsg);
+        }
+      } on SocketException catch (e) {
+        print('❌ Network Error: ${e.message}');
+        print('   Device appears to be offline or network is unavailable');
+        
+        if (retryCount < maxRetries) {
+          print('⏳ Retrying in 3 seconds...');
+          await Future.delayed(Duration(seconds: 3));
+          retryCount++;
+          continue;
+        }
+        throw Exception('Network error: Unable to connect. Please check your internet connection.');
+      } on TimeoutException catch (e) {
+        print('❌ Timeout: Request took too long');
+        
+        if (retryCount < maxRetries) {
+          print('⏳ Retrying in 3 seconds...');
+          await Future.delayed(Duration(seconds: 3));
+          retryCount++;
+          continue;
+        }
+        throw Exception('Request timeout: Taking too long. Please check your connection and try again.');
+      } catch (e) {
+        print('❌ Error submitting evaluation: $e');
+        if (retryCount < maxRetries) {
+          print('⏳ Retrying in 2 seconds...');
+          await Future.delayed(Duration(seconds: 2));
+          retryCount++;
+          continue;
+        }
+        throw Exception('Error submitting evaluation: $e');
       }
-    } catch (e) {
-      print('❌ Error submitting evaluation: $e');
-      throw Exception('Error submitting evaluation: $e');
     }
+    
+    throw Exception('Failed to submit evaluation after $maxRetries retries. Please try again later.');
   }
 
   // Student login - matches React web auth/student-login endpoint
@@ -423,6 +484,78 @@ class ApiService {
     } catch (e) {
       _logError('/api/settings', e);
       return {'eval_enabled': true}; // Default to enabled on error
+    }
+  }
+
+  // NEW: Check if evaluation is enabled (Phase 3)
+  // Shortcut for getSettings()['eval_enabled']
+  static Future<bool> checkEvalEnabled() async {
+    try {
+      final settings = await getSettings();
+      final enabled = settings['eval_enabled'] ?? true;
+      print('📋 Evaluation enabled: $enabled');
+      return enabled;
+    } catch (e) {
+      print('⚠️ Error checking eval_enabled, defaulting to true');
+      return true;
+    }
+  }
+
+  // NEW: Get evaluated teachers for a student (Phase 3 - Cross-device duplicate check)
+  // Returns: {teacher_id: {teacher_name, rating, evaluated_at, positive_feedback, negative_feedback}, ...}
+  static Future<Map<String, dynamic>> getEvaluatedTeachers(String studentNumber) async {
+    try {
+      print('🔍 Fetching evaluated teachers for student: $studentNumber');
+      
+      final response = await http
+          .get(
+            Uri.parse('$baseUrl/api/evaluations/check-evaluated-teachers?student_number=$studentNumber'),
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+          )
+          .timeout(timeout);
+
+      if (response.statusCode == 200) {
+        final dynamic responseBody = jsonDecode(response.body);
+        
+        // Handle nested response format
+        Map<String, dynamic> evaluatedTeachers = {};
+        
+        if (responseBody is Map<String, dynamic>) {
+          if (responseBody.containsKey('data') && responseBody['data'] is Map) {
+            // Format: {data: {teacher_id: {...}, ...}}
+            evaluatedTeachers = Map<String, dynamic>.from(responseBody['data']);
+          } else if (responseBody.containsKey('evaluatedTeachers')) {
+            // Alternative format: {evaluatedTeachers: {teacher_id: {...}, ...}}
+            evaluatedTeachers = Map<String, dynamic>.from(responseBody['evaluatedTeachers']);
+          } else {
+            // Direct format: {teacher_id: {...}, ...}
+            evaluatedTeachers = responseBody;
+          }
+        }
+        
+        print('✅ Found ${evaluatedTeachers.length} evaluated teachers');
+        evaluatedTeachers.forEach((id, data) {
+          print('   - $id: ${data['teacher_name'] ?? 'Unknown'}');
+        });
+        
+        return evaluatedTeachers;
+      } else if (response.statusCode == 404) {
+        // No evaluations for this student
+        print('ℹ️ No evaluations found for student $studentNumber');
+        return {};
+      } else {
+        print('⚠️ Error fetching evaluated teachers: ${response.statusCode}');
+        return {};
+      }
+    } on SocketException catch (e) {
+      print('⚠️ Network error checking evaluated teachers: ${e.message}');
+      return {}; // Return empty map (not evaluated) on network error
+    } catch (e) {
+      print('⚠️ Error checking evaluated teachers: $e');
+      return {}; // Return empty map (not evaluated) on error
     }
   }
 }

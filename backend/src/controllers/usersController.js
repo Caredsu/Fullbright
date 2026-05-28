@@ -119,12 +119,13 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_email, user_password, email, password, role, status } = req.body;
+    const { username, user_email, user_password, email, password, role, status } = req.body;
 
     const adminsCollection = getCollection('admins');
     const { ObjectId } = await import('mongodb');
 
     const updateData = {
+      username: username,
       role: role,
       status: status,
       lastUpdatedBy: req.user?.username || 'system',

@@ -11,7 +11,7 @@ import {
   CardDescription,
 } from '../components/ui/Card';
 import { Skeleton } from '../components/ui/Skeleton';
-import { BarChart3, TrendingUp, Users, CheckSquare } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, CheckSquare, Award, Star } from 'lucide-react';
 
 function Dashboard() {
   const [stats, setStats] = useState({
@@ -25,6 +25,7 @@ function Dashboard() {
     evaluationStatus: { completed: 0, in_progress: 0, pending: 0 },
     recentEvaluations: []
   });
+  const [topTeachers, setTopTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [evalEnabled, setEvalEnabled] = useState(true);
   const navigate = useNavigate();
@@ -89,6 +90,48 @@ function Dashboard() {
     const interval = setInterval(checkSettings, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Calculate top teachers from evaluations data
+  useEffect(() => {
+    if (stats?.recentEvaluations && stats.recentEvaluations.length > 0) {
+      // Group evaluations by teacher and calculate averages
+      const teacherRatings = {};
+      
+      stats.recentEvaluations.forEach(evaluation => {
+        const teacherId = evaluation.teacher_id || evaluation.teacher?.id;
+        const teacherName = evaluation.teacher_name || evaluation.teacher?.name || `${evaluation.teacher?.first_name} ${evaluation.teacher?.last_name}`.trim();
+        const rating = parseFloat(evaluation.rating) || 0;
+        
+        if (teacherId) {
+          if (!teacherRatings[teacherId]) {
+            teacherRatings[teacherId] = {
+              id: teacherId,
+              name: teacherName,
+              department: evaluation.teacher?.department || evaluation.department || 'N/A',
+              ratings: [],
+              evaluationCount: 0
+            };
+          }
+          if (rating > 0) {
+            teacherRatings[teacherId].ratings.push(rating);
+            teacherRatings[teacherId].evaluationCount += 1;
+          }
+        }
+      });
+      
+      // Calculate averages and sort
+      const topTeachersList = Object.values(teacherRatings)
+        .filter(t => t.ratings.length > 0)
+        .map(t => ({
+          ...t,
+          averageRating: (t.ratings.reduce((a, b) => a + b, 0) / t.ratings.length).toFixed(1)
+        }))
+        .sort((a, b) => parseFloat(b.averageRating) - parseFloat(a.averageRating))
+        .slice(0, 5);
+      
+      setTopTeachers(topTeachersList);
+    }
+  }, [stats?.recentEvaluations]);
 
   const analyticsMetrics = [
     {
@@ -175,7 +218,51 @@ function Dashboard() {
     );
   };
 
+  // Top Teachers Leaderboard Component
+  const TopTeachersLeaderboard = ({ teachers }) => {
+    const medalEmojis = ['🥇', '🥈', '🥉', '⭐', '✨'];
+    
+    if (!teachers || teachers.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="text-5xl mb-4">🏆</div>
+          <p className="text-base font-semibold text-gray-700 mb-2">No ratings yet</p>
+          <p className="text-sm text-muted-foreground mb-6 max-w-md">
+            Top performing teachers will appear here once they receive evaluations.
+          </p>
+        </div>
+      );
+    }
 
+    return (
+      <div className="space-y-2">
+        {teachers.map((teacher, idx) => (
+          <div 
+            key={teacher.id} 
+            className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all cursor-pointer"
+            onClick={() => navigate('/results')}
+          >
+            {/* Rank Badge */}
+            <div className="text-2xl font-bold min-w-fit">{medalEmojis[idx] || '⭐'}</div>
+            
+            {/* Teacher Info */}
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900 truncate">{teacher.name}</p>
+              <p className="text-sm text-gray-600">{teacher.department}</p>
+            </div>
+            
+            {/* Rating Display */}
+            <div className="flex items-center gap-2 ml-auto pl-4 border-l border-gray-300">
+              <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+              <span className="font-bold text-lg text-gray-900">{teacher.averageRating}</span>
+              <span className="text-sm text-gray-600">/5</span>
+              <span className="text-xs text-gray-500 ml-1">({teacher.evaluationCount})</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   // Recent evaluations table
   const RecentEvaluationsTable = ({ evaluations, navigate }) => {
@@ -259,6 +346,22 @@ function Dashboard() {
           );
         })}
       </div>
+
+      {/* Top Teachers Leaderboard */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Award className="w-5 h-5 text-amber-500" />
+            <div className="flex-1">
+              <CardTitle>Top Performing Teachers</CardTitle>
+              <CardDescription>Teachers with highest average ratings</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <TopTeachersLeaderboard teachers={topTeachers} />
+        </CardContent>
+      </Card>
 
       {/* Analytics Charts - Removed Evaluation Status Section */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">

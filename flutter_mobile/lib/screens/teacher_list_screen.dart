@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/evaluation_history_service.dart';
 import '../models/teacher.dart';
 import 'evaluation_screen.dart';
-import 'settings_screen.dart';
 
 class TeacherListScreen extends StatefulWidget {
   const TeacherListScreen({Key? key}) : super(key: key);
@@ -131,18 +131,6 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _loadTeachers,
             tooltip: 'Refresh',
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-            tooltip: 'Settings',
           ),
           IconButton(
             icon: const Icon(Icons.logout),
@@ -489,30 +477,96 @@ class _TeacherListScreenState extends State<TeacherListScreen> {
                 // Teacher Header with Avatar and Name
                 Row(
                   children: [
-                    // Avatar with Gradient
+                    // Avatar with Teacher Picture or Gradient Fallback
                     Container(
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: wasEvaluated
-                              ? [Colors.grey.shade300, Colors.grey.shade400]
-                              : const [Color(0xFF8b5cf6), Color(0xFF06b6d4)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                        border: Border.all(
+                          color: wasEvaluated ? Colors.grey.shade300 : Colors.grey.shade200,
+                          width: 2,
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          initial,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ),
+                      child: teacher.profileImage != null && teacher.profileImage!.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: teacher.profileImage!,
+                              imageBuilder: (context, imageProvider) => Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    image: imageProvider,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              placeholder: (context, url) => Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: wasEvaluated
+                                        ? [Colors.grey.shade300, Colors.grey.shade400]
+                                        : const [Color(0xFF8b5cf6), Color(0xFF06b6d4)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    initial,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: wasEvaluated
+                                        ? [Colors.grey.shade300, Colors.grey.shade400]
+                                        : const [Color(0xFF8b5cf6), Color(0xFF06b6d4)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    initial,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: wasEvaluated
+                                      ? [Colors.grey.shade300, Colors.grey.shade400]
+                                      : const [Color(0xFF8b5cf6), Color(0xFF06b6d4)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  initial,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ),
+                            ),
                     ),
                     const SizedBox(width: 16),
                     // Name and Email

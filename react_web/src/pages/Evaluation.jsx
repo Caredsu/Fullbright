@@ -611,7 +611,7 @@ export default function Evaluation() {
                             )}
                           </div>
                           
-                          <div className="rating-scale">
+                          <div className="rating-scale" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {[1, 2, 3, 4, 5].map(rating => {
                               const choiceDesc = question.choice_descriptions?.[String(rating)] || 
                                 question.rating_scale?.[String(rating)] || 
@@ -620,7 +620,17 @@ export default function Evaluation() {
                               const isSelected = responses[question.id] === rating;
                               
                               return (
-                                <label key={rating} className={`rating-button ${isSelected ? 'selected' : ''}`}>
+                                <label key={rating} className={`rating-button ${isSelected ? 'selected' : ''}`} style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  padding: '12px',
+                                  border: isSelected ? '2px solid #667eea' : '1px solid #e2e8f0',
+                                  borderRadius: '8px',
+                                  cursor: isUnlocked ? 'pointer' : 'not-allowed',
+                                  backgroundColor: isSelected ? '#eff6ff' : 'white',
+                                  transition: 'all 0.2s ease',
+                                  gap: '12px'
+                                }}>
                                   <input
                                     type="radio"
                                     name={`question_${question.id}`}
@@ -637,11 +647,12 @@ export default function Evaluation() {
                                       }
                                     }}
                                     disabled={!isUnlocked}
+                                    style={{ width: '20px', height: '20px', cursor: isUnlocked ? 'pointer' : 'not-allowed' }}
                                   />
-                                  <div className="rating-content">
-                                    <span className="rating-number">{rating}</span>
+                                  <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                                    <span style={{ fontWeight: 'bold', color: isSelected ? '#667eea' : '#333', fontSize: '15px' }}>{rating}</span>
+                                    {choiceDesc && <span style={{ fontSize: '13px', color: isSelected ? '#667eea' : '#666' }}>{choiceDesc}</span>}
                                   </div>
-                                  <div className="rating-tooltip">{choiceDesc}</div>
                                 </label>
                               );
                             })}

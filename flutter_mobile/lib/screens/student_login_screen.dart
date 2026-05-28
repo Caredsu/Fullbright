@@ -40,18 +40,11 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                 children: [
                   // Header with logo
                   Center(
-                    child: Container(
+                    child: Image.asset(
+                      'assets/images/fbc_logo2.png',
                       width: 100,
                       height: 100,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1976D2).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.school,
-                        size: 50,
-                        color: Color(0xFF1976D2),
-                      ),
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -64,18 +57,6 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF1F2937),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Subtitle
-                  const Center(
-                    child: Text(
-                      'Enter your student number to proceed',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF6B7280),
                       ),
                     ),
                   ),
@@ -316,39 +297,6 @@ class _StudentLoginScreenState extends State<StudentLoginScreen> {
                                       color: Colors.white,
                                     ),
                                   ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Help text
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: const Color(0xFFBFDBFE),
-                      ),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Color(0xFF1976D2),
-                          size: 18,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Format: 10 digits (e.g., 2201010099) from your student ID card',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF1976D2),
-                              fontWeight: FontWeight.w500,
-                            ),
                           ),
                         ),
                       ],
