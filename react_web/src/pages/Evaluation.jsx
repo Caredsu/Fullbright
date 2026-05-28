@@ -83,9 +83,6 @@ export default function Evaluation() {
     // Check every 5 seconds for setting changes
     const interval = setInterval(checkSettings, 5000);
     return () => clearInterval(interval);
-    // Check every 5 seconds for setting changes
-    const interval = setInterval(checkSettings, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
