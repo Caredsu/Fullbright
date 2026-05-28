@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { LogOut, Settings, User } from 'lucide-react';
 import { authAPI } from '@/services/api';
 import NotificationCenter from './NotificationCenter';
+import useToast from '@/hooks/useToast';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ interface TopBarProps {
 
 export function TopBar({ user, onLogout }: TopBarProps) {
   const navigate = useNavigate();
+  const { success: showSuccessToast } = useToast();
 
   const handleLogout = async () => {
     try {
@@ -27,8 +29,14 @@ export function TopBar({ user, onLogout }: TopBarProps) {
     } catch (error) {
       console.error('Logout error:', error);
     }
+    // Show goodbye toast with username
+    showSuccessToast(`See you later, ${user?.username}! 👋`);
     onLogout?.();
-    navigate('/login');
+    
+    // Give toast time to display before navigating
+    setTimeout(() => {
+      navigate('/login');
+    }, 2000);
   };
 
   return (

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authAPI } from '../services/api';
+import useToast from '../hooks/useToast';
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -8,6 +9,7 @@ function Login({ onLogin }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { success: showSuccessToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,6 +22,10 @@ function Login({ onLogin }) {
       console.log('✅ Login response:', response.data);
       const { user, token } = response.data;
       console.log('📝 Storing token and user:', { user, token: token?.substring(0, 20) + '...' });
+      
+      // Show welcome toast with username
+      showSuccessToast(`Welcome, ${user.username}! 👋`);
+      
       onLogin(user, token);
       navigate('/admin');
     } catch (err) {

@@ -35,6 +35,11 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   bool _screenInitialized = false;
   int _currentSet = 1; // NEW: Track current set (1-5)
   
+  // TextEditingControllers (FIX: Proper lifecycle management to prevent text reversal)
+  late TextEditingController _positiveFeedbackController;
+  late TextEditingController _negativeFeedbackController;
+  Map<String, TextEditingController> _answerControllers = {};
+  
   // Services
   final DraftService _draftService = DraftService();
   final DuplicatePreventionService _duplicateService = DuplicatePreventionService();
@@ -49,6 +54,9 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   @override
   void initState() {
     super.initState();
+    // Initialize TextEditingControllers for feedback fields
+    _positiveFeedbackController = TextEditingController(text: _positiveFeedback ?? '');
+    _negativeFeedbackController = TextEditingController(text: _negativeFeedback ?? '');
     _questionsFuture = _initializeEvaluation();
   }
 
@@ -277,6 +285,15 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
       _positiveFeedback = draft['positiveFeedback'] as String?;
       _negativeFeedback = draft['negativeFeedback'] as String?;
       _draftSavedTime = DateTime.parse(draft['savedAt'] as String);
+      
+      // FIX: Update TextEditingControllers to prevent text reversal
+      _positiveFeedbackController.text = _positiveFeedback ?? '';
+      _negativeFeedbackController.text = _negativeFeedback ?? '';
+      
+      // Update answer controllers
+      for (final entry in _answers.entries) {
+        _getOrCreateAnswerController(entry.key).text = entry.value.toString();
+      }
     });
     ToastService.showInfo(context, '✅ Draft recovered');
   }
@@ -288,6 +305,14 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
       _positiveFeedback = null;
       _negativeFeedback = null;
       _currentSet = 1;
+      
+      // FIX: Clear TextEditingControllers
+      _positiveFeedbackController.clear();
+      _negativeFeedbackController.clear();
+      for (final controller in _answerControllers.values) {
+        controller.clear();
+      }
+      _answerControllers.clear();
     });
   }
 
@@ -707,6 +732,12 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
   @override
   void dispose() {
     _expirationWarningTimer?.cancel();
+    // Dispose TextEditingControllers to prevent memory leaks
+    _positiveFeedbackController.dispose();
+    _negativeFeedbackController.dispose();
+    for (final controller in _answerControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -1169,7 +1200,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
               maxLines: 3,
               maxLength: 500,
               textDirection: TextDirection.ltr,
-              controller: TextEditingController(text: _positiveFeedback ?? ''),
+              controller: _positiveFeedbackController,
               decoration: InputDecoration(
                 hintText: 'Share positive aspects...',
                 border: OutlineInputBorder(
@@ -1206,7 +1237,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
               maxLines: 3,
               maxLength: 500,
               textDirection: TextDirection.ltr,
-              controller: TextEditingController(text: _negativeFeedback ?? ''),
+              controller: _negativeFeedbackController,
               decoration: InputDecoration(
                 hintText: 'Share constructive feedback...',
                 border: OutlineInputBorder(
@@ -1433,9 +1464,7 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
               )
             else
               TextField(
-                controller: TextEditingController(
-                  text: _answers[question.id] ?? '',
-                ),
+                controller: _getOrCreateAnswerController(question.id),
                 decoration: InputDecoration(
                   hintText: 'Your answer...',
                   border: OutlineInputBorder(
@@ -1453,5 +1482,15 @@ class _EvaluationScreenState extends State<EvaluationScreen> {
         ),
       ),
     );
+  }
+
+  /// Get or create a TextEditingController for a specific question answer
+  TextEditingController _getOrCreateAnswerController(String questionId) {
+    if (!_answerControllers.containsKey(questionId)) {
+      _answerControllers[questionId] = TextEditingController(
+        text: _answers[questionId] ?? '',
+      );
+    }
+    return _answerControllers[questionId]!;
   }
 }

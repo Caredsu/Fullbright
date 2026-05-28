@@ -13,9 +13,16 @@ import Settings from './pages/Settings';
 // Components
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
+import ToastContainer from './components/ToastContainer';
+
+// Contexts
+import { ToastProvider } from './contexts/ToastContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Hooks
 import { useAuth } from './hooks/useAuth';
+import useToast from './hooks/useToast';
+import { useAuthContext } from './hooks/useAuthContext';
 
 // Protected Route Component
 function ProtectedRoute({ element, requiredRole }) {
@@ -32,19 +39,20 @@ function ProtectedRoute({ element, requiredRole }) {
   return element;
 }
 
-function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
+function AppContent() {
+  const { isAuthenticated, user, login, logout } = useAuthContext();
   const location = useLocation();
   const { canAccessUsers, canAccessSettings } = useAuth();
 
   if (!isAuthenticated) {
-    return <Login onLogin={onLogin} />;
+    return <Login onLogin={login} />;
   }
 
   return (
     <div className="admin-layout">
-      <Sidebar user={user} onLogout={onLogout} />
+      <Sidebar user={user} onLogout={logout} />
       <div className="main-content md:ml-64">
-        <TopBar user={user} onLogout={onLogout} />
+        <TopBar user={user} onLogout={logout} />
         <main className="page-container">
           <div className="page-content">
             <Routes>
@@ -69,43 +77,31 @@ function AppContent({ isAuthenticated, user, onLogin, onLogout }) {
   );
 }
 
-function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    const savedUser = localStorage.getItem('adminUser');
-    if (token && savedUser) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
-
-  const handleLogin = (userData, token) => {
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('adminUser', JSON.stringify(userData));
-    setIsAuthenticated(true);
-    setUser(userData);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    setIsAuthenticated(false);
-    setUser(null);
-  };
-
+function AppWithToasts() {
+  const { toasts, removeToast } = useToast();
+  
   return (
-    <Router>
-      <AppContent 
-        isAuthenticated={isAuthenticated} 
-        user={user} 
-        onLogin={handleLogin} 
-        onLogout={handleLogout} 
-      />
-    </Router>
+    <>
+      <AppContent />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+    </>
   );
+}
+
+function AppWithProviders() {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <Router>
+          <AppWithToasts />
+        </Router>
+      </ToastProvider>
+    </AuthProvider>
+  );
+}
+
+function App() {
+  return <AppWithProviders />;
 }
 
 export default App;
